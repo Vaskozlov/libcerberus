@@ -17,19 +17,23 @@ namespace cerb {
         T _data[_size / bitsizeof(T) + (_size % bitsizeof(T) > 0)];
 
     public:
-        [[nodiscard]] constexpr auto size() const -> size_t {
+        [[nodiscard]]
+        constexpr auto size() const -> size_t {
             return _size;
         }
 
-        [[nodiscard]] constexpr auto data() const -> const T * {
+        [[nodiscard]]
+        constexpr auto data() const -> const T * {
             return _data;
         }
 
-        [[nodiscard]] constexpr auto sizeOfArray() const -> size_t {
+        [[nodiscard]]
+        constexpr auto sizeOfArray() const -> size_t {
             return size() / bitsizeof(T) + (size() % bitsizeof(T) != 0);
         }
 
-        [[nodiscard]] constexpr auto sizeOfData() const -> size_t {
+        [[nodiscard]]
+        constexpr auto sizeOfData() const -> size_t {
             return sizeOfArray() * sizeof(T);
         }
 
@@ -43,24 +47,29 @@ namespace cerb {
             PRIVATE::set<value>(_data, index);
         }
 
-        [[nodiscard]] always_inline auto isEmpty() const -> bool {
+        [[nodiscard]]
+        always_inline auto isEmpty() const -> bool {
             return PRIVATE::isEmpty(data(), size());
         }
 
-        [[nodiscard]] always_inline auto findFree() const -> size_t {
-            return PRIVATE::findFree(data(), size());
+        template<u8 firstValue> [[nodiscard]]
+        always_inline auto findWithRule() const -> size_t {
+            return PRIVATE::findWithRule<firstValue>(data(), size());
         }
 
     public:
-        [[nodiscard]] always_inline auto at(size_t index) const -> u8 {
+        [[nodiscard]]
+        always_inline auto at(size_t index) const -> u8 {
             return PRIVATE::at(data(), index);
         }
 
-        [[nodiscard]] always_inline auto operator[](size_t index) const -> u8 {
+        [[nodiscard]]
+        always_inline auto operator[](size_t index) const -> u8 {
             return this->at(index);
         }
 
-        [[nodiscard]] always_inline auto operator[](size_t index) noexcept -> PRIVATE::BitmapElem<T> {
+        [[nodiscard]]
+        always_inline auto operator[](size_t index) noexcept -> PRIVATE::BitmapElem<T> {
             return {static_cast<u16>(index % bitsizeof(T)), _data + (index / bitsizeof(T))};
         }
 
@@ -93,7 +102,12 @@ namespace cerb {
         }
 
     public:
-       auto operator=(const PRIVATE::bitmapAPI<T> &other) -> freeBitmap& {
+        inline auto operator=(freeBitmap<T> &&other) noexcept -> freeBitmap& {
+            _size = std::exchange(other._size, 0);
+            _data = std::exchange(other._data, nullptr);
+        }
+
+        auto operator=(const PRIVATE::bitmapAPI<T> &other) -> freeBitmap& {
             if (sizeOfArray() < other.sizeOfArray()) UNLIKELY {
                 _size = 0;
                 _data = nullptr;
@@ -106,20 +120,15 @@ namespace cerb {
             return *this;
        }
 
-       auto operator=(freeBitmap<T> &&other) noexcept -> freeBitmap& {
-            _size = std::exchange(other._size, 0);
-            _data = std::exchange(other._data, nullptr);
-       }
-
     public:
-        freeBitmap(freeBitmap&) = delete;
-        freeBitmap(freeBitmap&&) noexcept = default;
+        freeBitmap(freeBitmap&) = default;
+        freeBitmap(freeBitmap<T> &&other) noexcept = default;
 
         always_inline freeBitmap()
             : PRIVATE::bitmapAPI<T>::bitmapAPI(nullptr, 0)
         {}
 
-        inline freeBitmap(T *buffer, size_t size)
+        always_inline freeBitmap(T *buffer, size_t size)
                 : PRIVATE::bitmapAPI<T>::bitmapAPI(buffer, size)
         {}
 
@@ -135,19 +144,11 @@ namespace cerb {
         {
             cerb::memcpy(buffer, other.data(), other.sizeOfArray());
         }
-
-        /*
-         * At the moment I don't know which way is better to have move constructor
-        inline freeBitmap(freeBitmap<T> &&other) noexcept {
-            _size = std::exchange(other._size, 0);
-            _data = std::exchange(other._data, nullptr);
-        }
-         */
     };
 
     template<typename T>
     class TRIVIAL bitmap final : public PRIVATE::bitmapAPI<T>{
-        u64 _capicity;
+        u64 _capacity;
 
     private:
         using PRIVATE::bitmapAPI<T>::_data;
@@ -160,15 +161,18 @@ namespace cerb {
         using PRIVATE::bitmapAPI<T>::toAPI;
 
     public:
-        [[nodiscard]] always_inline auto capacity() const -> size_t {
-            return _capicity;
+        [[nodiscard]]
+        always_inline auto capacity() const -> size_t {
+            return _capacity;
         }
 
-        [[nodiscard]] always_inline auto capacityOfArray() const -> size_t {
+        [[nodiscard]]
+        always_inline auto capacityOfArray() const -> size_t {
             return capacity() / bitsizeof(T);
         }
 
-        [[nodiscard]] always_inline auto capacitySize() const -> size_t {
+        [[nodiscard]]
+        always_inline auto capacitySize() const -> size_t {
             return capacityOfArray() * sizeof(T);
         }
 
@@ -178,7 +182,7 @@ namespace cerb {
                 auto oldSize = capacityOfArray();
                 auto oldBuffer = _data;
 
-                _capicity = cerb::align<cerb::log2(bitsizeof(T))>(newSize);
+                _capacity = cerb::align<cerb::log2(bitsizeof(T))>(newSize);
                 _data = static_cast<T*>(::operator new(capacitySize()));
                 cerb::memcpy(_data, oldBuffer, oldSize);
 
@@ -199,7 +203,7 @@ namespace cerb {
 
             _size = std::exchange(other.size(), 0);
             _data = std::exchange(other._data, nullptr);
-            _capicity = std::exchange(other.capacity(), nullptr);
+            _capacity = std::exchange(other.capacity(), nullptr);
 
             return *this;
         }
@@ -207,7 +211,7 @@ namespace cerb {
         inline auto operator=(const PRIVATE::bitmapAPI<T> &other) noexcept -> bitmap<T>& {
             if (capacityOfArray() < other.sizeOfArray()) UNLIKELY {
                 ::operator delete(_data);
-                _capicity = cerb::align<cerb::log2(bitsizeof(T))>(other.size());
+                _capacity = cerb::align<cerb::log2(bitsizeof(T))>(other.size());
                 _data = static_cast<T*>(::operator new(capacitySize()));
             }
 
@@ -221,7 +225,7 @@ namespace cerb {
         inline auto operator=(constBitmap<T, bitmapSize> &other) noexcept -> bitmap<T>& {
             if (other.sizeOfArray() < capacityOfArray()) UNLIKELY {
                 ::operator delete (_data);
-                _capicity = cerb::align<cerb::log2(bitsizeof(T))>(other.size());
+                _capacity = cerb::align<cerb::log2(bitsizeof(T))>(other.size());
                 _data = static_cast<T*>(::operator new(capacitySize()));
             }
 
@@ -236,12 +240,12 @@ namespace cerb {
 
     public:
         always_inline bitmap() :
-                _capicity(0),
+                _capacity(0),
                 PRIVATE::bitmapAPI<T>::bitmapAPI(nullptr, 0)
         {}
 
         inline bitmap(PRIVATE::bitmapAPI<T> &other) noexcept :
-                _capicity(cerb::align<cerb::log2(bitsizeof(T))>(other.size())),
+                _capacity(cerb::align<cerb::log2(bitsizeof(T))>(other.size())),
                 PRIVATE::bitmapAPI<T>::bitmapAPI(
                         static_cast<T*>(::operator new(other.sizeOfData())),
                         other.size()
@@ -253,12 +257,12 @@ namespace cerb {
         inline bitmap(bitmap &&other) noexcept {
             _size = std::exchange(other._size, 0);
             _data = std::exchange(other._data, nullptr);
-            _capicity = std::exchange(other._capicity, 0);
+            _capacity = std::exchange(other._capacity, 0);
         }
 
         template<size_t bitmapSize>
         inline bitmap(constBitmap<T, bitmapSize> &other) noexcept :
-                _capicity(other.sizeOfArray() * bitsizeof(T)),
+                _capacity(other.sizeOfArray() * bitsizeof(T)),
                 PRIVATE::bitmapAPI<T>::bitmapAPI(
                         static_cast<T*>(::operator new(other.sizeOfData())),
                         bitmapSize
@@ -268,10 +272,10 @@ namespace cerb {
         }
 
         inline bitmap(size_t numberOfElems) :
-            PRIVATE::bitmapAPI<T>::bitmapAPI(
+                PRIVATE::bitmapAPI<T>::bitmapAPI(
                     static_cast<T*>(::operator new(cerb::align<cerb::log2(bitsizeof(T))>(numberOfElems) / sizeof(T))),
                     numberOfElems
-            ), _capicity(cerb::align<cerb::log2(bitsizeof(T))>(numberOfElems))
+            ), _capacity(cerb::align<cerb::log2(bitsizeof(T))>(numberOfElems))
         {}
 
         ~bitmap() {

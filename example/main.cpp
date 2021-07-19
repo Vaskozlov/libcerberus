@@ -1,4 +1,5 @@
 #include <cmath>
+#include <random>
 #include <string.h>
 #include <iostream>
 #include <cerberus/types.h>
@@ -8,9 +9,15 @@
 #include <chrono>
 #include <set>
 #include <memory_resource>
+#include <cerberus/doubleBitmap.hpp>
+#include <cerberus/arrayProtocol.hpp>
 
 u64 globalFreeBuffer[40];
 cerb::freeBitmap<u64> globalFreeBitmap(globalFreeBuffer, bitsizeof(globalFreeBuffer));
+
+std::random_device rd;
+std::mt19937 mt(rd());
+std::uniform_int_distribution<u64> dist(0, 1024);
 
 template<typename T1, typename T2>
 __attribute__((noinline)) static int cmpBitmaps(T1 &&bitmap1, T2 &&bitmap2, std::set<size_t> &positions) {
@@ -48,7 +55,7 @@ int testOfFreeBitmap(size_t size) {
     std::set<size_t> positions;
 
     for (size_t i = 0; i < 500; i++) {
-        auto value = static_cast<size_t>(rand() % bitmap1.size());
+        auto value = static_cast<size_t>(dist(mt) % bitmap1.size());
         positions.insert(value);
         bitmap1.set<1>(value);
     }
@@ -83,7 +90,7 @@ int testOfBitmap(size_t size) {
     std::set<size_t> positions{};
 
     for (size_t i = 0; i < 500; i++) {
-        auto value = static_cast<size_t>(rand() % bitmap1.size());
+        auto value = static_cast<size_t>(dist(mt) % bitmap1.size());
 
         if (positions.count(value) == 0) {
             positions.insert(value);
@@ -106,8 +113,22 @@ int testOfBitmap(size_t size) {
     return cmpBitmaps(std::move(globalBitmap), std::move(bitmap1), positions);
 }
 
+u64 buffer[100];
+cerb::freeDoubleBitmap<u64> a(buffer, 256);
+
+
 auto main(int argc, char *argv[]) -> int {
-    printf("Bitmap test: %d\n", testOfBitmap(1024 * argc));
-    printf("freeBitmap test: %i\n", testOfFreeBitmap(1024 * argc));
+
+    cerb::ArrayProtocol<u64, false, 10> array{}; // u64 array[10];
+    cerb::ArrayProtocol<u64, true> pointer = new u64[10]; // u64 *pointer;
+
+    pointer[0] = 10;
+    array[0] = 10;
+
+    array.get(); // -> T * (address of array)
+    pointer.get(); // -> T * (address of array)
+
+    printf("Pointer size: %lu, array size: %lu\n", sizeof(pointer), sizeof(array));
+
     return 0;
 }

@@ -144,21 +144,31 @@ namespace cerb {
             return (buffer[elemIndex] & (static_cast<T>(1) << bitIndex)) != 0;
         }
 
-        template<typename T>
-        static auto findFree(const T *buffer, size_t limit) noexcept -> size_t {
+        template<u8 firstValue, typename T>
+        static auto findWithRule(const T *buffer, size_t limit) noexcept -> size_t {
             size_t index = 0;
             auto maxElemIndex = limit / bitsizeof(T);
+
+            auto computeFunction = [](T first) {
+                if constexpr (firstValue == 1) {
+                    first = ~first;
+                }
+                return first;
+            };
             
             // search for value which is smaller than max(T)
             for (; index < maxElemIndex; ++index) {
-                if (buffer[index] < ~static_cast<T>(0)) {
-                    return index * bitsizeof(T) + cerb::findFreeBit(static_cast<u64>(buffer[index]));
+                T value = computeFunction(buffer[index]);
+
+                if (value < ~static_cast<T>(0)) {
+                    return index * bitsizeof(T) + cerb::findFreeBit(static_cast<u64>(value));
                 }
             }
 
             // limit may be not a power of 2, so we need to remainder
-            if (buffer[index] < ~static_cast<T>(0)) { // we MUST check if there are some free values, otherwise findFreeBit is unsafe
-                auto bitIndex = cerb::findFreeBit(buffer[index]);
+            T value = computeFunction(buffer[index]);
+            if (value < ~static_cast<T>(0)) { // we MUST check if there are some free values, otherwise findFreeBit is unsafe
+                auto bitIndex = cerb::findFreeBit(value);
                 return cerb::cmov<size_t>(bitIndex < limit % bitsizeof(T), index * bitsizeof(T) + bitIndex, UINTMAX_MAX);
             }
 
@@ -195,26 +205,30 @@ namespace cerb {
             return (buffer[index] & value2bits[limit % bitsizeof(T)]) == 0;
         }
 
-        template<typename T>
+        template<typename T, int POINTABLE, size_t SIZE = 0>
         class TRIVIAL bitmapAPI {
         protected:
             T       *_data;
             size_t  _size;
 
         public:
-            [[nodiscard]] always_inline auto size() const -> size_t {
+            [[nodiscard]]
+            always_inline auto size() const -> size_t {
                 return _size;
             }
 
-            [[nodiscard]] always_inline auto data() const -> T * {
+            [[nodiscard]]
+            always_inline auto data() const -> T * {
                 return _data;
             }
 
-            [[nodiscard]] always_inline auto sizeOfArray() const -> size_t {
+            [[nodiscard]]
+            always_inline auto sizeOfArray() const -> size_t {
                 return size() / bitsizeof(T) + (size() % bitsizeof(T) != 0);
             }
 
-            [[nodiscard]] always_inline auto sizeOfData() const -> size_t {
+            [[nodiscard]]
+            always_inline auto sizeOfData() const -> size_t {
                 return sizeOfArray() * sizeof(T);
             }
 
@@ -223,33 +237,38 @@ namespace cerb {
                 PRIVATE::clear(_data, size());
             }
 
-            [[nodiscard]] always_inline auto isEmpty() const -> bool {
+            [[nodiscard]]
+            always_inline auto isEmpty() const -> bool {
                 return PRIVATE::isEmpty(data(), size());
             }
 
-            [[nodiscard]] always_inline auto findFree() const noexcept -> size_t {
-                return PRIVATE::findFree(data(), size());
+            template<u8 firstValue> [[nodiscard]]
+            always_inline auto findWithRule() const noexcept -> size_t {
+                return PRIVATE::findWithRule<firstValue>(data(), size());
             }
 
-            template<auto value>
+            template<u8 value>
             always_inline void set(size_t index) noexcept {
                 PRIVATE::set<value>(_data, index);
             }
 
+            always_inline void set(size_t index, u8 value) noexcept {
+                PRIVATE::set(_data, index, value);
+            }
+
         public:
-            [[nodiscard]] always_inline auto at(size_t index) const noexcept -> u8 {
+            [[nodiscard]]
+            always_inline auto at(size_t index) const noexcept -> u8 {
                 return PRIVATE::at(_data, index);
             }
 
-            [[nodiscard]] always_inline auto operator[](size_t index) const noexcept -> u8 {
-                return this->at(index);
-            }
-
-            [[nodiscard]] always_inline auto operator[](size_t index) noexcept -> BitmapElem<T>{
+            [[nodiscard]]
+            always_inline auto operator[](size_t index) noexcept -> BitmapElem<T> {
                 return {static_cast<u16>(index % bitsizeof(T)), _data + (index / bitsizeof(T))};
             }
 
         public:
+            [[nodiscard]]
             always_inline auto toAPI() -> bitmapAPI<T>& {
                 return dynamic_cast<bitmapAPI<T>&>(*this);
             }
@@ -263,7 +282,8 @@ namespace cerb {
 
             always_inline bitmapAPI(T *buffer, size_t size)
                 : _data(buffer), _size(size)
-            {}
+            {
+            }
         };
     } // namespace cerb::PRIVATE
 } // namespace cerb

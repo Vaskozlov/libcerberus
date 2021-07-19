@@ -199,7 +199,6 @@ namespace cerb {
         if (_times == 0) UNLIKELY {
             return;
         }
-
         if constexpr (sizeof(T) == sizeof(u8)) {
             memcpy8(_dest, _src, _times);
         } else if constexpr (sizeof(T) == sizeof(u16)) {

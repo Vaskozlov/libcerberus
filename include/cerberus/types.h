@@ -170,7 +170,7 @@ namespace cerb {
      * @return condition ? _on_true : _on_false
      */
     template<typename T>
-    constexpr auto cmov(bool condition, const T _on_true, const T _on_false) -> T {
+    constexpr auto cmov(bool condition, const T &_on_true, const T &_on_false) -> T {
         return condition ? _on_true : _on_false;
     }
 
