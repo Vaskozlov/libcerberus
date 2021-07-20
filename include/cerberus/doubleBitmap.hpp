@@ -16,17 +16,12 @@ namespace cerb {
 
     template<typename T, size_t _size>
     class constDoubleBitmap final: public PRIVATE::doubleBitmapAPI<T, false, _size> {
-        using PRIVATE::doubleBitmapAPI<T, true>::_size;
-        using PRIVATE::doubleBitmapAPI<T, true>::_data1;
-        using PRIVATE::doubleBitmapAPI<T, true>::_data2;
+        using PRIVATE::doubleBitmapAPI<T, false, _size>::_data1;
+        using PRIVATE::doubleBitmapAPI<T, false, _size>::_data2;
 
     public:
-        using PRIVATE::doubleBitmapAPI<T, true>::size;
-        using PRIVATE::doubleBitmapAPI<T, true>::data1;
-        using PRIVATE::doubleBitmapAPI<T, true>::data2;
-        using PRIVATE::doubleBitmapAPI<T, true>::toAPI;
-        using PRIVATE::doubleBitmapAPI<T, true>::sizeOfData;
-        using PRIVATE::doubleBitmapAPI<T, true>::sizeOfArray;
+        using PRIVATE::doubleBitmapAPI<T, false, _size>::size;
+        using PRIVATE::doubleBitmapAPI<T, false, _size>::sizeOfArray;
 
     public:
         auto operator=(const constDoubleBitmap &) -> constDoubleBitmap& = default;
