@@ -17,19 +17,19 @@ namespace cerb {
         ArrayData m_p;
 
     public:
-        always_inline constexpr auto get() -> T * {
+        always_inline auto get() -> T * {
             if constexpr (POINTABLE != 0) {
                 return m_p.pointer[0];
             } else {
-                return m_p.data;
+                return static_cast<T*>(m_p.data);
             }
         }
 
-        always_inline constexpr auto get() const -> T * {
+        always_inline constexpr auto get() const -> const T * {
             if constexpr (POINTABLE != 0) {
                 return m_p.pointer[0];
             } else {
-                return m_p.data;
+                return static_cast<const T*>(m_p.data);
             }
         }
 
@@ -47,6 +47,17 @@ namespace cerb {
             } else {
                 return m_p.data[index];
             }
+        }
+
+    public:
+        [[nodiscard]]
+        always_inline operator T *() {
+            return get();
+        }
+
+        [[nodiscard]]
+        always_inline operator T *() const {
+            return get();
         }
 
     public:

@@ -114,21 +114,15 @@ int testOfBitmap(size_t size) {
 }
 
 u64 buffer[100];
+cerb::constBitmap<u64, 128> cBitmap;
 cerb::freeDoubleBitmap<u64> a(buffer, 256);
 
 
 auto main(int argc, char *argv[]) -> int {
 
-    cerb::ArrayProtocol<u64, false, 10> array{}; // u64 array[10];
-    cerb::ArrayProtocol<u64, true> pointer = new u64[10]; // u64 *pointer;
+    cBitmap.set<1>(0);
 
-    pointer[0] = 10;
-    array[0] = 10;
-
-    array.get(); // -> T * (address of array)
-    pointer.get(); // -> T * (address of array)
-
-    printf("Pointer size: %lu, array size: %lu\n", sizeof(pointer), sizeof(array));
-
+    printf("Test of bitmap: %d\nTest of freeBitmap: %d\n", testOfBitmap(1024), testOfFreeBitmap(1024));
+    printf("At(0): %d\n", cBitmap.at(0));
     return 0;
 }

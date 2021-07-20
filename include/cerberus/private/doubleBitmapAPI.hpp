@@ -6,19 +6,29 @@
 
 namespace cerb {
     namespace PRIVATE {
-
         struct TRIVIAL DoubleReturn {
             u8 first : 1;
             u8 second : 1;
+
+        public:
+            auto operator=(const DoubleReturn&) -> DoubleReturn& = default;
+            auto operator=(DoubleReturn&&) noexcept -> DoubleReturn& = default;
+
+        public:
+            DoubleReturn() = default;
+            ~DoubleReturn() = default;
+
+            DoubleReturn(DoubleReturn&) = default;
+            DoubleReturn(DoubleReturn&&) noexcept = default;
         };
 
         template<typename T>
-        struct DoubleBitmapElem {
+        struct TRIVIAL DoubleBitmapElem {
             BitmapElem<T> first;
             BitmapElem<T> second;
 
         public:
-            auto operator=(DoubleBitmapElem<T>&) -> DoubleBitmapElem<T>& = default;
+            auto operator=(const DoubleBitmapElem<T>&) -> DoubleBitmapElem<T>& = default;
             auto operator=(DoubleBitmapElem<T>&&) noexcept -> DoubleBitmapElem<T>& = default;
 
             always_inline auto operator=(std::pair<u8, u8> newValues) noexcept -> DoubleBitmapElem<T>& {
@@ -41,7 +51,7 @@ namespace cerb {
 
         template<typename T> [[nodiscard]]
         static auto at2(const T *buffer1, const T *buffer2, size_t index) noexcept -> DoubleReturn {
-            DoubleReturn result;
+            DoubleReturn result{};
             auto elemIndex = index / bitsizeof(T);
             auto bitIndex = index % bitsizeof(T);
 
@@ -79,7 +89,7 @@ namespace cerb {
             buffer2[elemIndex] |= static_cast<T>(value) << static_cast<T>(bitIndex);
         }
 
-        template<u8 firstValue, u8 secondValue, typename T>
+        template<u8 firstValue, u8 secondValue, typename T> [[nodiscard]]
         auto findWithRule(const T *buffer1, const T *buffer2, size_t limit) noexcept -> size_t {
             size_t index = 0;
             auto maxElemIndex = limit / bitsizeof(T);
@@ -131,45 +141,56 @@ namespace cerb {
             );
         }
 
-        template<typename T>
+        template<typename T, int POINTABLE, size_t SIZE = 0>
         class TRIVIAL doubleBitmapAPI {
+            static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
+
+        public:
+            static constexpr auto protocolSize() -> size_t {
+                return SIZE / bitsizeof(T) + (SIZE % bitsizeof(T) > 0);
+            }
+
         protected:
-            size_t _size;
-            T *_data1, *_data2;
+            size_t _size[POINTABLE];
+            cerb::ArrayProtocol<T, POINTABLE, protocolSize()> _data1, _data2;
 
         public:
             [[nodiscard]]
-            always_inline auto size() const -> size_t {
-                return _size;
+            constexpr always_inline auto size() const -> size_t {
+                if constexpr (POINTABLE) {
+                    return _size[0];
+                } else {
+                    return SIZE;
+                }
             }
 
             [[nodiscard]]
-            always_inline auto data1() const -> T * {
-                return _data1;
+            constexpr always_inline auto data1() const -> const T * {
+                return _data1.get();
             }
 
             [[nodiscard]]
-            always_inline auto data2() const -> T * {
-                return _data2;
+            constexpr always_inline auto data2() const -> const T * {
+                return _data2.get();
             }
 
             [[nodiscard]]
-            always_inline auto sizeOfArray() const -> size_t {
+            constexpr always_inline auto sizeOfArray() const -> size_t {
                 return size() / bitsizeof(T) + (size() % bitsizeof(T) != 0);
             }
 
             [[nodiscard]]
-            always_inline auto sizeOfData() const -> size_t {
+            constexpr always_inline auto sizeOfData() const -> size_t {
                 return sizeOfArray() * sizeof(T);
             }
 
         public:
             always_inline void clear1() {
-                PRIVATE::clear(_data1, size());
+                PRIVATE::clear(_data1.get(), size());
             }
 
             always_inline void clear2() {
-                PRIVATE::clear(_data2, size());
+                PRIVATE::clear(_data2.get(), size());
             }
 
             always_inline void clear() {
@@ -209,29 +230,29 @@ namespace cerb {
 
             template<u8 value>
             always_inline void set1(size_t index) noexcept {
-                PRIVATE::set<value>(_data1, index);
+                PRIVATE::set<value>(_data1.get(), index);
             }
 
             template<u8 value>
             always_inline void set2(size_t index) noexcept {
-                PRIVATE::set<value>(_data2, index);
+                PRIVATE::set<value>(_data2.get(), index);
             }
 
             template<u8 value>
             always_inline void set(size_t index) noexcept {
-                PRIVATE::set<value>(_data1, _data2, index);
+                PRIVATE::set<value>(_data1.get(), _data2, index);
             }
 
             always_inline void set1(size_t index, u8 value) noexcept {
-                PRIVATE::set(_data1, index, value);
+                PRIVATE::set(_data1.get(), index, value);
             }
 
             always_inline void set2(size_t index, u8 value) noexcept {
-                PRIVATE::set(_data2, index, value);
+                PRIVATE::set(_data2.get(), index, value);
             }
 
             always_inline void set(size_t index, u8 value) noexcept {
-                PRIVATE::set(_data1, _data2, index, value);
+                PRIVATE::set(_data1.get(), _data2, index, value);
             }
 
         public:
@@ -260,9 +281,8 @@ namespace cerb {
             }
 
         public:
-            [[nodiscard]]
-            always_inline auto toAPI() -> doubleBitmapAPI<T>& {
-                return dynamic_cast<doubleBitmapAPI<T>&>(*this);
+            always_inline auto toAPI() -> doubleBitmapAPI<T, POINTABLE, protocolSize()>& {
+                return dynamic_cast<doubleBitmapAPI<T, POINTABLE, protocolSize()>&>(*this);
             }
 
         public:
@@ -273,14 +293,19 @@ namespace cerb {
             doubleBitmapAPI(doubleBitmapAPI&&) noexcept = default;
 
             always_inline doubleBitmapAPI(T *buffer, size_t size)
-                    : _data1(buffer), _size(size)
+                    : _data1(buffer)
             {
+                static_assert(POINTABLE);
+                _size[0] = size;
                 _data2 = _data1 + sizeOfArray();
             }
 
             always_inline doubleBitmapAPI(T *buffer1, T *buffer2, size_t size)
-                : _data1(buffer1), _data2(buffer2), _size(size)
-            {}
+                : _data1(buffer1), _data2(buffer2)
+            {
+                static_assert(POINTABLE);
+                _size[0] = size;
+            }
         };
     } // namespace cerb::PRIVATE
 } // namespace cerb

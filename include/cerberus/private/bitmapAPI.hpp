@@ -5,6 +5,7 @@
 #include <cerberus/types.h>
 #include <cerberus/math.hpp>
 #include <cerberus/string.hpp>
+#include <cerberus/arrayProtocol.hpp>
 
 #if defined(__has_warning)
 #  if __has_warning("-Wreorder-ctor")
@@ -207,34 +208,43 @@ namespace cerb {
 
         template<typename T, int POINTABLE, size_t SIZE = 0>
         class TRIVIAL bitmapAPI {
+        public:
+            static constexpr auto protocolSize() -> size_t {
+                return SIZE / bitsizeof(T) + (SIZE % bitsizeof(T) > 0);
+            }
+
         protected:
-            T       *_data;
-            size_t  _size;
+            size_t  _size[POINTABLE];
+            cerb::ArrayProtocol<T, POINTABLE, protocolSize()> _data;
 
         public:
             [[nodiscard]]
-            always_inline auto size() const -> size_t {
-                return _size;
+            constexpr always_inline auto size() const -> size_t {
+                if constexpr (POINTABLE) {
+                    return _size[0];
+                } else {
+                    return SIZE;
+                }
             }
 
             [[nodiscard]]
-            always_inline auto data() const -> T * {
-                return _data;
+            constexpr always_inline auto data() const -> const T * {
+                return _data.get();
             }
 
             [[nodiscard]]
-            always_inline auto sizeOfArray() const -> size_t {
+            constexpr always_inline auto sizeOfArray() const -> size_t {
                 return size() / bitsizeof(T) + (size() % bitsizeof(T) != 0);
             }
 
             [[nodiscard]]
-            always_inline auto sizeOfData() const -> size_t {
+            constexpr always_inline auto sizeOfData() const -> size_t {
                 return sizeOfArray() * sizeof(T);
             }
 
         public:
             always_inline void clear() {
-                PRIVATE::clear(_data, size());
+                PRIVATE::clear(_data.get(), size());
             }
 
             [[nodiscard]]
@@ -249,40 +259,43 @@ namespace cerb {
 
             template<u8 value>
             always_inline void set(size_t index) noexcept {
-                PRIVATE::set<value>(_data, index);
+                PRIVATE::set<value>(_data.get(), index);
             }
 
             always_inline void set(size_t index, u8 value) noexcept {
-                PRIVATE::set(_data, index, value);
+                PRIVATE::set(_data.get(), index, value);
             }
 
         public:
             [[nodiscard]]
             always_inline auto at(size_t index) const noexcept -> u8 {
-                return PRIVATE::at(_data, index);
+                return PRIVATE::at(_data.get(), index);
             }
 
             [[nodiscard]]
             always_inline auto operator[](size_t index) noexcept -> BitmapElem<T> {
-                return {static_cast<u16>(index % bitsizeof(T)), _data + (index / bitsizeof(T))};
+                return {static_cast<u16>(index % bitsizeof(T)), _data.get() + (index / bitsizeof(T))};
             }
 
         public:
             [[nodiscard]]
-            always_inline auto toAPI() -> bitmapAPI<T>& {
-                return dynamic_cast<bitmapAPI<T>&>(*this);
+            always_inline auto toAPI() -> bitmapAPI<T, POINTABLE, protocolSize()>& {
+                return dynamic_cast<bitmapAPI<T, POINTABLE, protocolSize()>&>(*this);
             }
 
         public:
             bitmapAPI() = default;
+            
             ~bitmapAPI() = default;
 
             bitmapAPI(bitmapAPI&) = default;
             bitmapAPI(bitmapAPI&&) noexcept = default;
 
             always_inline bitmapAPI(T *buffer, size_t size)
-                : _data(buffer), _size(size)
+                : _data(buffer)
             {
+                static_assert(POINTABLE);
+                _size[0] = size;
             }
         };
     } // namespace cerb::PRIVATE
