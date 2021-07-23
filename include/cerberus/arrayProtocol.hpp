@@ -6,57 +6,60 @@
 namespace cerb {
 
     template<typename T, int POINTABLE, size_t SIZE = 0>
-    class TRIVIAL ArrayProtocol {
+    union TRIVIAL ArrayProtocol {
         static_assert(POINTABLE < 2);
 
-        union ArrayData {
-            T *pointer[POINTABLE];
-            T data[SIZE * (!POINTABLE)];
-        };
-
-        ArrayData m_p;
+        T *pointer[POINTABLE];
+        T data[SIZE * (!POINTABLE)];
 
     public:
         always_inline auto get() -> T * {
             if constexpr (POINTABLE != 0) {
-                return m_p.pointer[0];
+                return pointer[0];
             } else {
-                return static_cast<T*>(m_p.data);
+                return static_cast<T*>(data);
             }
         }
 
         always_inline constexpr auto get() const -> const T * {
             if constexpr (POINTABLE != 0) {
-                return m_p.pointer[0];
+                return pointer[0];
             } else {
-                return static_cast<const T*>(m_p.data);
+                return static_cast<const T*>(data);
             }
         }
 
+    public:
+        always_inline void set(T *ptr) {
+            static_assert(POINTABLE != 0);
+            this->pointer[0] = ptr;
+        }
+
+    public:
         always_inline auto operator[](size_t index) -> T& {
-            if constexpr (POINTABLE) {
-                return m_p.pointer[0][index];
+            if constexpr (POINTABLE != 0) {
+                return pointer[0][index];
             } else {
-                return m_p.data[index];
+                return data[index];
             }
         }
 
         always_inline auto operator[](size_t index) const -> T& {
-            if constexpr (POINTABLE) {
-                return m_p.pointer[index];
+            if constexpr (POINTABLE != 0) {
+                return pointer[index];
             } else {
-                return m_p.data[index];
+                return data[index];
             }
         }
 
     public:
         [[nodiscard]]
-        always_inline operator T *() {
+        explicit always_inline operator T *() {
             return get();
         }
 
         [[nodiscard]]
-        always_inline operator T *() const {
+        explicit always_inline operator T *() const {
             return get();
         }
 
@@ -66,7 +69,7 @@ namespace cerb {
 
         auto operator=(T *pointer) noexcept -> ArrayProtocol& {
             static_assert(POINTABLE);
-            m_p.pointer[0] = pointer;
+            this->pointer[0] = pointer;
             return *this;
         }
 
@@ -77,9 +80,9 @@ namespace cerb {
         ArrayProtocol(ArrayProtocol&) = default;
         ArrayProtocol(ArrayProtocol&&) noexcept = default;
 
-        always_inline ArrayProtocol(T *pointer) {
+        explicit always_inline ArrayProtocol(T *pointer) noexcept {
             static_assert(POINTABLE);
-            m_p.pointer[0] = pointer;
+            this->pointer[0] = pointer;
         }
     };
 }

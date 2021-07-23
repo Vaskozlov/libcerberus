@@ -29,6 +29,7 @@ namespace cerb {
 
         template<int POINTABLE, size_t SIZE>
         auto operator=(const PRIVATE::doubleBitmapAPI<T, POINTABLE, SIZE> &other) noexcept -> constDoubleBitmap& {
+            
             if (size() != other.size()) {
                 return *this;
             }
@@ -92,6 +93,7 @@ namespace cerb {
             _size[0] = other.size();
             cerb::memcpy(_data1.get(), other.data1(), sizeOfArray());
             cerb::memcpy(_data2.get(), other.data2(), sizeOfArray());
+
             return *this;
         }
 

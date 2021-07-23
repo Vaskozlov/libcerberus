@@ -35,6 +35,8 @@ namespace cerb {
         TRUNC,
         ALIGN
     };
+
+    using cerb::AlignMode;
     
     template<typename T>
     constexpr T pi = static_cast<T>(3.14159265358979323846);
@@ -190,7 +192,6 @@ namespace cerb {
             }
             return j + 1;
         #endif /* ARCH */
-        
     }
     
     /**

@@ -29,34 +29,34 @@ namespace cerb {
             return reinterpret_cast<size_t>(_address);
         }
 
-        template<typename T>
-        [[nodiscard]] always_inline operator T *() const noexcept {
+        template<typename T> [[nodiscard]]
+        explicit always_inline operator T *() const noexcept {
             return static_cast<T*>(this->raw());
         }
 
     public:
         always_inline friend auto operator+(const address &_lhs, const address &_rhs) -> address {
-            return _lhs._address + _rhs.value();
+            return address(_lhs._address + _rhs.value());
         }
 
         always_inline friend auto operator-(const address &_lhs, const address &_rhs) -> address {
-            return _lhs._address - _rhs.value();
+            return address(_lhs._address - _rhs.value());
         }
 
         always_inline friend auto operator*(const address &_lhs, const address &_rhs) -> address {
-            return _lhs.value() * _rhs.value();
+            return address(_lhs.value() * _rhs.value());
         }
 
         always_inline friend auto operator/(const address &_lhs, const address &_rhs) -> address {
-            return _lhs.value() / _rhs.value();
+            return address(_lhs.value() / _rhs.value());
         }
     
     public:
-        #if cerb_three_way_comparison
+        #if CERBLIB_THREE_WAY_COMPARISON
             always_inline auto operator<=>(const address&) const = default;
         #else
             GEN_COMPARISON_RULES(address, _address);
-        #endif /* cerb_three_way_comparison */
+        #endif /* CERBLIB_THREE_WAY_COMPARISON */
     
     public:
         always_inline auto operator++() -> address& {
@@ -105,7 +105,9 @@ namespace cerb {
     public:
         template<u32 ALIGN_VALUE = ALIGN2::Page4KB, auto MODE = AlignMode::ALIGN>
         always_inline void align() {
-            _address = reinterpret_cast<cerb::byte*>(cerb::align<ALIGN_VALUE, MODE>(value()));
+            _address = reinterpret_cast<cerb::byte*>(
+                    cerb::align<ALIGN_VALUE, MODE>(value())
+            );
         }
 
     public:
@@ -120,8 +122,13 @@ namespace cerb {
         address(address&&) noexcept = default;
 
         template<typename T>
-        always_inline address(T *addr)     noexcept : _address(static_cast<cerb::byte *>(addr)) {}
-        always_inline address(size_t addr) noexcept : _address(reinterpret_cast<cerb::byte *>(addr)) {}
+        explicit always_inline address(T *addr) noexcept
+            : _address(static_cast<cerb::byte *>(addr))
+        {}
+
+        explicit always_inline address(size_t addr) noexcept
+            : _address(reinterpret_cast<cerb::byte *>(addr))
+        {}
     };
 } // namespace cerb
 

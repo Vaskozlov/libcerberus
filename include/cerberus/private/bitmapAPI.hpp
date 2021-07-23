@@ -298,6 +298,13 @@ namespace cerb {
                 _size[0] = size;
             }
         };
+
+        template<typename T>
+        using pointableBitmap = bitmapAPI<T, true>;
+
+        template<typename T, size_t SIZE>
+        using staticBitmap = bitmapAPI<T, false, SIZE>;
+
     } // namespace cerb::PRIVATE
 } // namespace cerb
 

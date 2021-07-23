@@ -12,12 +12,26 @@
 
 namespace cerb {
     template<typename T, size_t _size>
-    class constBitmap : public PRIVATE::bitmapAPI<T, false, _size>{
-        static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value);
+    class TRIVIAL constBitmap : public PRIVATE::staticBitmap<T, _size>{
+        using PRIVATE::staticBitmap<T, _size>::_data;
+
+    public:
+        using PRIVATE::staticBitmap<T, _size>::size;
+        using PRIVATE::staticBitmap<T, _size>::sizeOfArray;
 
     public:
         auto operator=(const constBitmap&) -> constBitmap& = default;
         auto operator=(constBitmap&&) noexcept -> constBitmap& = default;
+
+        template<int POINTABLE, size_t SIZE>
+        auto operator=(const PRIVATE::bitmapAPI<T, POINTABLE, SIZE> &other) noexcept -> constBitmap& {
+            if (size() != other.size()) {
+                return *this;
+            }
+
+            cerb::memcpy(_data.get(), other.data1(), sizeOfArray());
+            return *this;
+        }
 
     public:
         constBitmap() = default;
@@ -27,15 +41,15 @@ namespace cerb {
     };
     
     template<typename T>
-    class TRIVIAL freeBitmap final : public PRIVATE::bitmapAPI<T, true>{
-        using PRIVATE::bitmapAPI<T, true>::_data;
-        using PRIVATE::bitmapAPI<T, true>::_size;
+    class TRIVIAL freeBitmap final : public PRIVATE::pointableBitmap<T>{
+        using PRIVATE::pointableBitmap<T>::_data;
+        using PRIVATE::pointableBitmap<T>::_size;
 
     public:
-        using PRIVATE::bitmapAPI<T, true>::size;
-        using PRIVATE::bitmapAPI<T, true>::sizeOfData;
-        using PRIVATE::bitmapAPI<T, true>::sizeOfArray;
-        using PRIVATE::bitmapAPI<T, true>::toAPI;
+        using PRIVATE::pointableBitmap<T>::size;
+        using PRIVATE::pointableBitmap<T>::sizeOfData;
+        using PRIVATE::pointableBitmap<T>::sizeOfArray;
+        using PRIVATE::pointableBitmap<T>::toAPI;
 
     public:
         always_inline void forceResize(size_t newSize) {
@@ -52,7 +66,7 @@ namespace cerb {
         auto operator=(const PRIVATE::bitmapAPI<T, POINTABLE, SIZE> &other) -> freeBitmap& {
             if (sizeOfArray() < other.sizeOfArray()) UNLIKELY {
                 _size[0] = 0;
-                _data = nullptr;
+                _data.set(nullptr);
                 return *this;
             }
 
@@ -67,16 +81,16 @@ namespace cerb {
         freeBitmap(freeBitmap<T> &&other) noexcept = default;
 
         always_inline freeBitmap()
-            : PRIVATE::bitmapAPI<T, true>::bitmapAPI(nullptr, 0)
+            : PRIVATE::pointableBitmap<T>::bitmapAPI(nullptr, 0)
         {}
 
         always_inline freeBitmap(T *buffer, size_t size)
-                : PRIVATE::bitmapAPI<T, true>::bitmapAPI(buffer, size)
+                : PRIVATE::pointableBitmap<T>::bitmapAPI(buffer, size)
         {}
 
         template<int POINTABLE, size_t SIZE>
         inline freeBitmap(PRIVATE::bitmapAPI<T, POINTABLE, SIZE> &other, T *buffer)
-            : PRIVATE::bitmapAPI<T, true>::bitmapAPI(buffer, other.size())
+            : PRIVATE::pointableBitmap<T>::bitmapAPI(buffer, other.size())
         {
             cerb::memcpy(_data.get(), other.data(), sizeOfArray());
         }
@@ -94,14 +108,14 @@ namespace cerb {
         u64 _capacity;
 
     private:
-        using PRIVATE::bitmapAPI<T, true>::_data;
-        using PRIVATE::bitmapAPI<T, true>::_size;
+        using PRIVATE::pointableBitmap<T>::_data;
+        using PRIVATE::pointableBitmap<T>::_size;
 
     public:
-        using PRIVATE::bitmapAPI<T, true>::size;
-        using PRIVATE::bitmapAPI<T, true>::sizeOfData;
-        using PRIVATE::bitmapAPI<T, true>::sizeOfArray;
-        using PRIVATE::bitmapAPI<T, true>::toAPI;
+        using PRIVATE::pointableBitmap<T>::size;
+        using PRIVATE::pointableBitmap<T>::sizeOfData;
+        using PRIVATE::pointableBitmap<T>::sizeOfArray;
+        using PRIVATE::pointableBitmap<T>::toAPI;
 
     public:
         [[nodiscard]]
@@ -185,13 +199,13 @@ namespace cerb {
     public:
         always_inline bitmap() :
                 _capacity(0),
-                PRIVATE::bitmapAPI<T, true>::bitmapAPI(nullptr, 0)
+                PRIVATE::pointableBitmap<T>::bitmapAPI(nullptr, 0)
         {}
 
         template<int POINTABLE, size_t SIZE>
         inline bitmap(PRIVATE::bitmapAPI<T, POINTABLE, SIZE> &other) noexcept :
                 _capacity(cerb::align<cerb::log2(bitsizeof(T))>(other.size())),
-                PRIVATE::bitmapAPI<T, true>::bitmapAPI(
+                PRIVATE::pointableBitmap<T>::bitmapAPI(
                         static_cast<T*>(::operator new(other.sizeOfData())),
                         other.size()
                 )
@@ -208,7 +222,7 @@ namespace cerb {
         template<size_t bitmapSize>
         inline bitmap(constBitmap<T, bitmapSize> &other) noexcept :
                 _capacity(other.sizeOfArray() * bitsizeof(T)),
-                PRIVATE::bitmapAPI<T, true>::bitmapAPI(
+                PRIVATE::pointableBitmap<T>::bitmapAPI(
                         static_cast<T*>(
                                 ::operator new(other.sizeOfData())
                         ),
@@ -218,8 +232,8 @@ namespace cerb {
             cerb::memcpy(_data.get(), other.data(), capacityOfArray());
         }
 
-        inline bitmap(size_t numberOfElems) :
-                PRIVATE::bitmapAPI<T, true>::bitmapAPI(
+        explicit inline bitmap(size_t numberOfElems) :
+                PRIVATE::pointableBitmap<T>::bitmapAPI(
                     static_cast<T*>(::operator new(cerb::align<cerb::log2(bitsizeof(T))>(numberOfElems) / sizeof(T))),
                     numberOfElems
             ), _capacity(cerb::align<cerb::log2(bitsizeof(T))>(numberOfElems))

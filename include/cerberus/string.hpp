@@ -1,72 +1,83 @@
+#ifndef CERBERUS_STRING_HPP
+#define CERBERUS_STRING_HPP
+
 #include <cerberus/types.h>
 
 namespace cerb {
 
-    size_t strlen(const char * __restrict const str);
+    size_t strlen(const char * __restrict str);
 
 #if defined(__x86_64__)
 
-    always_inline void memset8(const void *__restrict _ptr, u8 _value, size_t _times) {
-        asm volatile (
-            "rep stosb"
-            :
-            : "a" (_value), "D" (_ptr), "c" (_times)
+    always_inline void memset8(void *__restrict _ptr, u8 _value, size_t _times) {
+       asm volatile (
+            "rep stosb\n"
+            : "+D" (_ptr), "+c" (_times)
+            : "a" (_value)
+            : "memory"
         );
     }
 
-    always_inline void memset16(const void *__restrict _ptr, u16 _value, size_t _times) {
+    always_inline void memset16(void *__restrict _ptr, u16 _value, size_t _times) {
         asm volatile (
-            "rep stosw"
-            :
-            : "a" (_value), "D" (_ptr), "c" (_times)
+            "rep stosw\n"
+            : "+D" (_ptr), "+c" (_times)
+            : "a" (_value)
+            : "memory"
         );
     }
 
-    always_inline void memset32(const void *__restrict _ptr, u32 _value, size_t _times) {
-        asm volatile (
-            "rep stosl"
-            :
-            : "a" (_value), "D" (_ptr), "c" (_times)
+    always_inline void memset32(void *__restrict _ptr, u32 _value, size_t _times) {
+       asm volatile (
+            "rep stosl\n"
+            : "+D" (_ptr), "+c" (_times)
+            : "a" (_value)
+            : "memory"
         );
     }
 
-    always_inline void memset64(const void *__restrict _ptr, u64 _value, size_t _times) {
-        asm volatile (
-            "rep stosq"
-            :
-            : "a" (_value), "D" (_ptr), "c" (_times)
+    always_inline void memset64(void *__restrict _ptr, u64 _value, size_t _times) {
+        __asm__ __volatile__ (
+            "rep stosq\n"
+            : "+D" (_ptr), "+c" (_times)
+            : "a" (_value)
+            : "memory"
         );
     }
 
     always_inline void memcpy8(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         asm volatile (
             "rep movsb"
+            : "+S" (_src), "+D" (_dest), "+c" (_times)
             :
-            : "S" (_src), "D" (_dest), "c" (_times)
+            : "memory"
         );
     }
 
     always_inline void memcpy16(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         asm volatile (
             "rep movsw"
+            : "+S" (_src), "+D" (_dest), "+c" (_times)
             :
-            : "S" (_src), "D" (_dest), "c" (_times)
+            : "memory"
         );
     }
 
     always_inline void memcpy32(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         asm volatile (
             "rep movsl"
+            : "+S" (_src), "+D" (_dest), "+c" (_times)
             :
-            : "S" (_src), "D" (_dest), "c" (_times)
+            : "memory"
         );
     }
 
     always_inline void memcpy64(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         asm volatile (
             "rep movsq"
+            : "+S" (_src), "+D" (_dest), "+c" (_times)
             :
-            : "S" (_src), "D" (_dest), "c" (_times)
+            : "memory"
         );
     }
 
@@ -158,7 +169,8 @@ namespace cerb {
 
 #endif /* ARCH */
 
-    [[nodiscard]] constexpr auto str2u16(const char *str) -> u16 {
+    [[nodiscard]]
+    CERBLIB_COMPILE_TIME auto str2u16(const char *str) -> u16 {
         u16 result = 0;
 
         constexpr_for<0, sizeof(u16), 1>(
@@ -170,7 +182,8 @@ namespace cerb {
         return result;
     }
 
-    [[nodiscard]] constexpr auto str2u32(const char *str) -> u32 {
+    [[nodiscard]]
+    CERBLIB_COMPILE_TIME auto str2u32(const char *str) -> u32 {
         u32 result = 0;
 
         constexpr_for<0, sizeof(u32), 1>(
@@ -182,7 +195,8 @@ namespace cerb {
         return result;
     }
 
-    [[nodiscard]] constexpr auto str2u64(const char *str) -> u64 {
+    [[nodiscard]]
+    CERBLIB_COMPILE_TIME auto str2u64(const char *str) -> u64 {
         u64 result = 0;
 
         constexpr_for<0, sizeof(u64), 1>(
@@ -199,16 +213,43 @@ namespace cerb {
         if (_times == 0) UNLIKELY {
             return;
         }
+
         if constexpr (sizeof(T) == sizeof(u8)) {
-            memcpy8(_dest, _src, _times);
+            cerb::memcpy8(_dest, _src, _times);
         } else if constexpr (sizeof(T) == sizeof(u16)) {
-            memcpy16(_dest, _src, _times);
+            cerb::memcpy16(_dest, _src, _times);
         } else if constexpr (sizeof(T) == sizeof(u32)) {
-            memcpy32(_dest, _src, _times);
+            cerb::memcpy32(_dest, _src, _times);
         } else if constexpr (sizeof(T) == sizeof(u64)) {
-            memcpy64(_dest, _src, _times);
+            cerb::memcpy64(_dest, _src, _times);
         } else {
-            memcpy8(_dest, _src, _times * sizeof(T));
+            cerb::memcpy8(_dest, _src, _times * sizeof(T));
+        }
+    }
+
+    template<typename T, typename T2>
+    always_inline void memset(T *__restrict _dest, T2 _value, size_t _times) {
+        if (_times == 0) UNLIKELY {
+            return;
+        }
+
+        static_assert(
+            sizeof(T) == sizeof(u8) ||
+            sizeof(T) == sizeof(u16) ||
+            sizeof(T) == sizeof(u32) ||
+            sizeof(T) == sizeof(u64)
+        );
+
+        if constexpr (sizeof(T) == sizeof(u8)) {
+            cerb::memset8(_dest, static_cast<u8>(_value), _times);
+        } else if constexpr (sizeof(T) == sizeof(u16)) {
+            cerb::memset16(_dest, static_cast<u16>(_value), _times);
+        } else if constexpr (sizeof(T) == sizeof(u32)) {
+            cerb::memset32(_dest, static_cast<u32>(_value), _times);
+        } else if constexpr (sizeof(T) == sizeof(u64)) {
+            cerb::memset64(_dest, static_cast<u64>(_value), _times);
         }
     }
 }
+
+#endif /* CERBERUS_STRING_HPP */

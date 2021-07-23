@@ -6,20 +6,20 @@
 
 namespace cerb {
     namespace PRIVATE {
-        struct TRIVIAL DoubleReturn {
+        struct TRIVIAL TwoBitStorage {
             u8 first : 1;
             u8 second : 1;
 
         public:
-            auto operator=(const DoubleReturn&) -> DoubleReturn& = default;
-            auto operator=(DoubleReturn&&) noexcept -> DoubleReturn& = default;
+            auto operator=(const TwoBitStorage&) -> TwoBitStorage& = default;
+            auto operator=(TwoBitStorage&&) noexcept -> TwoBitStorage& = default;
 
         public:
-            DoubleReturn() = default;
-            ~DoubleReturn() = default;
+            TwoBitStorage() = default;
+            ~TwoBitStorage() = default;
 
-            DoubleReturn(DoubleReturn&) = default;
-            DoubleReturn(DoubleReturn&&) noexcept = default;
+            TwoBitStorage(TwoBitStorage&) = default;
+            TwoBitStorage(TwoBitStorage&&) noexcept = default;
         };
 
         template<typename T>
@@ -50,8 +50,8 @@ namespace cerb {
         } __attribute__((packed));
 
         template<typename T> [[nodiscard]]
-        static auto at2(const T *buffer1, const T *buffer2, size_t index) noexcept -> DoubleReturn {
-            DoubleReturn result{};
+        static auto at2(const T *buffer1, const T *buffer2, size_t index) noexcept -> TwoBitStorage {
+            TwoBitStorage result{};
             auto elemIndex = index / bitsizeof(T);
             auto bitIndex = index % bitsizeof(T);
 
@@ -136,9 +136,9 @@ namespace cerb {
             }
 
             return (
-                    (buffer1[index] & value2bits[limit % bitsizeof(T)]) == 0 &&
-                    (buffer2[index] & value2bits[limit % bitsizeof(T)]) == 0
-            );
+                    (buffer1[index] & value2bits[limit % bitsizeof(T)]) +
+                    (buffer2[index] & value2bits[limit % bitsizeof(T)])
+            ) == 0;
         }
 
         template<typename T, int POINTABLE, size_t SIZE = 0>
@@ -214,65 +214,65 @@ namespace cerb {
             }
 
             template<u8 firstValue> [[nodiscard]]
-            always_inline auto findWithRule1() const noexcept -> size_t {
+            always_inline auto findWithRule1() const -> size_t {
                 return PRIVATE::findWithRule<firstValue>(data1(), size());
             }
 
             template<u8 firstValue> [[nodiscard]]
-            always_inline auto findWithRule2() const noexcept -> size_t {
+            always_inline auto findWithRule2() const -> size_t {
                 return PRIVATE::findWithRule<firstValue>(data2(), size());
             }
 
             template<u8 firstValue, u8 secondValue> [[nodiscard]]
-            always_inline auto findWithRule() const noexcept -> size_t {
+            always_inline auto findWithRule() const -> size_t {
                 return PRIVATE::findWithRule<firstValue, secondValue>(data1(), data2(), size());
             }
 
             template<u8 value>
-            always_inline void set1(size_t index) noexcept {
+            always_inline void set1(size_t index) {
                 PRIVATE::set<value>(_data1.get(), index);
             }
 
             template<u8 value>
-            always_inline void set2(size_t index) noexcept {
+            always_inline void set2(size_t index) {
                 PRIVATE::set<value>(_data2.get(), index);
             }
 
             template<u8 value>
-            always_inline void set(size_t index) noexcept {
+            always_inline void set(size_t index) {
                 PRIVATE::set<value>(_data1.get(), _data2, index);
             }
 
-            always_inline void set1(size_t index, u8 value) noexcept {
+            always_inline void set1(size_t index, u8 value) {
                 PRIVATE::set(_data1.get(), index, value);
             }
 
-            always_inline void set2(size_t index, u8 value) noexcept {
+            always_inline void set2(size_t index, u8 value) {
                 PRIVATE::set(_data2.get(), index, value);
             }
 
-            always_inline void set(size_t index, u8 value) noexcept {
+            always_inline void set(size_t index, u8 value) {
                 PRIVATE::set(_data1.get(), _data2, index, value);
             }
 
         public:
             [[nodiscard]]
-            always_inline auto at1(size_t index) const noexcept -> u8 {
+            always_inline auto at1(size_t index) const -> u8 {
                 return PRIVATE::at(data1(), index);
             }
 
             [[nodiscard]]
-            always_inline auto at2(size_t index) const noexcept -> u8 {
+            always_inline auto at2(size_t index) const -> u8 {
                 return PRIVATE::at(data2(), index);
             }
 
             [[nodiscard]]
-            always_inline auto at(size_t index) const noexcept -> DoubleReturn {
+            always_inline auto at(size_t index) const -> TwoBitStorage {
                 return PRIVATE::at2(data1(), data2(), index);
             }
 
             [[nodiscard]]
-            always_inline auto operator[](size_t index) noexcept -> DoubleBitmapElem<T> {
+            always_inline auto operator[](size_t index) -> DoubleBitmapElem<T> {
                 return {
                     static_cast<u16>(index % bitsizeof(T)),
                     _data1 + (index / bitsizeof(T)),
@@ -297,7 +297,7 @@ namespace cerb {
             {
                 static_assert(POINTABLE);
                 _size[0] = size;
-                _data2 = _data1 + sizeOfArray();
+                _data2 = _data1.get() + sizeOfArray();
             }
 
             always_inline doubleBitmapAPI(T *buffer1, T *buffer2, size_t size)
