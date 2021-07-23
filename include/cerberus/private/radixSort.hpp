@@ -25,7 +25,7 @@ namespace cerb {
         auto converted_data = reinterpret_cast<cerb::ByteMask<T>*>(data);
         auto output = reinterpret_cast<cerb::ByteMask<T>*>(operator new(size * sizeof(cerb::ByteMask<T>)));
 
-        for (unsigned shift = 0u, s = 0u; shift < bitsizeof(T) / cerb::log2(sizeof(count) / sizeof(count[0])); shift++, s += 8) {
+        for (unsigned shift = 0u, s = 0u; shift < sizeof(T); shift++, s += 8) {
             cerb::memset(count, 0u, sizeof(count) / sizeof(count[0]));
 
             for (unsigned i = 0; i < size; i++) {
