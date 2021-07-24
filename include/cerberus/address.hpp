@@ -3,6 +3,7 @@
 
 #include <cerberus/types.h>
 #include <cerberus/math.hpp>
+#include <cerberus/operators.hpp>
 
 namespace cerb {
     
@@ -35,73 +36,52 @@ namespace cerb {
         }
 
     public:
-        always_inline friend auto operator+(const address &_lhs, const address &_rhs) -> address {
-            return address(_lhs._address + _rhs.value());
-        }
+        CERBLIB_ARITHMETIC_BASE
+        (
+            address,
+            always_inline,
+            {
+                return address(cerb::operators::count<OP>(_lhs, _rhs));
+            }
+        )
 
-        always_inline friend auto operator-(const address &_lhs, const address &_rhs) -> address {
-            return address(_lhs._address - _rhs.value());
-        }
+    public:
+        CERBLIB_ARITHMETIC_BASE_EQUAL
+        (
+            address,
+            always_inline,
+            {
+                this->_address = reinterpret_cast<cerb::byte*>(
+                        cerb::operators::count<OP>(value(), other.value())
+                );
+                return *this;
+            }
+        )
 
-        always_inline friend auto operator*(const address &_lhs, const address &_rhs) -> address {
-            return address(_lhs.value() * _rhs.value());
-        }
-
-        always_inline friend auto operator/(const address &_lhs, const address &_rhs) -> address {
-            return address(_lhs.value() / _rhs.value());
-        }
+    public:
+        CERBLIB_CREATE_COMPARISON_RULES(
+            address,
+            always_inline,
+            {
+                return cerb::operators::compare<OP>(_lhs.raw(), _rhs.raw());
+            }
+        )
     
     public:
-        #if CERBLIB_THREE_WAY_COMPARISON
-            always_inline auto operator<=>(const address&) const = default;
-        #else
-            CERBLIB_GEN_COMPARISON_RULES(address, _address);
-        #endif /* CERBLIB_THREE_WAY_COMPARISON */
-    
-    public:
-        always_inline auto operator++() -> address& {
-            _address++;
-            return *this;
-        }
+        CERBLIB_ARITHMETIC_INCREMENT
+        (
+            address,
+            always_inline,
+            { this->_address++; }
+        )
 
-        always_inline auto operator++(int) -> address {
-            address old = *this;
-            operator++();
-            return old;
-        }
+        CERBLIB_ARITHMETIC_DECREMENT
+        (
+            address,
+            always_inline,
+            { this->_address++; }
+        )
 
-        always_inline auto operator--() -> address& {
-            _address++;
-            return *this;
-        }
-
-        always_inline auto operator--(int) -> address {
-            address old = *this;
-            operator--();
-            return old;
-        }
-    
-    public:
-        always_inline auto operator+=(const address &_rhs) -> address& {
-            _address += _rhs.value();
-            return *this;
-        }
-
-        always_inline auto operator-=(const address &_rhs) -> address& {
-            _address -= _rhs.value();
-            return *this;
-        }
-
-        always_inline auto operator*=(const address &_rhs) -> address& {
-            _address = reinterpret_cast<cerb::byte*>(this->value() * _rhs.value());
-            return *this;
-        }
-
-        always_inline auto operator/=(const address &_rhs) -> address& {
-            _address = reinterpret_cast<cerb::byte*>(this->value() / _rhs.value());
-            return *this;
-        }
-    
     public:
         template<u32 ALIGN_VALUE = ALIGN2::Page4KB, auto MODE = AlignMode::ALIGN>
         always_inline void align() {

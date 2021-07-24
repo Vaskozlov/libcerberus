@@ -1,8 +1,6 @@
 #ifndef CERBERUS_RADIXSORT_HPP
 #define CERBERUS_RADIXSORT_HPP
 
-#include <iostream>
-#include <alloca.h>
 #include <cerberus/types.h>
 #include <cerberus/math.hpp>
 #include <cerberus/string.hpp>

@@ -76,22 +76,31 @@ namespace cerb {
      */
     template<typename T>
     constexpr auto pow2(u32 power) -> T {
+
+        static_assert(
+            std::is_integral<T>::value ||
+            std::is_floating_point<T>::value
+        );
+
         if constexpr (std::is_floating_point<T>::value) {
-            static_assert((sizeof(T) == sizeof(u32) && std::is_same<T, float>::value) || (sizeof(T) == sizeof(u64) && std::is_same<T, double>::value));
+            static_assert(
+                (sizeof(T) == sizeof(u32) && std::is_same<T, float>::value) ||
+                (sizeof(T) == sizeof(u64) && std::is_same<T, double>::value)
+            );
+
+            cerb::ByteMask<T> mask{static_cast<T>(1.0)};
 
             if constexpr (sizeof(T) == sizeof(u32)) {
-                cerb::ByteMask<float> a(1.0F);
-                a.mask32[0] += static_cast<u32>(0x800000U) * power;
-                return a.value;
+                mask.getBits() += 0x800000U * power;
             } else {
-                cerb::ByteMask<double> a{1.0};
-                a.mask64[0] += static_cast<u64>(0x10000000000000UL) * power;
-                return a.value;
+                mask.getBits() += 0x10000000000000UL * power;
             }
+            return mask.value;
+
         } else if constexpr (std::is_integral<T>::value) {
-            return static_cast<T>(1) << power;
+            return static_cast<T>(1) << static_cast<T>(power);
         } else {
-            static_assert(std::is_integral<T>::value);
+            return 0;
         }
     }
 
@@ -105,27 +114,32 @@ namespace cerb {
      */
     template<typename ResultType = EmptyType, typename T>
     constexpr auto abs(T value) {
+
         if constexpr(std::is_unsigned<T>::value) {
             return value;
-        }
-        
-        if constexpr (std::is_floating_point<T>::value) {
+        } else if constexpr (std::is_floating_point<T>::value) {
+
+            static_assert(
+                sizeof(T) == sizeof(u32) ||
+                sizeof(T) == sizeof(u64)
+            );
+
+            ByteMask<T> mask(value);
+
             if constexpr (sizeof(T) == sizeof(u32)) {
-                ByteMask<T> mask{value};
-                mask.mask32[0] &= INT32_MAX;
-                return mask.value;
+                mask.getBits() &= INT32_MAX;
             } else if constexpr (sizeof(T) == sizeof(u64)) {
-                ByteMask<T> mask{value};
-                mask.mask64[0] &= INT64_MAX;
+                mask.getBits() &= INT64_MAX;
+            }
+
+            if constexpr (std::is_same<ResultType, EmptyType>::value) {
                 return mask.value;
             }
+        } else if constexpr (std::is_same<ResultType, EmptyType>::value){
+            return cmov(value < 0, -value, value);
         }
 
-        if constexpr (std::is_same<ResultType, EmptyType>::value){
-            return cmov(value < 0, -value, value);
-        } else {
-            return static_cast<ResultType>(cmov(value < 0, -value, value));
-        }
+        return static_cast<ResultType>(cmov(value < 0, -value, value));
     }
 
     template<u32 powerOf2, auto mode = AlignMode::ALIGN, typename T>
@@ -137,10 +151,10 @@ namespace cerb {
         } else if constexpr (mode == AlignMode::CEIL) {
             return value + (pow2<T>(powerOf2) - value % pow2<T>(powerOf2));
         } else {
-            return cmov(
-                    value % pow2<T>(powerOf2) == 0,
-                    value, align<powerOf2,
-                    AlignMode::CEIL>(value)
+            return cmov (
+                value % pow2<T>(powerOf2) == 0,
+                value, align<powerOf2,
+                AlignMode::CEIL>(value)
             );
         }
     }

@@ -172,26 +172,6 @@ namespace cerb {
 #  else
 #    define CERBLIB_THREE_WAY_COMPARISON 0
 #  endif /* CERBLIB_THREE_WAY_COMPARISON */
-
-#  define CERBLIB_GEN_COMPARISON_RULES(x, m) \
-    always_inline friend bool operator==(const x &_lhs, const x &_rhs) { \
-        return _lhs.m == _rhs.m; \
-    } \
-    always_inline friend bool operator!=(const x &_lhs, const x &_rhs) { \
-        return _lhs.m != _rhs.m; \
-    } \
-    always_inline friend bool operator>(const x &_lhs, const x &_rhs) { \
-        return _lhs.m > _rhs.m; \
-    } \
-    always_inline friend bool operator<(const x &_lhs, const x &_rhs) { \
-        return _lhs.m < _rhs.m; \
-    } \
-    always_inline friend bool operator>=(const x &_lhs, const x &_rhs) { \
-        return _lhs.m >= _rhs.m; \
-    } \
-    always_inline friend bool operator<=(const x &_lhs, const x &_rhs) { \
-        return _lhs.m <= _rhs.m; \
-    }
 #endif /* _cplusplus */
 
 #if defined(__cplusplus)
@@ -227,18 +207,18 @@ namespace cerb {
     template<typename T>
     union TRIVIAL ByteMask{
         T value;
-        std::array<u8,  sizeof(T) / sizeof(u8) > mask8 ;
-        std::array<u16, sizeof(T) / sizeof(u16)> mask16;
-        std::array<u32, sizeof(T) / sizeof(u32)> mask32;
-        std::array<u64, sizeof(T) / sizeof(u64)> mask64;
+        std::array<u8,  sizeof(T) / sizeof(u8) > mask_u8 ;
+        std::array<u16, sizeof(T) / sizeof(u16)> mask_u16;
+        std::array<u32, sizeof(T) / sizeof(u32)> mask_u32;
+        std::array<u64, sizeof(T) / sizeof(u64)> mask_u64;
 
-        std::array<i8,  sizeof(T) / sizeof(u8) > maski8 ;
-        std::array<i16, sizeof(T) / sizeof(u16)> maski16;
-        std::array<i32, sizeof(T) / sizeof(u32)> maski32;
-        std::array<i64, sizeof(T) / sizeof(u64)> maski64;
+        std::array<i8,  sizeof(T) / sizeof(u8) > mask_i8 ;
+        std::array<i16, sizeof(T) / sizeof(u16)> mask_i16;
+        std::array<i32, sizeof(T) / sizeof(u32)> mask_i32;
+        std::array<i64, sizeof(T) / sizeof(u64)> mask_i64;
 
     public:
-        CERBLIB17_CONSTEXPR auto &getBits() const noexcept {
+        CERBLIB17_CONSTEXPR auto &getBits() noexcept {
             static_assert(
                 sizeof(T) == sizeof(u8) ||
                 sizeof(T) == sizeof(u16) ||
@@ -248,23 +228,23 @@ namespace cerb {
 
             if constexpr (std::is_unsigned<T>::value) {
                 if constexpr (sizeof(T) == sizeof(u8)) {
-                    return mask8[0];
+                    return mask_u8[0];
                 } else if constexpr (sizeof(T) == sizeof(u16)) {
-                    return mask16[0];
+                    return mask_u16[0];
                 } else if constexpr (sizeof(T) == sizeof(u32)) {
-                    return mask32[0];
+                    return mask_u32[0];
                 } else if constexpr (sizeof(T) == sizeof(u64)) {
-                    return mask64[0];
+                    return mask_u64[0];
                 }
             } else {
                 if constexpr (sizeof(T) == sizeof(u8)) {
-                    return maski8[0];
+                    return mask_i8[0];
                 } else if constexpr (sizeof(T) == sizeof(u16)) {
-                    return maski16[0];
+                    return mask_i16[0];
                 } else if constexpr (sizeof(T) == sizeof(u32)) {
-                    return maski32[0];
+                    return mask_i32[0];
                 } else if constexpr (sizeof(T) == sizeof(u64)) {
-                    return maski64[0];
+                    return mask_i64[0];
                 }
             }
         }
