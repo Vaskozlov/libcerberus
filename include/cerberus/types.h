@@ -9,21 +9,9 @@
 #  include <inttypes.h>
 #endif /* __cplusplus */
 
-#if defined(__cplusplus)
-#  if (__cplusplus == 201103L)
-#    define CERBLIB_CXX 2011
-#  elif (__cplusplus == 201402L)
-#    define CERBLIB_CXX 2014
-#  elif (__cplusplus == 201703L)
-#    define CERBLIB_CXX 2017
-#  elif (__cplusplus == 202002L)
-#    define CERBLIB_CXX 2020
-#  elif (__cplusplus > 202002L)
-#    define CERBLIB_CXX (20 * 100 + (__cplusplus / 100 % 100))
-#  endif /* C++ standard */
-#endif /* __cplusplus */
+#include <alloca.h>
 
-#if defined(CERBLIB_CXX)
+#if defined(__cplusplus)
     using i8  = int8_t;
     using i16 = int16_t;
     using i32 = int32_t;
@@ -45,7 +33,7 @@
     typedef uint64_t u64;
 #endif /* __cplusplus */
 
-#if defined(CERBLIB_CXX)
+#if defined(__cplusplus)
 namespace cerb {
     using byte = u8;
 } // namespace cerb
@@ -79,7 +67,7 @@ namespace cerb {
 #  define __END_DECLS
 #endif /* __BEGIN_DECLS */
 
-#if (CERBLIB_CXX < 2017)
+#if (__cplusplus < 201703L)
 #  error cerberus requires at least C++17
 #endif /* C++17 */
 
@@ -87,11 +75,11 @@ namespace cerb {
 #define always_inline   __attribute__((always_inline)) inline
 #endif /* always_inline */
 
-#if defined(CERBLIB_CXX) && (CERBLIB_CXX <= 2017)
-// C++17 here
+#if (__cplusplus <= 201703L)
+// C++17 or earlier here
 #  define LIKELY
 #  define UNLIKELY
-#elif defined(CERBLIB_CXX)
+#elif (__cplusplus >= 202002L)
 // C++20 here
 #  define LIKELY    [[likely]]
 #  define UNLIKELY  [[unlikely]]
@@ -124,7 +112,7 @@ namespace cerb {
 #  define CERBLIB_DEPRECATED_SUGGEST(ALT)
 #endif /* CERBLIB_DEPRECATED */
 
-#if defined(__DEPRECATED) && (CERBLIB_CXX >= 2017)
+#if defined(__DEPRECATED) && (__cplusplus >= 201703L)
 #  define CERBLIB17_DEPRECATED __attribute__ ((__deprecated__))
 #  define CERBLIB17_DEPRECATED_SUGGEST(ALT) \
   __attribute__ ((__deprecated__ ("use '" ALT "' instead")))
@@ -133,7 +121,7 @@ namespace cerb {
 #  define CERBLIB17_DEPRECATED_SUGGEST(ALT)
 #endif /* CERBLIB17_DEPRECATED */
 
-#if defined(__DEPRECATED) && (CERBLIB_CXX >= 2020)
+#if defined(__DEPRECATED) && (__cplusplus >= 202002L)
 #  define CERBLIB20_DEPRECATED __attribute__ ((__deprecated__))
 #  define CERBLIB20_DEPRECATED_SUGGEST(ALT) \
   __attribute__ ((__deprecated__ ("use '" ALT "' instead")))
@@ -142,27 +130,27 @@ namespace cerb {
 #  define CERBLIB20_DEPRECATED_SUGGEST(ALT)
 #endif /* CERBLIB20_DEPRECATED */
 
-#if !defined(CERBLIB17_CONSTEXPR) && (CERBLIB_CXX >= 2017)
+#if !defined(CERBLIB17_CONSTEXPR) && (__cplusplus >= 201703L)
 #  define CERBLIB17_CONSTEXPR constexpr
 #else
 #  define CERBLIB17_CONSTEXPR always_inline
 #endif /* CERBLIB17_CONSTEXPR */
 
-#if !defined(CERBLIB20_CONSTEXPR) && (CERBLIB_CXX > 2017)
+#if !defined(CERBLIB20_CONSTEXPR) && (__cplusplus > 201703L)
 #  define CERBLIB20_CONSTEXPR constexpr
 #else
 #  define CERBLIB20_CONSTEXPR always_inline
 #endif /* CERBLIB20_CONSTEXPR */
 
 #ifndef CERBLIB_COMPILE_TIME
-#  if CERBLIB_CXX <= 2017
+#  if __cplusplus <= __cplusplus
 #    define CERBLIB_COMPILE_TIME constexpr
 #  else
 #    define CERBLIB_COMPILE_TIME consteval
 #  endif /* C++17 */
 #endif /* CERBLIB_COMPILE_TIME */
 
-#if CERBLIB_CXX <= 2020
+#if __cplusplus <= 202002L
     constexpr auto operator ""_z(unsigned long long x) -> size_t {
         return static_cast<size_t>(x);
     }
@@ -174,10 +162,10 @@ namespace cerb {
 /*
  * Do later, when C++23 will be released
  */
-#endif /* < C++20 */
+#endif /* C++20 */
 
-#if defined(CERBLIB_CXX)
-#  if CERBLIB_CXX <= 2017
+#if defined(__cplusplus)
+#  if __cplusplus <= 201703L
 #    define CERBLIB_THREE_WAY_COMPARISON 0
 #  elif defined(__clang__) && __clang_major__ >= 10 || defined(__GNUC__) && __GNUC__ >= 10
 #    define CERBLIB_THREE_WAY_COMPARISON 1
@@ -185,7 +173,7 @@ namespace cerb {
 #    define CERBLIB_THREE_WAY_COMPARISON 0
 #  endif /* CERBLIB_THREE_WAY_COMPARISON */
 
-#  define GEN_COMPARISON_RULES(x, m) \
+#  define CERBLIB_GEN_COMPARISON_RULES(x, m) \
     always_inline friend bool operator==(const x &_lhs, const x &_rhs) { \
         return _lhs.m == _rhs.m; \
     } \
@@ -206,20 +194,20 @@ namespace cerb {
     }
 #endif /* _cplusplus */
 
-#if defined(CERBLIB_CXX)
+#if defined(__cplusplus)
 #  include <array>
 #  include <atomic>
 #  include <utility>
 #  include <type_traits>
 
-#  if CERBLIB_CXX >= 2020
+#  if __cplusplus >= 202002L
 #    include <bit>
 #  endif /* C++20 */
 
 namespace cerb {
 
     namespace PRIVATE {
-        inline std::atomic<size_t> uid = 0;
+        inline std::atomic<size_t> uid(0);
     }
 
     /**
@@ -227,7 +215,7 @@ namespace cerb {
      *
      * @return unique unsigned value
      */
-    always_inline auto uuid() -> size_t {
+    always_inline auto uuid() noexcept -> size_t {
         return PRIVATE::uid++;
     }
 
@@ -299,7 +287,7 @@ namespace cerb {
             std::is_trivially_copyable<FROM>::value &&
             std::is_trivially_copyable<TO>::value
         );
-    #if CERBLIB_CXX >= 2020
+    #if __cplusplus >= 202002L
         return std::bit_cast<TO>(x);
     #else
         union { FROM current; TO target; } u = {x};
@@ -334,7 +322,7 @@ namespace cerb {
      * @return condition ? _on_true : _on_false
      */
     template<typename T>
-    constexpr auto cmov(bool condition, const T &_on_true, const T &_on_false) -> T {
+    constexpr auto cmov(bool condition, const T &_on_true, const T &_on_false) -> const T& {
         return condition ? _on_true : _on_false;
     }
 

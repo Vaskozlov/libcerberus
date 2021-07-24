@@ -204,7 +204,7 @@ namespace cerb {
                 result += static_cast<u64>(str[i.value]) << (i.value * 8U);
             }
         );
-        
+
         return result;
     }
 

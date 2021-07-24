@@ -1,7 +1,6 @@
 #ifndef CERBERUS_QUICKSORT_HPP
 #define CERBERUS_QUICKSORT_HPP
 
-#include <cstdio>
 #include <cerberus/types.h>
 
 namespace cerb {

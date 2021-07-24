@@ -50,7 +50,7 @@ namespace cerb {
      * @return T max(_lhs, _rhs) 
      */
     template<typename T>
-    constexpr auto max(const T _lhs, const T _rhs) -> T {
+    constexpr auto max(const T &_lhs, const T &_rhs) -> const T& {
         return cmov(_lhs > _rhs, _lhs, _rhs);
     }
 
@@ -63,7 +63,7 @@ namespace cerb {
      * @return T min(_lhs, _rhs) 
      */
     template<typename T>
-    constexpr auto min(const T _lhs, const T _rhs) -> T {
+    constexpr auto min(const T &_lhs, const T &_rhs) -> const T& {
         return cmov(_lhs < _rhs, _lhs, _rhs);
     }
 
@@ -80,7 +80,7 @@ namespace cerb {
             static_assert((sizeof(T) == sizeof(u32) && std::is_same<T, float>::value) || (sizeof(T) == sizeof(u64) && std::is_same<T, double>::value));
 
             if constexpr (sizeof(T) == sizeof(u32)) {
-                cerb::ByteMask<float> a{1.0F};
+                cerb::ByteMask<float> a(1.0F);
                 a.mask32[0] += static_cast<u32>(0x800000U) * power;
                 return a.value;
             } else {
@@ -135,9 +135,13 @@ namespace cerb {
         if constexpr (mode == AlignMode::TRUNC) {
             return value & ~(pow2<T>(powerOf2) - 1);
         } else if constexpr (mode == AlignMode::CEIL) {
-            return value + (pow2<T>(powerOf2) - (value & (pow2<T>(powerOf2) - 1)));
+            return value + (pow2<T>(powerOf2) - value % pow2<T>(powerOf2));
         } else {
-            return cmov((value & (pow2<T>(powerOf2) - 1)) == 0, value, align<powerOf2, AlignMode::CEIL>(value));
+            return cmov(
+                    value % pow2<T>(powerOf2) == 0,
+                    value, align<powerOf2,
+                    AlignMode::CEIL>(value)
+            );
         }
     }
 
@@ -168,8 +172,7 @@ namespace cerb {
         #if defined(__x86_64__)
              u64 result = 0;
 
-            __asm__ __volatile__(
-                "xorq %0, %0\n\t"
+            asm volatile(
                 "1:\n\t"
                 "bt %0, %1\n\t"
                 "jae 2f\n\t"
@@ -204,8 +207,7 @@ namespace cerb {
         #if defined(__x86_64__)
             u64 result = 0;
 
-            __asm__ __volatile__(
-                "xorq %0, %0\n\t"
+            asm volatile(
                 "1:\n\t"
                 "bt %0, %1\n\t"
                 "jc 2f\n\t"

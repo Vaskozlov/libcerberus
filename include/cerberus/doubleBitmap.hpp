@@ -11,7 +11,6 @@
 #  endif
 #endif
 
-
 namespace cerb {
 
     template<typename T, size_t _size>

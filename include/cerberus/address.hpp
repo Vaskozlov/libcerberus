@@ -55,7 +55,7 @@ namespace cerb {
         #if CERBLIB_THREE_WAY_COMPARISON
             always_inline auto operator<=>(const address&) const = default;
         #else
-            GEN_COMPARISON_RULES(address, _address);
+            CERBLIB_GEN_COMPARISON_RULES(address, _address);
         #endif /* CERBLIB_THREE_WAY_COMPARISON */
     
     public:
