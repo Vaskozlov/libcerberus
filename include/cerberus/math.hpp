@@ -125,21 +125,18 @@ namespace cerb {
             );
 
             ByteMask<T> mask(value);
-
-            if constexpr (sizeof(T) == sizeof(u32)) {
-                mask.getBits() &= INT32_MAX;
-            } else if constexpr (sizeof(T) == sizeof(u64)) {
-                mask.getBits() &= INT64_MAX;
-            }
+            mask.getBits() &= cerb::getLimits(mask.getBits()).max();
 
             if constexpr (std::is_same<ResultType, EmptyType>::value) {
                 return mask.value;
             }
-        } else if constexpr (std::is_same<ResultType, EmptyType>::value){
-            return cmov(value < 0, -value, value);
         }
 
-        return static_cast<ResultType>(cmov(value < 0, -value, value));
+        if constexpr (std::is_same<ResultType, EmptyType>::value){
+            return cmov(value < 0, -value, value);
+        } else {
+            return static_cast<ResultType>(cmov(value < 0, -value, value));
+        }
     }
 
     template<u32 powerOf2, auto mode = AlignMode::ALIGN, typename T>

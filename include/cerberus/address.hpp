@@ -40,6 +40,8 @@ namespace cerb {
         (
             address,
             always_inline,
+            _lhs, _rhs, OP
+            ,
             {
                 return address(cerb::operators::count<OP>(_lhs, _rhs));
             }
@@ -50,6 +52,7 @@ namespace cerb {
         (
             address,
             always_inline,
+            other, OP,
             {
                 this->_address = reinterpret_cast<cerb::byte*>(
                         cerb::operators::count<OP>(value(), other.value())
@@ -62,6 +65,7 @@ namespace cerb {
         CERBLIB_CREATE_COMPARISON_RULES(
             address,
             always_inline,
+            _lhs, _rhs, OP,
             {
                 return cerb::operators::compare<OP>(_lhs.raw(), _rhs.raw());
             }

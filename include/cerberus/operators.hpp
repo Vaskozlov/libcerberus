@@ -3,44 +3,76 @@
 
 #include <cerberus/types.h>
 
-#define CERBLIB_ARITHMETIC_BASE(CLASS, ATTRIBUTES, CODE) \
-    template<cerb::operators::arithmetic OP>                                                                            \
-    ATTRIBUTES friend auto CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE(const CLASS &_lhs, const CLASS &_rhs) -> CLASS         \
-        CODE                                                                                                            \
-    always_inline friend auto operator+(const CLASS &_lhs, const CLASS &_rhs) -> CLASS {                                \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::operators::arithmetic::addition>(_lhs, _rhs);                \
-    }                                                                                                                   \
-    always_inline friend auto operator-(const CLASS &_lhs, const CLASS &_rhs) -> CLASS {                                \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::operators::arithmetic::subtraction>(_lhs, _rhs);             \
-    }                                                                                                                   \
-    always_inline friend auto operator*(const CLASS &_lhs, const CLASS &_rhs) -> CLASS {                                \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::operators::arithmetic::multiplication>(_lhs, _rhs);          \
-    }                                                                                                                   \
-    always_inline friend auto operator/(const CLASS &_lhs, const CLASS &_rhs) -> CLASS {                                \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::operators::arithmetic::division>(_lhs, _rhs);                \
-    }                                                                                                                   \
-    always_inline friend auto operator%(const CLASS &_lhs, const CLASS &_rhs) -> CLASS {                                \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::operators::arithmetic::modulo>(_lhs, _rhs);                  \
+#define CERBLIB_ARITHMETIC_BASE(CLASS, ATTRIBUTES, left_arg_name, right_arg_name, operator_name, CODE)                 \
+    template<cerb::operators::arithmetic operator_name>                                                                \
+    ATTRIBUTES friend                                                                                                  \
+    auto CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE(                                                                        \
+                const CLASS &left_arg_name,                                                                            \
+                const CLASS &right_arg_name                                                                            \
+    ) -> CLASS                                                                                                         \
+        CODE                                                                                                           \
+    always_inline friend                                                                                               \
+    auto operator+(const CLASS &left_arg_name, const CLASS &right_arg_name) -> CLASS {                                 \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::operators::arithmetic::addition>(                           \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline friend                                                                                               \
+    auto operator-(const CLASS &left_arg_name, const CLASS &right_arg_name) -> CLASS {                                 \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::operators::arithmetic::subtraction>(                        \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline friend                                                                                               \
+    auto operator*(const CLASS &left_arg_name, const CLASS &right_arg_name) -> CLASS {                                 \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::operators::arithmetic::multiplication>(                     \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline friend auto operator/(const CLASS &left_arg_name, const CLASS &right_arg_name) -> CLASS {            \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::operators::arithmetic::division>(                           \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline friend auto operator%(const CLASS &left_arg_name, const CLASS &right_arg_name) -> CLASS {            \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::operators::arithmetic::modulo>(                             \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
     }
 
-#define CERBLIB_ARITHMETIC_BASE_EQUAL(CLASS, ATTRIBUTES, CODE)                                                          \
-    template<cerb::operators::arithmetic OP>                                                                            \
-    ATTRIBUTES auto CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL(const CLASS &other) -> CLASS&                           \
-        CODE                                                                                                            \
-    always_inline auto operator+=(const CLASS &other) -> CLASS& {                                                       \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::operators::arithmetic::addition>(other);               \
-    }                                                                                                                   \
-    always_inline auto operator-=(const CLASS &other) -> CLASS& {                                                       \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::operators::arithmetic::subtraction>(other);            \
-    }                                                                                                                   \
-    always_inline auto operator*=(const CLASS &other) -> CLASS& {                                                       \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::operators::arithmetic::multiplication>( other);        \
-    }                                                                                                                   \
-    always_inline auto operator/=(const CLASS &other) -> CLASS& {                                                       \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::operators::arithmetic::division>(other);               \
-    }                                                                                                                   \
-    always_inline auto operator%=(const CLASS &other) -> CLASS& {                                                       \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::operators::arithmetic::modulo>(other);                 \
+#define CERBLIB_ARITHMETIC_BASE_EQUAL(CLASS, ATTRIBUTES, right_arg_name, operator_name, CODE)                          \
+    template<cerb::operators::arithmetic operator_name>                                                                \
+    ATTRIBUTES auto CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL(const CLASS &right_arg_name) -> CLASS&                 \
+        CODE                                                                                                           \
+    always_inline auto operator+=(const CLASS &right_arg_name) -> CLASS& {                                             \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::operators::arithmetic::addition>(                     \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline auto operator-=(const CLASS &right_arg_name) -> CLASS& {                                             \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::operators::arithmetic::subtraction>(                  \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline auto operator*=(const CLASS &right_arg_name) -> CLASS& {                                             \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::operators::arithmetic::multiplication>(               \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline auto operator/=(const CLASS &right_arg_name) -> CLASS& {                                             \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::operators::arithmetic::division>(                     \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline auto operator%=(const CLASS &right_arg_name) -> CLASS& {                                             \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::operators::arithmetic::modulo>(                       \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
     }
 
 #define CERBLIB_ARITHMETIC_INCREMENT(CLASS, ATTRIBUTE, CODE)    \
@@ -65,28 +97,47 @@
         return cerblib_old;                                     \
     }
 
-#define CERBLIB_CREATE_COMPARISON_RULES(CLASS, ATTRIBUTE, CODE)                                     \
-    template<cerb::operators::comparison OP>                                                        \
-    ATTRIBUTE friend auto CERBLIB_COMPARISON_RULE(const CLASS &_lhs, const CLASS &_rhs)             \
-        CODE                                                                                        \
-                                                                                                    \
-    always_inline friend auto operator>(const CLASS &_lhs, const CLASS &_rhs) -> bool {             \
-        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::greater>(_lhs, _rhs);           \
-    }                                                                                               \
-    always_inline friend auto operator>=(const CLASS &_lhs, const CLASS &_rhs) -> bool {            \
-        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::greater_equal>(_lhs, _rhs);     \
-    }                                                                                               \
-    always_inline friend auto operator<(const CLASS &_lhs, const CLASS &_rhs) -> bool {             \
-        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::less>(_lhs, _rhs);              \
-    }                                                                                               \
-    always_inline friend auto operator<=(const CLASS &_lhs, const CLASS &_rhs) -> bool {            \
-        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::less_equal>(_lhs, _rhs);        \
-    }                                                                                               \
-    always_inline friend auto operator==(const CLASS &_lhs, const CLASS &_rhs) -> bool {            \
-        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::equal>(_lhs, _rhs);             \
-    }                                                                                               \
-    always_inline friend auto operator!=(const CLASS &_lhs, const CLASS &_rhs) -> bool {            \
-        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::not_equal>(_lhs, _rhs);         \
+#define CERBLIB_CREATE_COMPARISON_RULES(CLASS, ATTRIBUTE, left_arg_name, right_arg_name, operator_name, CODE)          \
+    template<cerb::operators::comparison operator_name>                                                                \
+    ATTRIBUTE friend                                                                                                   \
+    auto CERBLIB_COMPARISON_RULE(const CLASS &left_arg_name, const CLASS &right_arg_name)                              \
+        CODE                                                                                                           \
+                                                                                                                       \
+    always_inline friend auto operator>(const CLASS &left_arg_name, const CLASS &_rhs) -> bool {                       \
+        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::greater>(                                          \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline friend auto operator>=(const CLASS &left_arg_name, const CLASS &_rhs) -> bool {                      \
+        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::greater_equal>(                                    \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline friend auto operator<(const CLASS &left_arg_name, const CLASS &_rhs) -> bool {                       \
+        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::less>(                                             \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline friend auto operator<=(const CLASS &left_arg_name, const CLASS &_rhs) -> bool {                      \
+        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::less_equal>(                                       \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline friend auto operator==(const CLASS &left_arg_name, const CLASS &_rhs) -> bool {                      \
+        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::equal>(                                            \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
+    }                                                                                                                  \
+    always_inline friend auto operator!=(const CLASS &left_arg_name, const CLASS &_rhs) -> bool {                      \
+        return CERBLIB_COMPARISON_RULE<cerb::operators::comparison::not_equal>(                                        \
+                left_arg_name,                                                                                         \
+                right_arg_name                                                                                         \
+        );                                                                                                             \
     }
 
 namespace cerb::operators {

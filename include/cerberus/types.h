@@ -177,6 +177,7 @@ namespace cerb {
 #if defined(__cplusplus)
 #  include <array>
 #  include <atomic>
+#  include <limits>
 #  include <utility>
 #  include <type_traits>
 
@@ -197,6 +198,11 @@ namespace cerb {
      */
     always_inline auto uuid() noexcept -> size_t {
         return PRIVATE::uid++;
+    }
+
+    template<typename T> [[nodiscard]]
+    CERBLIB17_CONSTEXPR auto getLimits(const T &value) -> std::numeric_limits<T> {
+        return std::numeric_limits<T>();
     }
 
     /**
