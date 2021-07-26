@@ -7,7 +7,7 @@ struct TRIVIAL operators_test {
 
     CERBLIB_CLASS_ARITHMETIC(
             operators_test,
-            always_inline, constexpr,
+            constexpr always_inline, constexpr,
             _lhs, _rhs, OP,
             {
                 if constexpr (OP == cerb::operators::arithmetic::modulo) {
@@ -20,7 +20,7 @@ struct TRIVIAL operators_test {
 
     CERBLIB_CLASS_ARITHMETIC_FOR_ANY_TYPE(
         operators_test, T,
-        always_inline, constexpr,
+        constexpr always_inline, constexpr,
         _lhs, _rhs, OP,
         {
             static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value);
@@ -34,7 +34,7 @@ struct TRIVIAL operators_test {
 
     CERBLIB_CLASS_ARITHMETIC_ON_SELF(
             operators_test,
-            always_inline, constexpr,
+            constexpr always_inline, constexpr,
             other, OP,
             {
                 this->i = cerb::operators::count<OP>(this->i, other.i);
@@ -51,7 +51,7 @@ struct TRIVIAL operators_test {
 
     CERBLIB_CLASS_ARITHMETIC_ON_SELF_FOR_ANY_TYPE(
         operators_test, T,
-        always_inline, constexpr,
+        constexpr always_inline, constexpr,
         other, OP,
         {
             static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value);
@@ -70,7 +70,7 @@ struct TRIVIAL operators_test {
 
     CERBLIB_CLASS_ARITHMETIC_ON_SELF_FOR_OTHER_TYPE(
             operators_test, int,
-            always_inline, constexpr,
+            constexpr always_inline, constexpr,
             other, OP,
             {
                 this->i = cerb::operators::count<OP>(this->i, other);
@@ -87,7 +87,7 @@ struct TRIVIAL operators_test {
 
     CERBLIB_CREATE_COMPARISON_RULES(
             operators_test,
-            always_inline, constexpr,
+            constexpr always_inline, constexpr,
             _lhs, _rhs, OP,
             {
                 return cerb::operators::compare<OP>(_lhs.i, _rhs.i) && cerb::operators::compare<OP>(_lhs.f, _rhs.f);
@@ -96,7 +96,7 @@ struct TRIVIAL operators_test {
 
     CERBLIB_CLASS_ARITHMETIC_INCREMENT(
             operators_test,
-            always_inline,
+            constexpr always_inline,
             {
                 this->i++;
                 this->f++;
@@ -105,7 +105,7 @@ struct TRIVIAL operators_test {
 
     CERBLIB_CLASS_ARITHMETIC_DECREMENT(
             operators_test,
-            always_inline,
+            constexpr always_inline,
             {
                 this->i--;
                 this->f--;

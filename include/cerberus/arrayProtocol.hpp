@@ -9,8 +9,13 @@ namespace cerb {
     union TRIVIAL ArrayProtocol {
         static_assert(POINTABLE < 2);
 
+    #if defined(__unix__)
         T *pointer[POINTABLE];
         T data[SIZE * (!POINTABLE)];
+    #else
+        T* pointer[cerb::max(1, POINTABLE)];
+        T data[cerb::max<size_t>(1, SIZE * (!POINTABLE))];
+    #endif
 
     public:
         always_inline auto get() -> T * {

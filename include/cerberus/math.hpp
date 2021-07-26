@@ -157,23 +157,6 @@ namespace cerb {
     }
 
     /**
-     * @brief log2 from value
-     * 
-     * @tparam T - only integer
-     * @param value 
-     * @return log2(value)
-     */
-    template<typename T>
-    constexpr auto log2(const T value) -> T {
-        static_assert(std::is_integral<T>::value);
-        if constexpr (sizeof(T) <= sizeof(u32)) {
-            return (bitsizeof(u32) - 1) - __builtin_clz(value);
-        } else {
-            return (bitsizeof(u64) - 1) - __builtin_clzl(value);
-        }
-    }
-
-    /**
      * @brief find free bit in 64 bit integer. UNSAFE if value does not have free bit
      * 
      * @param value 
@@ -214,6 +197,9 @@ namespace cerb {
      * @param value 
      * @return location of set bit
      */
+#ifndef __x86_64__
+    constexpr
+#endif
     always_inline auto findSetBit(u64 value) -> u32 {
         #if defined(__x86_64__)
             u64 result = 0;
@@ -243,6 +229,30 @@ namespace cerb {
             return UINTMAX_MAX;
         #endif /* ARCH */
     }
+
+    /**
+     * @brief log2 from value
+     *
+     * @tparam T - only integer
+     * @param value
+     * @return log2(value)
+     */
+    template<typename T>
+    constexpr auto log2(const T value) -> T {
+        static_assert(std::is_integral<T>::value);
+
+    #if defined(__unix__)
+        if constexpr (sizeof(T) <= sizeof(u32)) {
+            return (bitsizeof(u32) - 1) - __builtin_clz(value);
+        }
+        else {
+            return (bitsizeof(u64) - 1) - __builtin_clzl(value);
+        }
+    #else
+        return findSetBit(static_cast<u64>(value));
+    #endif
+    }
+
 } // namespace cerb
 
 #endif /* cerberusMath_hpp */

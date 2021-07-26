@@ -216,7 +216,11 @@ namespace cerb {
             }
 
         protected:
+        #if defined(__unix__)
             size_t  _size[POINTABLE];
+        #else
+            size_t  _size[cerb::max(POINTABLE, 1)];
+        #endif
             cerb::ArrayProtocol<T, POINTABLE, protocolSize()> _data;
 
         public:

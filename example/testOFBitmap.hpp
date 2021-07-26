@@ -19,7 +19,7 @@ std::mt19937 mt(rd());
 std::uniform_int_distribution<u64> dist(0, 1024);
 
 template<typename T1, typename T2>
-__attribute__((noinline)) static int cmpBitmaps(T1 &&bitmap1, T2 &&bitmap2, std::set<size_t> &positions) {
+static int cmpBitmaps(T1 &&bitmap1, T2 &&bitmap2, std::set<size_t> &positions) {
 
     for (size_t i = 0; i < bitmap1.size(); i++) {
         if (positions.count(i) > 0) {

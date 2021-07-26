@@ -88,7 +88,7 @@ namespace cerb {
 // C++17 or earlier here
 #  define LIKELY
 #  define UNLIKELY
-#elif (__cplusplus >= 202002L)
+#elif defined(__cplusplus)
 // C++20 here
 #  define LIKELY    [[likely]]
 #  define UNLIKELY  [[unlikely]]

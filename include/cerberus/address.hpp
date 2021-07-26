@@ -39,7 +39,7 @@ namespace cerb {
         CERBLIB_CLASS_ARITHMETIC
         (
             address,
-            always_inline, constexpr,
+            constexpr always_inline, constexpr,
             _lhs, _rhs, OP,
             {
                 return address(cerb::operators::count<OP>(_lhs, _rhs));
@@ -50,7 +50,7 @@ namespace cerb {
         CERBLIB_CLASS_ARITHMETIC_ON_SELF
         (
             address,
-            always_inline, constexpr,
+            constexpr always_inline, constexpr,
             other, OP,
             {
                 this->_address = reinterpret_cast<cerb::byte*>(
@@ -63,7 +63,7 @@ namespace cerb {
     public:
         CERBLIB_CREATE_COMPARISON_RULES(
             address,
-            always_inline, constexpr,
+            constexpr always_inline, constexpr,
             _lhs, _rhs, OP,
             {
                 return cerb::operators::compare<OP>(_lhs.raw(), _rhs.raw());
@@ -105,7 +105,7 @@ namespace cerb {
         address(address&&) noexcept = default;
 
         template<typename T>
-        explicit always_inline address(T *addr) noexcept
+        explicit constexpr always_inline address(T *addr) noexcept
             : _address(static_cast<cerb::byte *>(addr))
         {}
 

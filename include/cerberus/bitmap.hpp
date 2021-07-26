@@ -234,7 +234,9 @@ namespace cerb {
 
         explicit inline bitmap(size_t numberOfElems) :
                 PRIVATE::pointableBitmap<T>::bitmapAPI(
-                    static_cast<T*>(::operator new(cerb::align<cerb::log2(bitsizeof(T))>(numberOfElems) / sizeof(T))),
+                    static_cast<T*>(::operator new(
+                        (numberOfElems / bitsizeof(T) + ((numberOfElems % bitsizeof(T)) != 0)) * sizeof(T))
+                    ),
                     numberOfElems
             ), _capacity(cerb::align<cerb::log2(bitsizeof(T))>(numberOfElems))
         {}
