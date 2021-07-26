@@ -9,6 +9,9 @@ auto main(int argc, char *argv[]) -> int {
     b = a + operators_test{10, 10.0f};
     b *= a;
 
+    b = b * 10UL;
+    b *= 0U;
+
     std::cout << b.i << ' ' << b.f << std::endl;
 
     return 0;

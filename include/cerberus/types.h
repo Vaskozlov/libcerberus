@@ -9,7 +9,12 @@
 #  include <inttypes.h>
 #endif /* __cplusplus */
 
-#include <alloca.h>
+#if defined(__unix__)
+#  include <alloca.h>
+#else
+#  include <malloc.h>
+#  define alloca(x) _alloca(x)
+#endif /* __unix__ */
 
 #if defined(__cplusplus)
     using i8  = int8_t;
@@ -72,7 +77,11 @@ namespace cerb {
 #endif /* C++17 */
 
 #if !defined(always_inline)
-#define always_inline   __attribute__((always_inline)) inline
+#  if defined(__unix__)
+#    define always_inline __attribute__((always_inline)) inline
+#  else
+#    define always_inline __forceinline
+#  endif
 #endif /* always_inline */
 
 #if (__cplusplus <= 201703L)
@@ -86,45 +95,30 @@ namespace cerb {
 #endif /* C++17-20 */
 
 #if defined(__clang__) && !defined(TRIVIAL)
-#  define TRIVIAL __attribute__((trivial_abi))
+#  define TRIVIAL [[clang::trivial_abi]]
 #elif !defined(TRIVIAL)
 #  define TRIVIAL
 #endif
 
-#ifndef CERBLIB_PURE
-#  define CERBLIB_PURE __attribute__ ((__pure__))
-#endif /* CERBLIB_PURE */
-
-#ifndef CERBLIB_CONST
-#  define CERBLIB_CONST __attribute__ ((__const__))
-#endif /* CERBLIB_CONST */
-
-#ifndef CERBLIB_NORETURN
-#  define CERBLIB_NORETURN __attribute__ ((__noreturn__))
-#endif /* CERBLIB_NORETURN */
-
 #if defined(__DEPRECATED) && !defined(CERBLIB_DEPRECATED)
-#  define CERBLIB_DEPRECATED __attribute__ ((__deprecated__))
-#  define CERBLIB_DEPRECATED_SUGGEST(ALT) \
-  __attribute__ ((__deprecated__ ("use '" ALT "' instead")))
+#  define CERBLIB_DEPRECATED [[deprecated]]
+#  define CERBLIB_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
 #else
 #  define CERBLIB_DEPRECATED
 #  define CERBLIB_DEPRECATED_SUGGEST(ALT)
 #endif /* CERBLIB_DEPRECATED */
 
 #if defined(__DEPRECATED) && (__cplusplus >= 201703L)
-#  define CERBLIB17_DEPRECATED __attribute__ ((__deprecated__))
-#  define CERBLIB17_DEPRECATED_SUGGEST(ALT) \
-  __attribute__ ((__deprecated__ ("use '" ALT "' instead")))
+#  define CERBLIB17_DEPRECATED [[deprecated]]
+#  define CERBLIB17_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
 #else
 #  define CERBLIB17_DEPRECATED
 #  define CERBLIB17_DEPRECATED_SUGGEST(ALT)
 #endif /* CERBLIB17_DEPRECATED */
 
 #if defined(__DEPRECATED) && (__cplusplus >= 202002L)
-#  define CERBLIB20_DEPRECATED __attribute__ ((__deprecated__))
-#  define CERBLIB20_DEPRECATED_SUGGEST(ALT) \
-  __attribute__ ((__deprecated__ ("use '" ALT "' instead")))
+#  define CERBLIB20_DEPRECATED [[deprecated]]
+#  define CERBLIB20_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
 #else
 #  define CERBLIB20_DEPRECATED
 #  define CERBLIB20_DEPRECATED_SUGGEST(ALT)

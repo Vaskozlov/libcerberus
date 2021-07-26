@@ -84,6 +84,7 @@ namespace cerb {
             0b1111111111111111111111111111111111111111111111111111111111111111UL
         };
 
+        #pragma pack (push, 1)
         template<typename T>
         class TRIVIAL BitmapElem {
             u16 _bitIndex;
@@ -113,7 +114,8 @@ namespace cerb {
                 : _bitIndex(bitIndex), _elem(elem)
             {
             }
-        } __attribute__((packed));        
+        };
+        #pragma pack (pop)
 
         template<typename T>
         static void set(T *buffer, size_t index, u8 value) noexcept {

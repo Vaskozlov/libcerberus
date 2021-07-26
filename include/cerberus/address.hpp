@@ -36,22 +36,21 @@ namespace cerb {
         }
 
     public:
-        CERBLIB_ARITHMETIC_BASE
+        CERBLIB_CLASS_ARITHMETIC
         (
             address,
-            always_inline,
-            _lhs, _rhs, OP
-            ,
+            always_inline, constexpr,
+            _lhs, _rhs, OP,
             {
                 return address(cerb::operators::count<OP>(_lhs, _rhs));
             }
         )
 
     public:
-        CERBLIB_ARITHMETIC_BASE_EQUAL
+        CERBLIB_CLASS_ARITHMETIC_ON_SELF
         (
             address,
-            always_inline,
+            always_inline, constexpr,
             other, OP,
             {
                 this->_address = reinterpret_cast<cerb::byte*>(
@@ -64,7 +63,7 @@ namespace cerb {
     public:
         CERBLIB_CREATE_COMPARISON_RULES(
             address,
-            always_inline,
+            always_inline, constexpr,
             _lhs, _rhs, OP,
             {
                 return cerb::operators::compare<OP>(_lhs.raw(), _rhs.raw());
@@ -72,14 +71,14 @@ namespace cerb {
         )
     
     public:
-        CERBLIB_ARITHMETIC_INCREMENT
+        CERBLIB_CLASS_ARITHMETIC_INCREMENT
         (
             address,
             always_inline,
             { this->_address++; }
         )
 
-        CERBLIB_ARITHMETIC_DECREMENT
+        CERBLIB_CLASS_ARITHMETIC_DECREMENT
         (
             address,
             always_inline,

@@ -22,6 +22,7 @@ namespace cerb {
             TwoBitStorage(TwoBitStorage&&) noexcept = default;
         };
 
+        #pragma pack (push, 1)
         template<typename T>
         struct TRIVIAL DoubleBitmapElem {
             BitmapElem<T> first;
@@ -47,7 +48,8 @@ namespace cerb {
                 : first(bitIndex, elem1), second(bitIndex, elem2)
             {
             }
-        } __attribute__((packed));
+        };
+        #pragma (pop)
 
         template<typename T> [[nodiscard]]
         static auto at2(const T *buffer1, const T *buffer2, size_t index) noexcept -> TwoBitStorage {
