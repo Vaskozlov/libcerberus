@@ -32,7 +32,7 @@ namespace cerb {
             auto operator=(const DoubleBitmapElem<T>&) -> DoubleBitmapElem<T>& = default;
             auto operator=(DoubleBitmapElem<T>&&) noexcept -> DoubleBitmapElem<T>& = default;
 
-            always_inline auto operator=(std::pair<u8, u8> newValues) noexcept -> DoubleBitmapElem<T>& {
+            CERBLIB_INLINE auto operator=(std::pair<u8, u8> newValues) noexcept -> DoubleBitmapElem<T>& {
                 first = newValues.first;
                 second = newValues.second;
 
@@ -44,7 +44,7 @@ namespace cerb {
             DoubleBitmapElem(DoubleBitmapElem&) = default;
             DoubleBitmapElem(DoubleBitmapElem&&) noexcept = default;
 
-            always_inline DoubleBitmapElem(u16 bitIndex, T *elem1, T *elem2) noexcept
+            CERBLIB_INLINE DoubleBitmapElem(u16 bitIndex, T *elem1, T *elem2) noexcept
                 : first(bitIndex, elem1), second(bitIndex, elem2)
             {
             }
@@ -126,7 +126,7 @@ namespace cerb {
         }
 
         template<typename T> [[nodiscard]]
-        always_inline auto isEmpty(const T *buffer1, const T *buffer2, size_t limit) {
+        CERBLIB_INLINE auto isEmpty(const T *buffer1, const T *buffer2, size_t limit) {
             size_t index = 0;
             auto maxElemIndex = limit / bitsizeof(T);
 
@@ -162,7 +162,7 @@ namespace cerb {
 
         public:
             [[nodiscard]]
-            constexpr always_inline auto size() const -> size_t {
+            constexpr CERBLIB_INLINE auto size() const -> size_t {
                 if constexpr (POINTABLE) {
                     return _size[0];
                 } else {
@@ -171,114 +171,114 @@ namespace cerb {
             }
 
             [[nodiscard]]
-            constexpr always_inline auto data1() const -> const T * {
+            constexpr CERBLIB_INLINE auto data1() const -> const T * {
                 return _data1.get();
             }
 
             [[nodiscard]]
-            constexpr always_inline auto data2() const -> const T * {
+            constexpr CERBLIB_INLINE auto data2() const -> const T * {
                 return _data2.get();
             }
 
             [[nodiscard]]
-            constexpr always_inline auto sizeOfArray() const -> size_t {
+            constexpr CERBLIB_INLINE auto sizeOfArray() const -> size_t {
                 return size() / bitsizeof(T) + (size() % bitsizeof(T) != 0);
             }
 
             [[nodiscard]]
-            constexpr always_inline auto sizeOfData() const -> size_t {
+            constexpr CERBLIB_INLINE auto sizeOfData() const -> size_t {
                 return sizeOfArray() * sizeof(T);
             }
 
         public:
-            always_inline void clear1() {
+            CERBLIB_INLINE void clear1() {
                 PRIVATE::clear(_data1.get(), size());
             }
 
-            always_inline void clear2() {
+            CERBLIB_INLINE void clear2() {
                 PRIVATE::clear(_data2.get(), size());
             }
 
-            always_inline void clear() {
+            CERBLIB_INLINE void clear() {
                 this->clear1();
                 this->clear2();
             }
 
             [[nodiscard]]
-            always_inline auto isEmpty1() const -> bool {
+            CERBLIB_INLINE auto isEmpty1() const -> bool {
                 return PRIVATE::isEmpty(data1(), size());
             }
 
             [[nodiscard]]
-            always_inline auto isEmpty2() const -> bool {
+            CERBLIB_INLINE auto isEmpty2() const -> bool {
                 return PRIVATE::isEmpty(data2(), size());
             }
 
             [[nodiscard]]
-            always_inline auto isEmpty() const -> bool {
+            CERBLIB_INLINE auto isEmpty() const -> bool {
                 return PRIVATE::isEmpty(data1(), data2(), size());
             }
 
             template<u8 firstValue> [[nodiscard]]
-            always_inline auto findWithRule1() const -> size_t {
+            CERBLIB_INLINE auto findWithRule1() const -> size_t {
                 return PRIVATE::findWithRule<firstValue>(data1(), size());
             }
 
             template<u8 firstValue> [[nodiscard]]
-            always_inline auto findWithRule2() const -> size_t {
+            CERBLIB_INLINE auto findWithRule2() const -> size_t {
                 return PRIVATE::findWithRule<firstValue>(data2(), size());
             }
 
             template<u8 firstValue, u8 secondValue> [[nodiscard]]
-            always_inline auto findWithRule() const -> size_t {
+            CERBLIB_INLINE auto findWithRule() const -> size_t {
                 return PRIVATE::findWithRule<firstValue, secondValue>(data1(), data2(), size());
             }
 
             template<u8 value>
-            always_inline void set1(size_t index) {
+            CERBLIB_INLINE void set1(size_t index) {
                 PRIVATE::set<value>(_data1.get(), index);
             }
 
             template<u8 value>
-            always_inline void set2(size_t index) {
+            CERBLIB_INLINE void set2(size_t index) {
                 PRIVATE::set<value>(_data2.get(), index);
             }
 
             template<u8 value>
-            always_inline void set(size_t index) {
+            CERBLIB_INLINE void set(size_t index) {
                 PRIVATE::set<value>(_data1.get(), _data2, index);
             }
 
-            always_inline void set1(size_t index, u8 value) {
+            CERBLIB_INLINE void set1(size_t index, u8 value) {
                 PRIVATE::set(_data1.get(), index, value);
             }
 
-            always_inline void set2(size_t index, u8 value) {
+            CERBLIB_INLINE void set2(size_t index, u8 value) {
                 PRIVATE::set(_data2.get(), index, value);
             }
 
-            always_inline void set(size_t index, u8 value) {
+            CERBLIB_INLINE void set(size_t index, u8 value) {
                 PRIVATE::set(_data1.get(), _data2, index, value);
             }
 
         public:
             [[nodiscard]]
-            always_inline auto at1(size_t index) const -> u8 {
+            CERBLIB_INLINE auto at1(size_t index) const -> u8 {
                 return PRIVATE::at(data1(), index);
             }
 
             [[nodiscard]]
-            always_inline auto at2(size_t index) const -> u8 {
+            CERBLIB_INLINE auto at2(size_t index) const -> u8 {
                 return PRIVATE::at(data2(), index);
             }
 
             [[nodiscard]]
-            always_inline auto at(size_t index) const -> TwoBitStorage {
+            CERBLIB_INLINE auto at(size_t index) const -> TwoBitStorage {
                 return PRIVATE::at2(data1(), data2(), index);
             }
 
             [[nodiscard]]
-            always_inline auto operator[](size_t index) -> DoubleBitmapElem<T> {
+            CERBLIB_INLINE auto operator[](size_t index) -> DoubleBitmapElem<T> {
                 return {
                     static_cast<u16>(index % bitsizeof(T)),
                     _data1 + (index / bitsizeof(T)),
@@ -287,7 +287,7 @@ namespace cerb {
             }
 
         public:
-            always_inline auto toAPI() -> doubleBitmapAPI<T, POINTABLE, protocolSize()>& {
+            CERBLIB_INLINE auto toAPI() -> doubleBitmapAPI<T, POINTABLE, protocolSize()>& {
                 return dynamic_cast<doubleBitmapAPI<T, POINTABLE, protocolSize()>&>(*this);
             }
 
@@ -298,7 +298,7 @@ namespace cerb {
             doubleBitmapAPI(doubleBitmapAPI&) = default;
             doubleBitmapAPI(doubleBitmapAPI&&) noexcept = default;
 
-            always_inline doubleBitmapAPI(T *buffer, size_t size)
+            CERBLIB_INLINE doubleBitmapAPI(T *buffer, size_t size)
                     : _data1(buffer)
             {
                 static_assert(POINTABLE);
@@ -306,7 +306,7 @@ namespace cerb {
                 _data2 = _data1.get() + sizeOfArray();
             }
 
-            always_inline doubleBitmapAPI(T *buffer1, T *buffer2, size_t size)
+            CERBLIB_INLINE doubleBitmapAPI(T *buffer1, T *buffer2, size_t size)
                 : _data1(buffer1), _data2(buffer2)
             {
                 static_assert(POINTABLE);

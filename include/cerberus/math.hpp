@@ -88,12 +88,12 @@ namespace cerb {
                 (sizeof(T) == sizeof(u64) && std::is_same<T, double>::value)
             );
 
-            cerb::ByteMask<T> mask{static_cast<T>(1.0)};
+            cerb::byteMask<T> mask{static_cast<T>(1.0)};
 
             if constexpr (sizeof(T) == sizeof(u32)) {
-                mask.getBits() += 0x800000U * power;
+                mask.getAsIntegral() += 0x800000U * power;
             } else {
-                mask.getBits() += 0x10000000000000UL * power;
+                mask.getAsIntegral() += 0x10000000000000UL * power;
             }
             return mask.value;
 
@@ -124,8 +124,8 @@ namespace cerb {
                 sizeof(T) == sizeof(u64)
             );
 
-            ByteMask<T> mask(value);
-            mask.getBits() &= cerb::getLimits(mask.getBits()).max();
+            byteMask<T> mask(value);
+            mask.getAsIntegral() &= cerb::getLimits(mask.getAsIntegral()).max();
 
             if constexpr (std::is_same<ResultType, EmptyType>::value) {
                 return mask.value;
@@ -162,7 +162,7 @@ namespace cerb {
      * @param value 
      * @return u32 location of free bit
      */
-    always_inline auto findFreeBit(u64 value) -> u32 {
+    CERBLIB_NOT_X86_64_CONSTEXPR auto findFreeBit(u64 value) -> u32 {
         #if defined(__x86_64__)
              u64 result = 0;
 
@@ -197,10 +197,7 @@ namespace cerb {
      * @param value 
      * @return location of set bit
      */
-#ifndef __x86_64__
-    constexpr
-#endif
-    always_inline auto findSetBit(u64 value) -> u32 {
+    CERBLIB_NOT_X86_64_CONSTEXPR auto findSetBit(u64 value) -> u32 {
         #if defined(__x86_64__)
             u64 result = 0;
 
@@ -239,18 +236,27 @@ namespace cerb {
      */
     template<typename T>
     constexpr auto log2(const T value) -> T {
-        static_assert(std::is_integral<T>::value);
+        static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value);
 
-    #if defined(__unix__)
-        if constexpr (sizeof(T) <= sizeof(u32)) {
-            return (bitsizeof(u32) - 1) - __builtin_clz(value);
+        if constexpr (std::is_integral<T>::value) {
+        #if defined(__unix__)
+            if constexpr (sizeof(T) <= sizeof(u32)) {
+                return (bitsizeof(u32) - 1) - __builtin_clz(value);
+            } else {
+                return (bitsizeof(u64) - 1) - __builtin_clzl(value);
+            }
+        #else
+            return findSetBit(static_cast<u64>(value));
+        #endif
+        } else {
+            cerb::byteMask<T> mask(value);
+
+            if constexpr (sizeof(T) == sizeof(u32)) {
+                return ((mask.getAsIntegral() & 0xFF800000U) >> 23) - 0x7fu;
+            } else {
+                return ((mask.getAsIntegral() & 0xFFF0000000000000UL) >> 52) - 1023;
+            }
         }
-        else {
-            return (bitsizeof(u64) - 1) - __builtin_clzl(value);
-        }
-    #else
-        return findSetBit(static_cast<u64>(value));
-    #endif
     }
 
 } // namespace cerb

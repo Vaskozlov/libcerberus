@@ -91,7 +91,7 @@ namespace cerb {
             T *_elem;
 
         public:
-            always_inline auto value() noexcept -> u8 {
+            CERBLIB_INLINE auto value() noexcept -> u8 {
                 return (*_elem & (static_cast<T>(1) << _bitIndex)) != 0;
             }
 
@@ -99,7 +99,7 @@ namespace cerb {
             auto operator=(const BitmapElem&) -> BitmapElem& = default;
             auto operator=(BitmapElem&&) noexcept -> BitmapElem& = default;
 
-            always_inline auto operator=(u8 newValue) noexcept -> BitmapElem& {
+            CERBLIB_INLINE auto operator=(u8 newValue) noexcept -> BitmapElem& {
                 *_elem &= ~(static_cast<T>(1) << _bitIndex);
                 *_elem |= static_cast<T>(newValue) << _bitIndex;
                 return *this;
@@ -110,7 +110,7 @@ namespace cerb {
             BitmapElem(BitmapElem&) = default;
             BitmapElem(BitmapElem&&) noexcept = default;
 
-            always_inline BitmapElem(u16 bitIndex, T *elem) noexcept
+            CERBLIB_INLINE BitmapElem(u16 bitIndex, T *elem) noexcept
                 : _bitIndex(bitIndex), _elem(elem)
             {
             }
@@ -225,7 +225,7 @@ namespace cerb {
 
         public:
             [[nodiscard]]
-            constexpr always_inline auto size() const -> size_t {
+            constexpr CERBLIB_INLINE auto size() const -> size_t {
                 if constexpr (POINTABLE) {
                     return _size[0];
                 } else {
@@ -234,58 +234,58 @@ namespace cerb {
             }
 
             [[nodiscard]]
-            constexpr always_inline auto data() const -> const T * {
+            constexpr CERBLIB_INLINE auto data() const -> const T * {
                 return _data.get();
             }
 
             [[nodiscard]]
-            constexpr always_inline auto sizeOfArray() const -> size_t {
+            constexpr CERBLIB_INLINE auto sizeOfArray() const -> size_t {
                 return size() / bitsizeof(T) + (size() % bitsizeof(T) != 0);
             }
 
             [[nodiscard]]
-            constexpr always_inline auto sizeOfData() const -> size_t {
+            constexpr CERBLIB_INLINE auto sizeOfData() const -> size_t {
                 return sizeOfArray() * sizeof(T);
             }
 
         public:
-            always_inline void clear() {
+            CERBLIB_INLINE void clear() {
                 PRIVATE::clear(_data.get(), size());
             }
 
             [[nodiscard]]
-            always_inline auto isEmpty() const -> bool {
+            CERBLIB_INLINE auto isEmpty() const -> bool {
                 return PRIVATE::isEmpty(data(), size());
             }
 
             template<u8 firstValue> [[nodiscard]]
-            always_inline auto findWithRule() const noexcept -> size_t {
+            CERBLIB_INLINE auto findWithRule() const noexcept -> size_t {
                 return PRIVATE::findWithRule<firstValue>(data(), size());
             }
 
             template<u8 value>
-            always_inline void set(size_t index) noexcept {
+            CERBLIB_INLINE void set(size_t index) noexcept {
                 PRIVATE::set<value>(_data.get(), index);
             }
 
-            always_inline void set(size_t index, u8 value) noexcept {
+            CERBLIB_INLINE void set(size_t index, u8 value) noexcept {
                 PRIVATE::set(_data.get(), index, value);
             }
 
         public:
             [[nodiscard]]
-            always_inline auto at(size_t index) const noexcept -> u8 {
+            CERBLIB_INLINE auto at(size_t index) const noexcept -> u8 {
                 return PRIVATE::at(_data.get(), index);
             }
 
             [[nodiscard]]
-            always_inline auto operator[](size_t index) noexcept -> BitmapElem<T> {
+            CERBLIB_INLINE auto operator[](size_t index) noexcept -> BitmapElem<T> {
                 return {static_cast<u16>(index % bitsizeof(T)), _data.get() + (index / bitsizeof(T))};
             }
 
         public:
             [[nodiscard]]
-            always_inline auto toAPI() -> bitmapAPI<T, POINTABLE, protocolSize()>& {
+            CERBLIB_INLINE auto toAPI() -> bitmapAPI<T, POINTABLE, protocolSize()>& {
                 return dynamic_cast<bitmapAPI<T, POINTABLE, protocolSize()>&>(*this);
             }
 
@@ -297,7 +297,7 @@ namespace cerb {
             bitmapAPI(bitmapAPI&) = default;
             bitmapAPI(bitmapAPI&&) noexcept = default;
 
-            always_inline bitmapAPI(T *buffer, size_t size)
+            CERBLIB_INLINE bitmapAPI(T *buffer, size_t size)
                 : _data(buffer)
             {
                 static_assert(POINTABLE);

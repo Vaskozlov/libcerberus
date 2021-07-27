@@ -22,16 +22,16 @@ namespace cerb {
         };
 
     public:
-        [[nodiscard]] always_inline auto raw()   const -> void * {
+        [[nodiscard]] CERBLIB_INLINE auto raw() const -> void * {
             return static_cast<void*>(_address);
         }
 
-        [[nodiscard]] always_inline auto value() const -> size_t {
+        [[nodiscard]] CERBLIB_INLINE auto value() const -> size_t {
             return reinterpret_cast<size_t>(_address);
         }
 
         template<typename T> [[nodiscard]]
-        explicit always_inline operator T *() const noexcept {
+        explicit CERBLIB_INLINE operator T *() const noexcept {
             return static_cast<T*>(this->raw());
         }
 
@@ -39,10 +39,11 @@ namespace cerb {
         CERBLIB_CLASS_ARITHMETIC
         (
             address,
-            constexpr always_inline, constexpr,
+            constexpr,
+            constexpr,
             _lhs, _rhs, OP,
             {
-                return address(cerb::operators::count<OP>(_lhs, _rhs));
+                return address(cerb::operators::count<OP>(_lhs.value(), _rhs.value()));
             }
         )
 
@@ -50,7 +51,8 @@ namespace cerb {
         CERBLIB_CLASS_ARITHMETIC_ON_SELF
         (
             address,
-            constexpr always_inline, constexpr,
+            constexpr,
+            constexpr,
             other, OP,
             {
                 this->_address = reinterpret_cast<cerb::byte*>(
@@ -61,9 +63,10 @@ namespace cerb {
         )
 
     public:
-        CERBLIB_CREATE_COMPARISON_RULES(
+        CERBLIB_CLASS_COMPARISON(
             address,
-            constexpr always_inline, constexpr,
+            constexpr,
+            constexpr,
             _lhs, _rhs, OP,
             {
                 return cerb::operators::compare<OP>(_lhs.raw(), _rhs.raw());
@@ -74,21 +77,21 @@ namespace cerb {
         CERBLIB_CLASS_ARITHMETIC_INCREMENT
         (
             address,
-            always_inline,
+            constexpr,
             { this->_address++; }
         )
 
         CERBLIB_CLASS_ARITHMETIC_DECREMENT
         (
             address,
-            always_inline,
-            { this->_address++; }
+            constexpr,
+            { this->_address--; }
         )
 
     public:
         template<u32 ALIGN_VALUE = ALIGN2::Page4KB, auto MODE = AlignMode::ALIGN>
-        always_inline void align() {
-            _address = reinterpret_cast<cerb::byte*>(
+        constexpr void align() {
+            _address = cerb::bit_cast<cerb::byte*>(
                     cerb::align<ALIGN_VALUE, MODE>(value())
             );
         }
@@ -105,12 +108,12 @@ namespace cerb {
         address(address&&) noexcept = default;
 
         template<typename T>
-        explicit constexpr always_inline address(T *addr) noexcept
+        explicit constexpr CERBLIB_INLINE address(T *addr) noexcept
             : _address(static_cast<cerb::byte *>(addr))
         {}
 
-        explicit always_inline address(size_t addr) noexcept
-            : _address(reinterpret_cast<cerb::byte *>(addr))
+        explicit constexpr CERBLIB_INLINE address(size_t addr) noexcept
+            : _address(cerb::bit_cast<cerb::byte*>(addr))
         {}
     };
 } // namespace cerb

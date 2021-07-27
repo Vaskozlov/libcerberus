@@ -76,13 +76,21 @@ namespace cerb {
 #  error cerberus requires at least C++17
 #endif /* C++17 */
 
-#if !defined(always_inline)
-#  if defined(__unix__)
-#    define always_inline __attribute__((always_inline)) inline
+#ifndef CERBLIB_NOT_X86_64_CONSTEXPR
+#  if defined(__x86_64)
+#    define CERBLIB_NOT_X86_64_CONSTEXPR CERBLIB_INLINE
 #  else
-#    define always_inline __forceinline
+#    define CERBLIB_NOT_X86_64_CONSTEXPR constexrp
 #  endif
-#endif /* always_inline */
+#endif
+
+#if !defined(CERBLIB_INLINE)
+#  if defined(__unix__)
+#    define CERBLIB_INLINE __attribute__((always_inline)) inline
+#  else
+#    define CERBLIB_INLINE __forceinline
+#  endif
+#endif /* CERBLIB_INLINE */
 
 #if (__cplusplus <= 201703L)
 // C++17 or earlier here
@@ -127,13 +135,13 @@ namespace cerb {
 #if !defined(CERBLIB17_CONSTEXPR) && (__cplusplus >= 201703L)
 #  define CERBLIB17_CONSTEXPR constexpr
 #else
-#  define CERBLIB17_CONSTEXPR always_inline
+#  define CERBLIB17_CONSTEXPR CERBLIB_INLINE
 #endif /* CERBLIB17_CONSTEXPR */
 
 #if !defined(CERBLIB20_CONSTEXPR) && (__cplusplus > 201703L)
 #  define CERBLIB20_CONSTEXPR constexpr
 #else
-#  define CERBLIB20_CONSTEXPR always_inline
+#  define CERBLIB20_CONSTEXPR CERBLIB_INLINE
 #endif /* CERBLIB20_CONSTEXPR */
 
 #ifndef CERBLIB_COMPILE_TIME
@@ -190,12 +198,12 @@ namespace cerb {
      *
      * @return unique unsigned value
      */
-    always_inline auto uuid() noexcept -> size_t {
+    CERBLIB_INLINE auto uuid() noexcept -> size_t {
         return PRIVATE::uid++;
     }
 
     template<typename T> [[nodiscard]]
-    CERBLIB17_CONSTEXPR auto getLimits(const T &value) -> std::numeric_limits<T> {
+    constexpr auto getLimits(const T &value) -> std::numeric_limits<T> {
         return std::numeric_limits<T>();
     }
 
@@ -205,20 +213,16 @@ namespace cerb {
      * @tparam T type of bitmask
      */
     template<typename T>
-    union TRIVIAL ByteMask{
+    union TRIVIAL byteMask{
         T value;
-        std::array<u8,  sizeof(T) / sizeof(u8) > mask_u8 ;
+
+        std::array<u8,  sizeof(T) / sizeof(u8 )> mask_u8 ;
         std::array<u16, sizeof(T) / sizeof(u16)> mask_u16;
         std::array<u32, sizeof(T) / sizeof(u32)> mask_u32;
         std::array<u64, sizeof(T) / sizeof(u64)> mask_u64;
 
-        std::array<i8,  sizeof(T) / sizeof(u8) > mask_i8 ;
-        std::array<i16, sizeof(T) / sizeof(u16)> mask_i16;
-        std::array<i32, sizeof(T) / sizeof(u32)> mask_i32;
-        std::array<i64, sizeof(T) / sizeof(u64)> mask_i64;
-
     public:
-        CERBLIB17_CONSTEXPR auto &getBits() noexcept {
+        constexpr auto &getAsIntegral() noexcept {
             static_assert(
                 sizeof(T) == sizeof(u8) ||
                 sizeof(T) == sizeof(u16) ||
@@ -226,31 +230,21 @@ namespace cerb {
                 sizeof(T) == sizeof(u64)
             );
 
-            if constexpr (std::is_unsigned<T>::value) {
-                if constexpr (sizeof(T) == sizeof(u8)) {
-                    return mask_u8[0];
-                } else if constexpr (sizeof(T) == sizeof(u16)) {
-                    return mask_u16[0];
-                } else if constexpr (sizeof(T) == sizeof(u32)) {
-                    return mask_u32[0];
-                } else if constexpr (sizeof(T) == sizeof(u64)) {
-                    return mask_u64[0];
-                }
-            } else {
-                if constexpr (sizeof(T) == sizeof(u8)) {
-                    return mask_i8[0];
-                } else if constexpr (sizeof(T) == sizeof(u16)) {
-                    return mask_i16[0];
-                } else if constexpr (sizeof(T) == sizeof(u32)) {
-                    return mask_i32[0];
-                } else if constexpr (sizeof(T) == sizeof(u64)) {
-                    return mask_i64[0];
-                }
+            if constexpr (sizeof(T) == sizeof(u8)) {
+                return mask_u8[0];
+            } else if constexpr (sizeof(T) == sizeof(u16)) {
+                return mask_u16[0];
+            } else if constexpr (sizeof(T) == sizeof(u32)) {
+                return mask_u32[0];
+            } else if constexpr (sizeof(T) == sizeof(u64)) {
+                return mask_u64[0];
             }
         }
 
     public:
-        CERBLIB17_CONSTEXPR explicit ByteMask(T _value) : value(_value) {}
+        explicit constexpr byteMask(T _value)
+            : value(_value)
+        {}
     };
 
     /**

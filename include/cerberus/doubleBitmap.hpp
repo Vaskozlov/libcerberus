@@ -61,7 +61,7 @@ namespace cerb {
         using PRIVATE::doubleBitmapAPI<T, true>::sizeOfArray;
 
     public:
-        always_inline void forceResize(size_t newSize) {
+        CERBLIB_INLINE void forceResize(size_t newSize) {
             _size[0] = newSize;
         }
 
@@ -111,11 +111,11 @@ namespace cerb {
         freeDoubleBitmap(freeDoubleBitmap &) = default;
         freeDoubleBitmap(freeDoubleBitmap &&) noexcept = default;
 
-        always_inline freeDoubleBitmap(T *buffer, size_t size)
+        CERBLIB_INLINE freeDoubleBitmap(T *buffer, size_t size)
                 : PRIVATE::doubleBitmapAPI<T, true>(buffer, size)
         {}
 
-        always_inline freeDoubleBitmap(T *buffer1, T *buffer2, size_t size)
+        CERBLIB_INLINE freeDoubleBitmap(T *buffer1, T *buffer2, size_t size)
             : PRIVATE::doubleBitmapAPI<T, true>(buffer1, buffer2, size)
         {}
 

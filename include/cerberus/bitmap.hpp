@@ -52,7 +52,7 @@ namespace cerb {
         using PRIVATE::pointableBitmap<T>::toAPI;
 
     public:
-        always_inline void forceResize(size_t newSize) {
+        CERBLIB_INLINE void forceResize(size_t newSize) {
             _size[0] = newSize;
         }
 
@@ -80,11 +80,11 @@ namespace cerb {
         freeBitmap(freeBitmap&) = default;
         freeBitmap(freeBitmap<T> &&other) noexcept = default;
 
-        always_inline freeBitmap()
+        CERBLIB_INLINE freeBitmap()
             : PRIVATE::pointableBitmap<T>::bitmapAPI(nullptr, 0)
         {}
 
-        always_inline freeBitmap(T *buffer, size_t size)
+        CERBLIB_INLINE freeBitmap(T *buffer, size_t size)
                 : PRIVATE::pointableBitmap<T>::bitmapAPI(buffer, size)
         {}
 
@@ -119,17 +119,17 @@ namespace cerb {
 
     public:
         [[nodiscard]]
-        always_inline auto capacity() const -> size_t {
+        CERBLIB_INLINE auto capacity() const -> size_t {
             return _capacity;
         }
 
         [[nodiscard]]
-        always_inline auto capacityOfArray() const -> size_t {
+        CERBLIB_INLINE auto capacityOfArray() const -> size_t {
             return capacity() / bitsizeof(T);
         }
 
         [[nodiscard]]
-        always_inline auto capacitySize() const -> size_t {
+        CERBLIB_INLINE auto capacitySize() const -> size_t {
             return capacityOfArray() * sizeof(T);
         }
 
@@ -197,7 +197,7 @@ namespace cerb {
         auto operator=(constBitmap<T, bitmapSize> &&other) -> bitmap<T>& = delete;
 
     public:
-        always_inline bitmap() :
+        CERBLIB_INLINE bitmap() :
                 _capacity(0),
                 PRIVATE::pointableBitmap<T>::bitmapAPI(nullptr, 0)
         {}

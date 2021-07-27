@@ -18,7 +18,7 @@ namespace cerb {
     #endif
 
     public:
-        always_inline auto get() -> T * {
+        CERBLIB_INLINE auto get() -> T * {
             if constexpr (POINTABLE != 0) {
                 return pointer[0];
             } else {
@@ -26,7 +26,7 @@ namespace cerb {
             }
         }
 
-        always_inline constexpr auto get() const -> const T * {
+        CERBLIB_INLINE constexpr auto get() const -> const T * {
             if constexpr (POINTABLE != 0) {
                 return pointer[0];
             } else {
@@ -35,13 +35,13 @@ namespace cerb {
         }
 
     public:
-        always_inline void set(T *ptr) {
+        CERBLIB_INLINE void set(T *ptr) {
             static_assert(POINTABLE != 0);
             this->pointer[0] = ptr;
         }
 
     public:
-        always_inline auto operator[](size_t index) -> T& {
+        CERBLIB_INLINE auto operator[](size_t index) -> T& {
             if constexpr (POINTABLE != 0) {
                 return pointer[0][index];
             } else {
@@ -49,7 +49,7 @@ namespace cerb {
             }
         }
 
-        always_inline auto operator[](size_t index) const -> T& {
+        CERBLIB_INLINE auto operator[](size_t index) const -> T& {
             if constexpr (POINTABLE != 0) {
                 return pointer[index];
             } else {
@@ -59,12 +59,12 @@ namespace cerb {
 
     public:
         [[nodiscard]]
-        explicit always_inline operator T *() {
+        explicit CERBLIB_INLINE operator T *() {
             return get();
         }
 
         [[nodiscard]]
-        explicit always_inline operator T *() const {
+        explicit CERBLIB_INLINE operator T *() const {
             return get();
         }
 
@@ -85,7 +85,7 @@ namespace cerb {
         ArrayProtocol(ArrayProtocol&) = default;
         ArrayProtocol(ArrayProtocol&&) noexcept = default;
 
-        explicit always_inline ArrayProtocol(T *pointer) noexcept {
+        explicit CERBLIB_INLINE ArrayProtocol(T *pointer) noexcept {
             static_assert(POINTABLE);
             this->pointer[0] = pointer;
         }

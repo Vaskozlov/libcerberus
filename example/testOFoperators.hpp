@@ -5,9 +5,11 @@ struct TRIVIAL operators_test {
     int i;
     float f;
 
+    // friend operator+(or other)(const operators_test&, const operators_test&) -> operators_test
     CERBLIB_CLASS_ARITHMETIC(
             operators_test,
-            constexpr always_inline, constexpr,
+            constexpr CERBLIB_INLINE,
+            constexpr,
             _lhs, _rhs, OP,
             {
                 if constexpr (OP == cerb::operators::arithmetic::modulo) {
@@ -18,9 +20,11 @@ struct TRIVIAL operators_test {
             }
     )
 
+    // friend operator+(or other)(const operators_test&, const T&) -> operators_test
     CERBLIB_CLASS_ARITHMETIC_FOR_ANY_TYPE(
         operators_test, T,
-        constexpr always_inline, constexpr,
+        constexpr CERBLIB_INLINE,
+        constexpr,
         _lhs, _rhs, OP,
         {
             static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value);
@@ -32,9 +36,11 @@ struct TRIVIAL operators_test {
         }
     )
 
+    // operator+=(or other)(const operators_test&) -> operators_test& (this)
     CERBLIB_CLASS_ARITHMETIC_ON_SELF(
             operators_test,
-            constexpr always_inline, constexpr,
+            constexpr CERBLIB_INLINE,
+            constexpr,
             other, OP,
             {
                 this->i = cerb::operators::count<OP>(this->i, other.i);
@@ -49,9 +55,11 @@ struct TRIVIAL operators_test {
             }
     )
 
+    // operator+=(or other)(const T&) -> operators_test& (this)
     CERBLIB_CLASS_ARITHMETIC_ON_SELF_FOR_ANY_TYPE(
         operators_test, T,
-        constexpr always_inline, constexpr,
+        constexpr CERBLIB_INLINE,
+        constexpr,
         other, OP,
         {
             static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value);
@@ -70,7 +78,8 @@ struct TRIVIAL operators_test {
 
     CERBLIB_CLASS_ARITHMETIC_ON_SELF_FOR_OTHER_TYPE(
             operators_test, int,
-            constexpr always_inline, constexpr,
+            constexpr CERBLIB_INLINE,
+            constexpr,
             other, OP,
             {
                 this->i = cerb::operators::count<OP>(this->i, other);
@@ -85,18 +94,9 @@ struct TRIVIAL operators_test {
             }
     )
 
-    CERBLIB_CREATE_COMPARISON_RULES(
-            operators_test,
-            constexpr always_inline, constexpr,
-            _lhs, _rhs, OP,
-            {
-                return cerb::operators::compare<OP>(_lhs.i, _rhs.i) && cerb::operators::compare<OP>(_lhs.f, _rhs.f);
-            }
-    )
-
     CERBLIB_CLASS_ARITHMETIC_INCREMENT(
             operators_test,
-            constexpr always_inline,
+            constexpr CERBLIB_INLINE,
             {
                 this->i++;
                 this->f++;
@@ -105,10 +105,31 @@ struct TRIVIAL operators_test {
 
     CERBLIB_CLASS_ARITHMETIC_DECREMENT(
             operators_test,
-            constexpr always_inline,
+            constexpr CERBLIB_INLINE,
             {
                 this->i--;
                 this->f--;
+            }
+    )
+
+    CERBLIB_CLASS_COMPARISON(
+            operators_test,
+            constexpr CERBLIB_INLINE,
+            constexpr,
+            _lhs, _rhs, OP,
+            {
+                return cerb::operators::compare<OP>(_lhs.i, _rhs.i) && cerb::operators::compare<OP>(_lhs.f, _rhs.f);
+            }
+    )
+
+    CERBLIB_CLASS_COMPARISON_FOR_ANY_TYPE(
+            operators_test, T,
+            constexpr CERBLIB_INLINE,
+            constexpr,
+            _lhs, _rhs, OP,
+            {
+                static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value);
+                return cerb::operators::compare<OP>(_lhs.i, static_cast<int>(_rhs)) && cerb::operators::compare<OP>(_lhs.f, static_cast<float>(_rhs));
             }
     )
 
@@ -128,99 +149,99 @@ struct TRIVIAL operators_test_trivial {
     int i;
     float f;
 
-    always_inline friend auto operator+(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> operators_test_trivial {
+    CERBLIB_INLINE friend auto operator+(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> operators_test_trivial {
         return {_lhs.i + _rhs.i, _lhs.f + _rhs.f};
     }
 
-    always_inline friend auto operator-(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> operators_test_trivial {
+    CERBLIB_INLINE friend auto operator-(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> operators_test_trivial {
         return {_lhs.i - _rhs.i, _lhs.f - _rhs.f};
     }
 
-    always_inline friend auto operator*(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> operators_test_trivial {
+    CERBLIB_INLINE friend auto operator*(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> operators_test_trivial {
         return {_lhs.i * _rhs.i, _lhs.f * _rhs.f};
     }
 
-    always_inline friend auto operator/(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> operators_test_trivial {
+    CERBLIB_INLINE friend auto operator/(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> operators_test_trivial {
         return {_lhs.i / _rhs.i, _lhs.f / _rhs.f};
     }
 
-    always_inline friend auto operator%(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> operators_test_trivial {
+    CERBLIB_INLINE friend auto operator%(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> operators_test_trivial {
         return {_lhs.i % _rhs.i, NAN};
     }
 
-    always_inline auto operator+=(const operators_test_trivial &other) -> operators_test_trivial& {
+    CERBLIB_INLINE auto operator+=(const operators_test_trivial &other) -> operators_test_trivial& {
         this->i += other.i;
         this->f += other.f;
         return *this;
     }
 
-    always_inline auto operator-=(const operators_test_trivial &other) -> operators_test_trivial& {
+    CERBLIB_INLINE auto operator-=(const operators_test_trivial &other) -> operators_test_trivial& {
         this->i -= other.i;
         this->f -= other.f;
         return *this;
     }
 
-    always_inline auto operator*=(const operators_test_trivial &other) -> operators_test_trivial& {
+    CERBLIB_INLINE auto operator*=(const operators_test_trivial &other) -> operators_test_trivial& {
         this->i *= other.i;
         this->f *= other.f;
         return *this;
     }
 
-    always_inline auto operator/=(const operators_test_trivial &other) -> operators_test_trivial& {
+    CERBLIB_INLINE auto operator/=(const operators_test_trivial &other) -> operators_test_trivial& {
         this->i /= other.i;
         this->f /= other.f;
         return *this;
     }
 
-    always_inline auto operator%=(const operators_test_trivial &other) -> operators_test_trivial& {
+    CERBLIB_INLINE auto operator%=(const operators_test_trivial &other) -> operators_test_trivial& {
         this->i %= other.i;
         this->f = NAN;
         return *this;
     }
 
-    always_inline friend auto operator==(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
+    CERBLIB_INLINE friend auto operator==(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
         return _lhs.i == _rhs.i && _lhs.f == _rhs.f;
     }
 
-    always_inline friend auto operator!=(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
+    CERBLIB_INLINE friend auto operator!=(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
         return _lhs.i != _rhs.i && _lhs.f != _rhs.f;
     }
 
-    always_inline friend auto operator>(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
+    CERBLIB_INLINE friend auto operator>(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
         return _lhs.i > _rhs.i && _lhs.f > _rhs.f;
     }
 
-    always_inline friend auto operator<(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
+    CERBLIB_INLINE friend auto operator<(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
         return _lhs.i < _rhs.i && _lhs.f < _rhs.f;
     }
 
-    always_inline friend auto operator>=(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
+    CERBLIB_INLINE friend auto operator>=(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
         return _lhs.i >= _rhs.i && _lhs.f >= _rhs.f;
     }
 
-    always_inline friend auto operator<=(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
+    CERBLIB_INLINE friend auto operator<=(const operators_test_trivial &_lhs, const operators_test_trivial &_rhs) -> bool {
         return _lhs.i <= _rhs.i && _lhs.f <= _rhs.f;
     }
 
-    always_inline auto operator++() -> operators_test_trivial&{
+    CERBLIB_INLINE auto operator++() -> operators_test_trivial&{
         this->i++;
         this->f++;
         return *this;
     }
 
-    always_inline auto operator++(int) -> operators_test_trivial {
+    CERBLIB_INLINE auto operator++(int) -> operators_test_trivial {
         auto old = *this;
         operator++();
         return old;
     }
 
-    always_inline auto operator--() -> operators_test_trivial&{
+    CERBLIB_INLINE auto operator--() -> operators_test_trivial&{
         this->i++;
         this->f++;
         return *this;
     }
 
-    always_inline auto operator--(int) -> operators_test_trivial {
+    CERBLIB_INLINE auto operator--(int) -> operators_test_trivial {
         auto old = *this;
         operator--();
         return old;

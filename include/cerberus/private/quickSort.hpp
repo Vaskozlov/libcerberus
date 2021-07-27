@@ -7,7 +7,7 @@ namespace cerb {
     namespace PRIVATE {
 
         template <typename T>
-        always_inline auto Partition(T *data, size_t lo, size_t hi) -> size_t {
+        CERBLIB_INLINE auto Partition(T *data, size_t lo, size_t hi) -> size_t {
             auto j = static_cast<intmax_t>(hi + 1);
             auto i = static_cast<intmax_t>(lo) - 1ll;
             auto pivot = data[lo + (hi - lo) / 2_z];

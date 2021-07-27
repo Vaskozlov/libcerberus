@@ -9,7 +9,7 @@ namespace cerb {
 
 #if defined(__x86_64__)
 
-    always_inline void memset8(void *__restrict _ptr, u8 _value, size_t _times) {
+    CERBLIB_INLINE void memset8(void *__restrict _ptr, u8 _value, size_t _times) {
        asm volatile (
             "rep stosb\n"
             : "+D" (_ptr), "+c" (_times)
@@ -18,7 +18,7 @@ namespace cerb {
         );
     }
 
-    always_inline void memset16(void *__restrict _ptr, u16 _value, size_t _times) {
+    CERBLIB_INLINE void memset16(void *__restrict _ptr, u16 _value, size_t _times) {
         asm volatile (
             "rep stosw\n"
             : "+D" (_ptr), "+c" (_times)
@@ -27,7 +27,7 @@ namespace cerb {
         );
     }
 
-    always_inline void memset32(void *__restrict _ptr, u32 _value, size_t _times) {
+    CERBLIB_INLINE void memset32(void *__restrict _ptr, u32 _value, size_t _times) {
        asm volatile (
             "rep stosl\n"
             : "+D" (_ptr), "+c" (_times)
@@ -36,7 +36,7 @@ namespace cerb {
         );
     }
 
-    always_inline void memset64(void *__restrict _ptr, u64 _value, size_t _times) {
+    CERBLIB_INLINE void memset64(void *__restrict _ptr, u64 _value, size_t _times) {
         __asm__ __volatile__ (
             "rep stosq\n"
             : "+D" (_ptr), "+c" (_times)
@@ -45,7 +45,7 @@ namespace cerb {
         );
     }
 
-    always_inline void memcpy8(void *__restrict _dest, const void *__restrict _src, size_t _times) {
+    CERBLIB_INLINE void memcpy8(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         asm volatile (
             "rep movsb"
             : "+S" (_src), "+D" (_dest), "+c" (_times)
@@ -54,7 +54,7 @@ namespace cerb {
         );
     }
 
-    always_inline void memcpy16(void *__restrict _dest, const void *__restrict _src, size_t _times) {
+    CERBLIB_INLINE void memcpy16(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         asm volatile (
             "rep movsw"
             : "+S" (_src), "+D" (_dest), "+c" (_times)
@@ -63,7 +63,7 @@ namespace cerb {
         );
     }
 
-    always_inline void memcpy32(void *__restrict _dest, const void *__restrict _src, size_t _times) {
+    CERBLIB_INLINE void memcpy32(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         asm volatile (
             "rep movsl"
             : "+S" (_src), "+D" (_dest), "+c" (_times)
@@ -72,7 +72,7 @@ namespace cerb {
         );
     }
 
-    always_inline void memcpy64(void *__restrict _dest, const void *__restrict _src, size_t _times) {
+    CERBLIB_INLINE void memcpy64(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         asm volatile (
             "rep movsq"
             : "+S" (_src), "+D" (_dest), "+c" (_times)
@@ -83,7 +83,7 @@ namespace cerb {
 
 #else
 
-    always_inline void memset8(void *__restrict _ptr, u8 _value, size_t _times) {
+    CERBLIB_INLINE void memset8(void *__restrict _ptr, u8 _value, size_t _times) {
         u8 *_address_copy;
         u8 *_address = _address_copy = static_cast<u8*>(_ptr);
 
@@ -92,7 +92,7 @@ namespace cerb {
         }
     }
 
-    always_inline void memset16(void *__restrict _ptr, u16 _value, size_t _times) {
+    CERBLIB_INLINE void memset16(void *__restrict _ptr, u16 _value, size_t _times) {
         u16 *_address_copy;
         u16 *_address = _address_copy = static_cast<u16*>(_ptr);
 
@@ -101,7 +101,7 @@ namespace cerb {
         }
     }
 
-    always_inline void memset32(void *__restrict _ptr, u32 _value, size_t _times) {
+    CERBLIB_INLINE void memset32(void *__restrict _ptr, u32 _value, size_t _times) {
         u32 *_address_copy;
         u32 *_address = _address_copy = static_cast<u32*>(_ptr);
 
@@ -110,7 +110,7 @@ namespace cerb {
         }
     }
 
-    always_inline void memset64(void *__restrict _ptr, u64 _value, size_t _times) {
+    CERBLIB_INLINE void memset64(void *__restrict _ptr, u64 _value, size_t _times) {
         u64 *_address_copy;
         u64 *_address = _address_copy = static_cast<u64*>(_ptr);
 
@@ -119,7 +119,7 @@ namespace cerb {
         }
     }
 
-    always_inline void memcpy8(void *__restrict _dest, const void *__restrict _src, size_t _times) {
+    CERBLIB_INLINE void memcpy8(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         u8 *dest_copy;
         u8 *dest_ = dest_copy = static_cast<u8*>(_dest);
         const u8 *src_ = static_cast<const u8*>(_src);
@@ -131,7 +131,7 @@ namespace cerb {
         }
     }
 
-    always_inline void memcpy16(void *__restrict _dest, const void *__restrict _src, size_t _times) {
+    CERBLIB_INLINE void memcpy16(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         u16 *dest_copy;
         u16 *dest_ = dest_copy = static_cast<u16*>(_dest);
         const u16 *src_ = static_cast<const u16*>(_src);
@@ -143,7 +143,7 @@ namespace cerb {
         }
     }
 
-    always_inline void memcpy32(void *__restrict _dest, const void *__restrict _src, size_t _times) {
+    CERBLIB_INLINE void memcpy32(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         u32 *dest_copy;
         u32 *dest_ = dest_copy = static_cast<u32*>(_dest);
         const u32 *src_ = static_cast<const u32*>(_src);
@@ -155,7 +155,7 @@ namespace cerb {
         }
     }
 
-    always_inline void memcpy64(void *__restrict _dest, const void *__restrict _src, size_t _times) {
+    CERBLIB_INLINE void memcpy64(void *__restrict _dest, const void *__restrict _src, size_t _times) {
         u64 *dest_copy;
         u64 *dest_ = dest_copy = static_cast<u64*>(_dest);
         const u64 *src_ = static_cast<const u64*>(_src);
@@ -209,7 +209,7 @@ namespace cerb {
     }
 
     template<typename T>
-    always_inline void memcpy(T *__restrict _dest, const T *__restrict _src, size_t _times) {
+    CERBLIB_INLINE void memcpy(T *__restrict _dest, const T *__restrict _src, size_t _times) {
         if (_times == 0) UNLIKELY {
             return;
         }
@@ -228,7 +228,7 @@ namespace cerb {
     }
 
     template<typename T, typename T2>
-    always_inline void memset(T *__restrict _dest, T2 _value, size_t _times) {
+    CERBLIB_NOT_X86_64_CONSTEXPR void memset(T *__restrict _dest, T2 _value, size_t _times) {
         if (_times == 0) UNLIKELY {
             return;
         }
