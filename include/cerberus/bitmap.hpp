@@ -34,7 +34,7 @@ namespace cerb {
         }
 
     public:
-        constBitmap() = default;
+        constexpr constBitmap() = default;
 
         constBitmap(constBitmap&) = default;
         constBitmap(constBitmap&&) noexcept = default;

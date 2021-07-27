@@ -80,7 +80,7 @@ namespace cerb {
 #  if defined(__x86_64)
 #    define CERBLIB_NOT_X86_64_CONSTEXPR CERBLIB_INLINE
 #  else
-#    define CERBLIB_NOT_X86_64_CONSTEXPR constexrp
+#    define CERBLIB_NOT_X86_64_CONSTEXPR constexpr
 #  endif
 #endif
 
