@@ -194,7 +194,7 @@ namespace cerb {
                 if (std::is_constant_evaluated()) {
                     return PRIVATE::findFreeBitForward(value);
                 } else {
-                    unisgned long result;
+                    unsigned long result;
                     _BitScanForward64(&result, value);
                     return result;
                 }
@@ -232,7 +232,7 @@ namespace cerb {
                 if (std::is_constant_evaluated()) {
                     return PRIVATE::findFreeBitReverse(value);
                 } else {
-                    unisgned long result;
+                    unsigned long result;
                     _BitScanForward64(&result, value);
                     return result;
                 }

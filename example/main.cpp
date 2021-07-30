@@ -5,9 +5,6 @@
 #include <cerberus/bitmap.hpp>
 #include <cerberus/doubleBitmap.hpp>
 
-namespace cerb {
-
-}
 
 constexpr auto TEST() {
     cerb::ConstBitMap<u64, 128> a;
@@ -56,7 +53,10 @@ constexpr auto TEST4() -> int {
 }
 
 auto main(int argc, char *argv[]) -> int {
-
+    TEST();
+    TEST2();
+    TEST3();
+    TEST4();
 
     return 0;
 }

@@ -42,7 +42,7 @@ namespace cerb {
 
     public:
         constexpr auto clear() noexcept -> void {
-        #pragma unroll 4
+            CERBLIB_UNROLL_N(4)
             for (auto &elem: m_data) {
                 elem = 0;
             }
@@ -144,7 +144,7 @@ namespace cerb {
 
     public:
         constexpr auto clear() noexcept -> void {
-        #pragma unroll 4
+            CERBLIB_UNROLL_N(4)
             for (size_t i = 0; i < sizeOfArray(); ++i) {
                 m_data[i] = 0;
             }

@@ -53,7 +53,7 @@ namespace cerb {
         decltype(value) *copy_of_ptr;
         auto *address = copy_of_ptr = static_cast<decltype(value) *>(ptr);
 
-        #pragma unroll 4
+        CERBLIB_UNROLL_N(4)
         while (address < copy_of_ptr + times) {
             *(address++) = value;
         }

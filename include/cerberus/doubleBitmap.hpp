@@ -50,7 +50,7 @@ namespace cerb {
                 }
             #endif
 
-            #pragma unroll 4
+            CERBLIB_UNROLL_N(4)
             for (auto &elem: m_data1) {
                 elem = 0;
             }
@@ -64,7 +64,7 @@ namespace cerb {
                 }
             #endif
 
-            #pragma unroll 4
+            CERBLIB_UNROLL_N(4)
             for (auto &elem: m_data2) {
                 elem = 0;
             }
@@ -142,11 +142,11 @@ namespace cerb {
             auto bitIndex  = index % bitsizeof(T);
 
             if constexpr (value) {
-                m_data1[elemIndex] |= (value << static_cast<T>(bitIndex));
-                m_data2[elemIndex] |= (value << static_cast<T>(bitIndex));
+                m_data1[elemIndex] |= (static_cast<T>(value) << bitIndex);
+                m_data2[elemIndex] |= (static_cast<T>(value) << bitIndex);
             } else {
-                m_data1[elemIndex] |= (value << static_cast<T>(bitIndex));
-                m_data2[elemIndex] &= ~(1 << static_cast<T>(bitIndex));
+                m_data1[elemIndex] |= (static_cast<T>(value) << bitIndex);
+                m_data2[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
             }
         }
 
@@ -343,11 +343,11 @@ namespace cerb {
             auto bitIndex  = index % bitsizeof(T);
 
             if constexpr (value) {
-                m_data1[elemIndex] |= (value << static_cast<T>(bitIndex));
-                m_data2[elemIndex] |= (value << static_cast<T>(bitIndex));
+                m_data1[elemIndex] |= (static_cast<T>(value) << bitIndex);
+                m_data2[elemIndex] |= (static_cast<T>(value) << bitIndex);
             } else {
-                m_data1[elemIndex] |= (value << static_cast<T>(bitIndex));
-                m_data2[elemIndex] &= ~(1 << static_cast<T>(bitIndex));
+                m_data1[elemIndex] |= (static_cast<T>(value) << bitIndex);
+                m_data2[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
             }
         }
 
@@ -442,7 +442,7 @@ namespace cerb {
                 }
             #endif
 
-            #pragma unroll 4
+            CERBLIB_UNROLL_N(4)
             for (size_t i = 0; i < sizeOfArray(); ++i) {
                 m_data1[i] = other.m_data1[i];
                 m_data2[i] = other.m_data2[i];
@@ -466,7 +466,7 @@ namespace cerb {
                 }
             #endif
 
-            #pragma unroll 4
+            CERBLIB_UNROLL_N(4)
             for (size_t i = 0; i < sizeOfArray(); ++i) {
                 m_data1[i] = other.m_data1[i];
                 m_data2[i] = other.m_data2[i];

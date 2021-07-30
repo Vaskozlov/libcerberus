@@ -70,7 +70,7 @@ namespace cerb::PRIVATE {
             return value1 | value2;
         };
 
-        #pragma unroll 4
+        CERBLIB_UNROLL_N(4)
         for (; i < limit / bitsizeof(T); ++i) {
             T value = reverse_function(data1[i], data2[i]);
 
@@ -112,7 +112,7 @@ namespace cerb::PRIVATE {
             return value1 | value2;
         };
 
-        #pragma unroll 4
+        CERBLIB_UNROLL_N(4)
         for (; i < limit / bitsizeof(T); ++i) {
             T value = reverse_function(data1[i], data2[i]);
 

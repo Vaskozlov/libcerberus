@@ -126,7 +126,7 @@ namespace cerb::PRIVATE {
     auto isEmpty(const std::array<T, Size> &data, size_t limit) noexcept -> bool {
         size_t i = 0;
 
-        #pragma unroll 4
+        CERBLIB_UNROLL_N(4)
         for (; i < limit / bitsizeof(T); i++) {
             if (data[i] > 0) {
                 return false;
@@ -140,7 +140,7 @@ namespace cerb::PRIVATE {
     auto isEmpty(const T *data, size_t limit) noexcept -> bool {
         size_t i = 0;
 
-        #pragma unroll 4
+        CERBLIB_UNROLL_N(4)
         for (; i < limit / bitsizeof(T); i++) {
             if (data[i] > 0) {
                 return false;
@@ -161,7 +161,7 @@ namespace cerb::PRIVATE {
             }
         };
 
-        #pragma unroll 4
+        CERBLIB_UNROLL_N(4)
         for (; i < limit / bitsizeof(T); ++i) {
             T value = reverse_function(data[i]);
 
@@ -195,7 +195,7 @@ namespace cerb::PRIVATE {
             }
         };
 
-        #pragma unroll 4
+        CERBLIB_UNROLL_N(4)
         for (; i < limit / bitsizeof(T); ++i) {
             T value = reverse_function(data[i]);
 

@@ -21,11 +21,14 @@ namespace cerb {
         }
 
     public:
-        constexpr auto operator=(pair<T1, T2> &&)noexcept -> pair<T1, T2>& = default;
+        constexpr auto operator=(pair<T1, T2> &&) noexcept -> pair<T1, T2>& = default;
         constexpr auto operator=(const pair<T1, T2> &) noexcept -> pair<T1, T2>& = default;
 
     public:
         constexpr pair() noexcept = default;
+
+        constexpr pair(pair&) noexcept = default;
+        constexpr pair(pair&&) noexcept = default;
 
         constexpr pair(const T1 &t_first, const T2 &t_second) noexcept
                 : first(t_first), second(t_second)

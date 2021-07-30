@@ -14,7 +14,11 @@
 #  include <alloca.h>
 #else
 #  include <malloc.h>
-#  define alloca(x) _alloca(x)
+
+#  ifndef alloca
+#    define alloca(x) _alloca(x)
+#  endif /* alloca */
+
 #endif /* __unix__ */
 
 #if defined(__cplusplus)
@@ -173,6 +177,22 @@ namespace cerb {
 #  define CERBLIB_NOT_FOR_X86_64_RUNTIME bool Constexpr = true, \
             typename std::enable_if<Constexpr || !x86_64, bool>::type = true
 #endif /* CERBLIB_NOT_FOR_X86_64_RUNTIME */
+
+#ifndef CERBLIB_UNROLL
+#  if defined(__clang__) || defined(__GNUC__)
+#    define CERBLIB_UNROLL _Pragma(unroll)
+#  else
+#    define CERBLIB_UNROLL 
+#  endif
+#endif /* CERBLIB_UNROLL */
+
+#ifndef CERBLIB_UNROLL_N
+#  if defined(__clang__) || defined(__GNUC__)
+#    define CERBLIB_UNROLL_N(N) _Pragma(unroll CERBLIB_STR(N))
+#  else
+#    define CERBLIB_UNROLL_N(N) 
+#  endif
+#endif /* CERBLIB_UNROLL */
 
 #ifndef CERBLIB_JOIN_STR
 #  define CERBLIB_JOIN_STR(x,y) CERBLIB_STR(x ## y)
