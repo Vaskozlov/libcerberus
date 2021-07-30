@@ -8,11 +8,11 @@
 namespace cerb {
     
     /**
-     * @brief universal class to store pointer
+     * @brief universal class to store m_pointer
      * 
      */
-    class TRIVIAL address {
-        cerb::byte *_address;
+    class CERBLIB_TRIVIAL Address {
+        cerb::byte *m_address;
 
     public:
         enum ALIGN2 : u32{
@@ -22,100 +22,101 @@ namespace cerb {
         };
 
     public:
-        [[nodiscard]] CERBLIB_INLINE auto raw() const -> void * {
-            return static_cast<void*>(_address);
+        [[nodiscard]] constexpr
+        auto raw() const -> void * {
+            return static_cast<void*>(m_address);
         }
 
-        [[nodiscard]] CERBLIB_INLINE auto value() const -> size_t {
-            return reinterpret_cast<size_t>(_address);
+        [[nodiscard]] CERBLIB_INLINE
+        auto value() const -> size_t {
+            return reinterpret_cast<size_t>(m_address);
         }
 
         template<typename T> [[nodiscard]]
-        explicit CERBLIB_INLINE operator T *() const noexcept {
+        explicit constexpr
+        operator T *() const noexcept {
             return static_cast<T*>(this->raw());
         }
 
     public:
-        CERBLIB_CLASS_ARITHMETIC
-        (
-            address,
-            constexpr,
-            constexpr,
-            _lhs, _rhs, OP,
-            {
-                return address(cerb::operators::count<OP>(_lhs.value(), _rhs.value()));
-            }
-        )
-
-    public:
         CERBLIB_CLASS_ARITHMETIC_ON_SELF
         (
-            address,
-            constexpr,
-            constexpr,
-            other, OP,
-            {
-                this->_address = reinterpret_cast<cerb::byte*>(
+                Address,
+                constexpr,
+                constexpr,
+                other, OP,
+                {
+                this->m_address = reinterpret_cast<cerb::byte*>(
                         cerb::operators::count<OP>(value(), other.value())
                 );
                 return *this;
-            }
-        )
-
-    public:
-        CERBLIB_CLASS_COMPARISON(
-            address,
-            constexpr,
-            constexpr,
-            _lhs, _rhs, OP,
-            {
-                return cerb::operators::compare<OP>(_lhs.raw(), _rhs.raw());
             }
         )
     
     public:
         CERBLIB_CLASS_ARITHMETIC_INCREMENT
         (
-            address,
-            constexpr,
-            { this->_address++; }
+                Address,
+                constexpr,
+                { this->m_address++; }
         )
 
         CERBLIB_CLASS_ARITHMETIC_DECREMENT
         (
-            address,
-            constexpr,
-            { this->_address--; }
+                Address,
+                constexpr,
+                { this->m_address--; }
         )
 
     public:
         template<u32 ALIGN_VALUE = ALIGN2::Page4KB, auto MODE = AlignMode::ALIGN>
         constexpr void align() {
-            _address = cerb::bit_cast<cerb::byte*>(
+            m_address = cerb::bit_cast<cerb::byte*>(
                     cerb::align<ALIGN_VALUE, MODE>(value())
             );
         }
 
     public:
-        auto operator=(const address &) -> address& = default;
-        auto operator=(address &&) noexcept -> address& = default;
+        auto operator=(const Address &) -> Address& = default;
+        auto operator=(Address &&) noexcept -> Address& = default;
 
     public:
-        ~address() = default;
-        address() noexcept : _address(nullptr) {}
+        ~Address() = default;
+        constexpr Address() noexcept : m_address(nullptr) {}
         
-        address(address&) = default;
-        address(address&&) noexcept = default;
+        Address(Address&) = default;
+        Address(Address&&) noexcept = default;
 
         template<typename T>
-        explicit constexpr CERBLIB_INLINE address(T *addr) noexcept
-            : _address(static_cast<cerb::byte *>(addr))
+        explicit constexpr CERBLIB_INLINE Address(T *addr) noexcept
+            : m_address(static_cast<cerb::byte *>(addr))
         {}
 
-        explicit constexpr CERBLIB_INLINE address(size_t addr) noexcept
-            : _address(cerb::bit_cast<cerb::byte*>(addr))
+        explicit constexpr CERBLIB_INLINE Address(size_t addr) noexcept
+            : m_address(cerb::bit_cast<cerb::byte*>(addr))
         {}
     };
+
+    CERBLIB_CLASS_ARITHMETIC
+    (
+        Address,
+        constexpr,
+        constexpr,
+        _lhs, _rhs, OP,
+        {
+            return Address(cerb::operators::count<OP>(_lhs.value(), _rhs.value()));
+        }
+    )
+
+    CERBLIB_CLASS_COMPARISON(
+        Address,
+        constexpr,
+        constexpr,
+        _lhs, _rhs, OP,
+        {
+            return cerb::operators::compare<OP>(_lhs.raw(), _rhs.raw());
+        }
+    )
 } // namespace cerb
 
 #endif /* cerberusAddress_hpp */

@@ -6,83 +6,92 @@
 namespace cerb {
 
     template<typename T, int POINTABLE, size_t SIZE = 0>
-    union TRIVIAL ArrayProtocol {
+    union CERBLIB_TRIVIAL ArrayProtocol {
         static_assert(POINTABLE < 2);
-
-        T *pointer[POINTABLE];
-        T data[SIZE * (!POINTABLE)];
+    private:
+        T *m_pointer[POINTABLE];
+        T  m_data[SIZE * (!POINTABLE)];
 
     public:
-        CERBLIB_INLINE auto get() -> T * {
+        constexpr auto get() noexcept
+        {
             if constexpr (POINTABLE != 0) {
-                return pointer[0];
+                return m_pointer[0];
             } else {
-                return static_cast<T*>(data);
+                return m_data;
             }
         }
 
-        CERBLIB_INLINE constexpr auto get() const -> const T * {
+        constexpr auto get() const noexcept -> const T *
+        {
             if constexpr (POINTABLE != 0) {
-                return pointer[0];
+                return m_pointer[0];
             } else {
-                return static_cast<const T*>(data);
+                return static_cast<const T*>(m_data);
             }
         }
 
     public:
-        CERBLIB_INLINE void set(T *ptr) {
+        constexpr void set(T *ptr) noexcept
+        {
             static_assert(POINTABLE != 0);
-            this->pointer[0] = ptr;
+            this->m_pointer[0] = ptr;
         }
 
     public:
-        CERBLIB_INLINE auto operator[](size_t index) -> T& {
+        constexpr auto operator[](size_t index) noexcept -> T&
+        {
             if constexpr (POINTABLE != 0) {
-                return pointer[0][index];
+                return m_pointer[0][index];
             } else {
-                return data[index];
+                return m_data[index];
             }
         }
 
-        CERBLIB_INLINE auto operator[](size_t index) const -> T& {
+        constexpr auto operator[](size_t index) const noexcept -> T&
+        {
             if constexpr (POINTABLE != 0) {
-                return pointer[index];
+                return m_pointer[0][index];
             } else {
-                return data[index];
+                return m_data[index];
             }
         }
 
     public:
-        [[nodiscard]]
-        explicit CERBLIB_INLINE operator T *() {
+        [[nodiscard]] explicit constexpr
+        operator T *() noexcept
+        {
             return get();
         }
 
-        [[nodiscard]]
-        explicit CERBLIB_INLINE operator T *() const {
+        [[nodiscard]] explicit constexpr
+        operator T *() const noexcept
+        {
             return get();
         }
 
     public:
-        auto operator=(const ArrayProtocol&) -> ArrayProtocol& = default;
-        auto operator=(ArrayProtocol&&) noexcept -> ArrayProtocol& = default;
+        constexpr auto operator=(ArrayProtocol&&) noexcept -> ArrayProtocol& = default;
+        constexpr auto operator=(const ArrayProtocol&) noexcept -> ArrayProtocol& = default;
 
-        auto operator=(T *pointer) noexcept -> ArrayProtocol& {
+        constexpr auto operator=(T *pointer) noexcept -> ArrayProtocol&
+        {
             static_assert(POINTABLE);
-            this->pointer[0] = pointer;
+            this->m_pointer[0] = pointer;
             return *this;
         }
 
     public:
-        ArrayProtocol() = default;
-        ~ArrayProtocol() = default;
+        constexpr ArrayProtocol() noexcept = default;
+        CERBLIB20_CONSTEXPR ~ArrayProtocol() noexcept = default;
 
-        ArrayProtocol(ArrayProtocol&) = default;
-        ArrayProtocol(ArrayProtocol&&) noexcept = default;
+        constexpr ArrayProtocol(ArrayProtocol&) = default;
+        constexpr ArrayProtocol(ArrayProtocol&&) noexcept = default;
 
-        explicit CERBLIB_INLINE ArrayProtocol(T *pointer) noexcept {
+        explicit constexpr ArrayProtocol(T *pointer) noexcept
+        {
             static_assert(POINTABLE);
-            this->pointer[0] = pointer;
+            this->m_pointer[0] = pointer;
         }
     };
 }

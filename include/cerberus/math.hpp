@@ -2,6 +2,7 @@
 #define cerberusMath_hpp
 
 #include <cerberus/types.h>
+#include <cerberus/bit.hpp>
 
 #ifndef isinf
 #  define isinf(x) __builtin_isinf (x)
@@ -19,16 +20,37 @@
 #  define NAN (__builtin_nanf (""))
 #endif
 
+#if defined(_MSC_VER)
+namespace cerb::PRIVATE {
+    [[nodiscard]] constexpr
+    auto findFreeBitForward(u64 value) -> u64 {
+        u64 j = 0;
+
+        for (; value > 0; j++) {
+            if ((value & 0b1ull) == 0) {
+                return j;
+            }
+            value >>= 1;
+        }
+        return j + 1;
+    }
+
+    [[nodiscard]] constexpr
+    auto findFreeBitReverse(u64 value) -> u64 {
+        u64 j = 63;
+
+        for (; value > 0; j--) {
+            if ((value & (1ULL<<63ULL)) == 0) {
+                return j;
+            }
+            value <<= 1;
+        }
+        return j + 1;
+    }
+}  // namespace cerb::PRIVATE
+#endif /* _MSC_VER */
+
 namespace cerb {
-
-    struct EmptyType {
-        u8 empty;
-
-        EmptyType() = delete;
-        ~EmptyType() = delete;
-        auto operator=(EmptyType &&)      -> EmptyType& = delete;
-        auto operator=(const EmptyType &) -> EmptyType& = delete;
-    };
 
     enum AlignMode : u32 {
         CEIL,
@@ -38,7 +60,7 @@ namespace cerb {
 
     using cerb::AlignMode;
     
-    template<typename T>
+    template<typename T = double>
     constexpr T pi = static_cast<T>(3.14159265358979323846);
 
     /**
@@ -68,36 +90,35 @@ namespace cerb {
     }
 
     /**
-     * @brief 2^power for floating point and integeral numbers
+     * @brief 2^power for floating point and integral numbers
      * 
      * @tparam T 
-     * @param power 2 will be raised in power of "power" (power must be unsigned integeral)
+     * @param power 2 will be raised in power of "power" (power must be unsigned integral)
      * @return T(2)^power
      */
     template<typename T>
     constexpr auto pow2(u32 power) -> T {
 
         static_assert(
-            std::is_integral<T>::value ||
-            std::is_floating_point<T>::value
+            std::is_integral_v<T> ||
+            std::is_floating_point_v<T>
         );
 
-        if constexpr (std::is_floating_point<T>::value) {
+        if constexpr (std::is_floating_point_v<T>) {
             static_assert(
-                (sizeof(T) == sizeof(u32) && std::is_same<T, float>::value) ||
-                (sizeof(T) == sizeof(u64) && std::is_same<T, double>::value)
+               sizeof(T) == sizeof(u32) || sizeof(T) == sizeof(u64)
             );
 
-            cerb::byteMask<T> mask{static_cast<T>(1.0)};
+            cerb::ByteMask<T> mask{static_cast<T>(1.0)};
 
             if constexpr (sizeof(T) == sizeof(u32)) {
-                mask.getAsIntegral() += 0x800000U * power;
+                mask.getAsIntegral() += "x80 0000"_2val * power;
             } else {
-                mask.getAsIntegral() += 0x10000000000000UL * power;
+                mask.getAsIntegral() += "x10 0000 0000 0000"_2val * power;
             }
             return mask.value;
 
-        } else if constexpr (std::is_integral<T>::value) {
+        } else if constexpr (std::is_integral_v<T>) {
             return static_cast<T>(1) << static_cast<T>(power);
         } else {
             return 0;
@@ -115,24 +136,27 @@ namespace cerb {
     template<typename ResultType = EmptyType, typename T>
     constexpr auto abs(T value) {
 
-        if constexpr(std::is_unsigned<T>::value) {
+        if constexpr(std::is_unsigned_v<T>) {
             return value;
-        } else if constexpr (std::is_floating_point<T>::value) {
-
+        } else if constexpr (std::is_floating_point_v<T>) {
             static_assert(
-                sizeof(T) == sizeof(u32) ||
-                sizeof(T) == sizeof(u64)
+                sizeof(T) == sizeof(u32) || sizeof(T) == sizeof(u64)
             );
 
-            byteMask<T> mask(value);
-            mask.getAsIntegral() &= cerb::getLimits(mask.getAsIntegral()).max();
+            ByteMask<T> mask(value);
 
-            if constexpr (std::is_same<ResultType, EmptyType>::value) {
-                return mask.value;
+            if constexpr (sizeof(T) == sizeof(u32)) {
+                mask.getAsIntegral() &= INT32_MAX;
+            } else {
+                mask.getAsIntegral() &= INT64_MAX;
             }
-        }
 
-        if constexpr (std::is_same<ResultType, EmptyType>::value){
+            if constexpr (std::is_same_v<ResultType, EmptyType>) {
+                return mask.value;
+            } else {
+                return static_cast<ResultType>(mask.value);
+            }
+        } else if constexpr (std::is_same_v<ResultType, EmptyType>){
             return cmov(value < 0, -value, value);
         } else {
             return static_cast<ResultType>(cmov(value < 0, -value, value));
@@ -141,7 +165,7 @@ namespace cerb {
 
     template<u32 powerOf2, auto mode = AlignMode::ALIGN, typename T>
     constexpr auto align(T value) -> T {
-        static_assert(std::is_integral<T>::value);
+        static_assert(std::is_integral_v<T>);
         
         if constexpr (mode == AlignMode::TRUNC) {
             return value & ~(pow2<T>(powerOf2) - 1);
@@ -156,75 +180,80 @@ namespace cerb {
         }
     }
 
-    /**
-     * @brief find free bit in 64 bit integer. UNSAFE if value does not have free bit
-     * 
-     * @param value 
-     * @return u32 location of free bit
-     */
-    CERBLIB_NOT_X86_64_CONSTEXPR auto findFreeBit(u64 value) -> u32 {
-        #if defined(__x86_64__)
-             u64 result = 0;
+    template<size_t WinConstexpr = 1>
+    [[nodiscard]] constexpr
+    auto findFreeBitForward(u64 value) -> u64 {
+        if (value == 0) {
+            return UINT32_MAX;
+        }
 
-            asm volatile(
-                "1:\n\t"
-                "bt %0, %1\n\t"
-                "jae 2f\n\t"
-                "incq %0\n\t"
-                "jmp 1b\n\t"
-                "2:\n\t"
-                : "=a" (result)
-                : "D" (value)
-            );
-
-            return result;
-        #else
-            u64 j = 0;
-
-            for (; value > 0; j++) {
-                if ((value & static_cast<u64>(1)) == 0) {
-                    return j;
+        #if defined(__clang__) || defined(__GNUC__)
+            return __builtin_ctzl(value);
+        #elif defined(_MSC_VER)
+            #if (__cplusplus >= 202002L)
+                if (std::is_constant_evaluated()) {
+                    return PRIVATE::findFreeBitForward(value);
+                } else {
+                    unisgned long result;
+                    _BitScanForward64(&result, value);
+                    return result;
                 }
-                value >>= 1;
-            }
-            return j + 1;
-        #endif /* ARCH */
+            #else
+                if constexpr (WinConstexpr == 1) {
+                    return PRIVATE::findFreeBitForward(value);
+                } else {
+                    unisgned long result;
+                    _BitScanForward64(&result, value);
+                    return result;
+                }
+            #endif
+        #else
+            #error Unsupported compiler
+        #endif
     }
-    
-    /**
-     * @brief find first bit which contains 1. UNSAFE if value does not have them
-     * 
-     * @param value 
-     * @return location of set bit
-     */
-    CERBLIB_NOT_X86_64_CONSTEXPR auto findSetBit(u64 value) -> u32 {
-        #if defined(__x86_64__)
-            u64 result = 0;
 
-            asm volatile(
-                "1:\n\t"
-                "bt %0, %1\n\t"
-                "jc 2f\n\t"
-                "incq %0\n\t"
-                "jmp 1b\n\t"
-                "2:\n\t"
-                : "=a" (result)
-                : "D" (value)
-            );
+    template<size_t WinConstexpr = 1>
+    [[nodiscard]] constexpr
+    auto findSetBitForward(u64 value) -> u64 {
+        return findFreeBit<WinConstexpr>(~value);
+    }
 
-            return result;
-        #else
-            u64 j = 0;
+    template<size_t WinConstexpr = 1>
+    [[nodiscard]] constexpr
+    auto findFreeBitReverse(u64 value) -> u64 {
+        if (value == 0) {
+            return UINT32_MAX;
+        }
 
-            for (; value > 0; j++) {
-                if ((value & static_cast<u64>(1)) == 1) {
-                    return j;
+        #if defined(__clang__) || defined(__GNUC__)
+            return __builtin_ctzl(value);
+        #elif defined(_MSC_VER)
+            #if (__cplusplus >= 202002L)
+                if (std::is_constant_evaluated()) {
+                    return PRIVATE::findFreeBitReverse(value);
+                } else {
+                    unisgned long result;
+                    _BitScanForward64(&result, value);
+                    return result;
                 }
-                value >>= 1;
-            }
-        
-            return UINTMAX_MAX;
-        #endif /* ARCH */
+            #else
+                if constexpr (WinConstexpr == 1) {
+                    return PRIVATE::findFreeBitReverse(value);
+                } else {
+                    unisgned long result;
+                    _BitScanForward64(&result, value);
+                    return result;
+                }
+            #endif
+        #else
+            #error Unsupported compiler
+        #endif
+    }
+
+    template<size_t WinConstexpr = 1>
+    [[nodiscard]] constexpr
+    auto findSetBitReverse(u64 value) -> u64 {
+        return findFreeBitReverse<WinConstexpr>(~value);
     }
 
     /**
@@ -236,9 +265,9 @@ namespace cerb {
      */
     template<typename T>
     constexpr auto log2(const T value) -> T {
-        static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value);
+        static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
 
-        if constexpr (std::is_integral<T>::value) {
+        if constexpr (std::is_integral_v<T>) {
         #if defined(__unix__)
             if constexpr (sizeof(T) <= sizeof(u32)) {
                 return (bitsizeof(u32) - 1) - __builtin_clz(value);
@@ -249,16 +278,15 @@ namespace cerb {
             return findSetBit(static_cast<u64>(value));
         #endif
         } else {
-            cerb::byteMask<T> mask(value);
+            cerb::ByteMask<T> mask(value);
 
             if constexpr (sizeof(T) == sizeof(u32)) {
-                return ((mask.getAsIntegral() & 0xFF800000U) >> 23) - 0x7fu;
+                return ((mask.getAsIntegral() & "xFF80 0000"_2val) >> 23) - 0x7fu;
             } else {
-                return ((mask.getAsIntegral() & 0xFFF0000000000000UL) >> 52) - 1023;
+                return ((mask.getAsIntegral() & "xFFF0 0000 0000 0000"_2val) >> 52) - 1023;
             }
         }
     }
-
 } // namespace cerb
 
 #endif /* cerberusMath_hpp */

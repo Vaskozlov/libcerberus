@@ -1,7 +1,7 @@
 #include <cerberus/math.hpp>
 #include <cerberus/operators.hpp>
 
-struct TRIVIAL operators_test {
+struct CERBLIB_TRIVIAL operators_test {
     int i;
     float f;
 
@@ -145,7 +145,7 @@ struct TRIVIAL operators_test {
     operators_test(int in, float flo) : i(in), f(flo) {}
 };
 
-struct TRIVIAL operators_test_trivial {
+struct CERBLIB_TRIVIAL operators_test_trivial {
     int i;
     float f;
 

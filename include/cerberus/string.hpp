@@ -2,253 +2,116 @@
 #define CERBERUS_STRING_HPP
 
 #include <cerberus/types.h>
+#include <cerberus/bit.hpp>
+#include <cerberus/private/string.hpp>
 
 namespace cerb {
 
     size_t strlen(const char * __restrict str);
 
-#if defined(__x86_64__)
-
-    CERBLIB_INLINE void memset8(void *__restrict _ptr, u8 _value, size_t _times) {
-       asm volatile (
-            "rep stosb\n"
-            : "+D" (_ptr), "+c" (_times)
-            : "a" (_value)
-            : "memory"
+    template<typename T,
+            CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR>
+    CERBLIB_INLINE
+    void memset(void *__restrict ptr, T value, size_t times) {
+        static_assert(
+            std::is_integral_v<T> &&
+            sizeof(T) <= sizeof(u64)
         );
-    }
 
-    CERBLIB_INLINE void memset16(void *__restrict _ptr, u16 _value, size_t _times) {
-        asm volatile (
-            "rep stosw\n"
-            : "+D" (_ptr), "+c" (_times)
-            : "a" (_value)
-            : "memory"
-        );
-    }
-
-    CERBLIB_INLINE void memset32(void *__restrict _ptr, u32 _value, size_t _times) {
-       asm volatile (
-            "rep stosl\n"
-            : "+D" (_ptr), "+c" (_times)
-            : "a" (_value)
-            : "memory"
-        );
-    }
-
-    CERBLIB_INLINE void memset64(void *__restrict _ptr, u64 _value, size_t _times) {
-        __asm__ __volatile__ (
-            "rep stosq\n"
-            : "+D" (_ptr), "+c" (_times)
-            : "a" (_value)
-            : "memory"
-        );
-    }
-
-    CERBLIB_INLINE void memcpy8(void *__restrict _dest, const void *__restrict _src, size_t _times) {
-        asm volatile (
-            "rep movsb"
-            : "+S" (_src), "+D" (_dest), "+c" (_times)
-            :
-            : "memory"
-        );
-    }
-
-    CERBLIB_INLINE void memcpy16(void *__restrict _dest, const void *__restrict _src, size_t _times) {
-        asm volatile (
-            "rep movsw"
-            : "+S" (_src), "+D" (_dest), "+c" (_times)
-            :
-            : "memory"
-        );
-    }
-
-    CERBLIB_INLINE void memcpy32(void *__restrict _dest, const void *__restrict _src, size_t _times) {
-        asm volatile (
-            "rep movsl"
-            : "+S" (_src), "+D" (_dest), "+c" (_times)
-            :
-            : "memory"
-        );
-    }
-
-    CERBLIB_INLINE void memcpy64(void *__restrict _dest, const void *__restrict _src, size_t _times) {
-        asm volatile (
-            "rep movsq"
-            : "+S" (_src), "+D" (_dest), "+c" (_times)
-            :
-            : "memory"
-        );
-    }
-
-#else
-
-    CERBLIB_INLINE void memset8(void *__restrict _ptr, u8 _value, size_t _times) {
-        u8 *_address_copy;
-        u8 *_address = _address_copy = static_cast<u8*>(_ptr);
-
-        while (_address < _address_copy + _times) {
-            *(_address++) = _value;
+        if (times == 0) UNLIKELY {
+            return;
+        }
+        if constexpr(sizeof(T) == sizeof(u8)) {
+            cerb::PRIVATE::memset8<Constexpr>(ptr, cerb::bit_cast<u8>(value), times);
+        } else if constexpr (sizeof(T) == sizeof(u16)) {
+            cerb::PRIVATE::memset16<Constexpr>(ptr, cerb::bit_cast<u16>(value), times);
+        } else if constexpr (sizeof(T) == sizeof(u32)) {
+            cerb::PRIVATE::memset32<Constexpr>(ptr, cerb::bit_cast<u32>(value), times);
+        } else if constexpr (sizeof(T) == sizeof(u64)) {
+            cerb::PRIVATE::memset16<Constexpr>(ptr, cerb::bit_cast<u64>(value), times);
         }
     }
 
-    CERBLIB_INLINE void memset16(void *__restrict _ptr, u16 _value, size_t _times) {
-        u16 *_address_copy;
-        u16 *_address = _address_copy = static_cast<u16*>(_ptr);
+    CERBLIB_DISABLE_WARNING(constant-evaluated,constant-evaluated,0)
 
-        while (_address < _address_copy + _times) {
-            *(_address++) = _value;
-        }
-    }
+    template<typename T,
+    CERBLIB_NOT_FOR_X86_64_RUNTIME>
+    constexpr void memset(void *__restrict ptr, T value, size_t times) {
+        static_assert(std::is_trivially_copyable_v<T> && std::is_trivially_constructible_v<T>);
 
-    CERBLIB_INLINE void memset32(void *__restrict _ptr, u32 _value, size_t _times) {
-        u32 *_address_copy;
-        u32 *_address = _address_copy = static_cast<u32*>(_ptr);
-
-        while (_address < _address_copy + _times) {
-            *(_address++) = _value;
-        }
-    }
-
-    CERBLIB_INLINE void memset64(void *__restrict _ptr, u64 _value, size_t _times) {
-        u64 *_address_copy;
-        u64 *_address = _address_copy = static_cast<u64*>(_ptr);
-
-        while (_address < _address_copy + _times) {
-            *(_address++) = _value;
-        }
-    }
-
-    CERBLIB_INLINE void memcpy8(void *__restrict _dest, const void *__restrict _src, size_t _times) {
-        u8 *dest_copy;
-        u8 *dest_ = dest_copy = static_cast<u8*>(_dest);
-        const u8 *src_ = static_cast<const u8*>(_src);
-
-        while (dest_ < dest_copy + _times) {
-            *dest_ = *(src_);
-            src_++;
-            dest_++;
-        }
-    }
-
-    CERBLIB_INLINE void memcpy16(void *__restrict _dest, const void *__restrict _src, size_t _times) {
-        u16 *dest_copy;
-        u16 *dest_ = dest_copy = static_cast<u16*>(_dest);
-        const u16 *src_ = static_cast<const u16*>(_src);
-
-        while (dest_ < dest_copy + _times) {
-            *dest_ = *(src_);
-            src_++;
-            dest_++;
-        }
-    }
-
-    CERBLIB_INLINE void memcpy32(void *__restrict _dest, const void *__restrict _src, size_t _times) {
-        u32 *dest_copy;
-        u32 *dest_ = dest_copy = static_cast<u32*>(_dest);
-        const u32 *src_ = static_cast<const u32*>(_src);
-
-        while (dest_ < dest_copy + _times) {
-            *dest_ = *(src_);
-            src_++;
-            dest_++;
-        }
-    }
-
-    CERBLIB_INLINE void memcpy64(void *__restrict _dest, const void *__restrict _src, size_t _times) {
-        u64 *dest_copy;
-        u64 *dest_ = dest_copy = static_cast<u64*>(_dest);
-        const u64 *src_ = static_cast<const u64*>(_src);
-
-        while (dest_ < dest_copy + _times) {
-            *dest_ = *(src_);
-            src_++;
-            dest_++;
-        }
-    }
-
-#endif /* ARCH */
-
-    [[nodiscard]]
-    CERBLIB_COMPILE_TIME auto str2u16(const char *str) -> u16 {
-        u16 result = 0;
-
-        constexpr_for<0, sizeof(u16), 1>(
-            [&](auto i){
-                result += static_cast<u16>(str[i.value]) << (i.value * 8U);
+        #if (__cplusplus >= 202002L)
+        if constexpr (
+                !std::is_constant_evaluated() &&
+                cerb::x86_64 &&
+                std::is_integral_v<T> &&
+                sizeof(T) <= sizeof(u64)
+            ) {
+                return cerb::memset<T, false>(ptr, value, times);
             }
-        );
+        #endif
 
-        return result;
+        decltype(value) *copy_of_ptr;
+        auto *address = copy_of_ptr = static_cast<decltype(value) *>(ptr);
+
+        #pragma unroll 4
+        while (address < copy_of_ptr + times) {
+            *(address++) = value;
+        }
     }
 
-    [[nodiscard]]
-    CERBLIB_COMPILE_TIME auto str2u32(const char *str) -> u32 {
-        u32 result = 0;
+    template<typename T,
+            CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR>
+    CERBLIB_INLINE constexpr
+    void memcpy(T *__restrict dest, const T *__restrict src, size_t times) {
+        if (times == 0) UNLIKELY {
+            return;
+        }
+        if constexpr (sizeof(T) == sizeof(u8)) {
+            cerb::PRIVATE::memcpy8<Constexpr>(dest, src, times);
+        } else if constexpr (sizeof(T) == sizeof(u16)) {
+            cerb::PRIVATE::memcpy16<Constexpr>(dest, src, times);
+        } else if constexpr (sizeof(T) == sizeof(u32)) {
+            cerb::PRIVATE::memcpy32<Constexpr>(dest, src, times);
+        } else if constexpr (sizeof(T) == sizeof(u64)) {
+            cerb::PRIVATE::memcpy64<Constexpr>(dest, src, times);
+        } else {
+            cerb::PRIVATE::memcpy8<Constexpr>(dest, src, times * sizeof(T));
+        }
+    }
 
-        constexpr_for<0, sizeof(u32), 1>(
-            [&](auto i){
-                result += static_cast<u32>(str[i.value]) << (i.value * 8U);
+    template<typename T,
+            CERBLIB_NOT_FOR_X86_64_RUNTIME>
+    CERBLIB_INLINE CERBLIB20_CONSTEXPR
+    void memcpy(T *__restrict dest, const T *__restrict src, size_t times) {
+        #if (__cplusplus >= 202002L)
+            if constexpr (!std::is_constant_evaluated() == false && cerb::x86_64) {
+                return cerb::memcpy<T, false>(dest, src, times);
+            } else {
+                return cerb::PRIVATE::memcpy<T, true>(dest, src, times);
             }
-        );
-
-        return result;
+        #else
+            cerb::PRIVATE::memcpy<T, Constexpr>(dest, src, times);
+        #endif
     }
 
-    [[nodiscard]]
-    CERBLIB_COMPILE_TIME auto str2u64(const char *str) -> u64 {
-        u64 result = 0;
-
-        constexpr_for<0, sizeof(u64), 1>(
-            [&](auto i){
-                result += static_cast<u64>(str[i.value]) << (i.value * 8U);
-            }
-        );
-
-        return result;
-    }
+    CERBLIB_ENABLE_WARNING(constant-evaluated,constant-evaluated,0)
 
     template<typename T>
-    CERBLIB_INLINE void memcpy(T *__restrict _dest, const T *__restrict _src, size_t _times) {
-        if (_times == 0) UNLIKELY {
-            return;
-        }
-
-        if constexpr (sizeof(T) == sizeof(u8)) {
-            cerb::memcpy8(_dest, _src, _times);
-        } else if constexpr (sizeof(T) == sizeof(u16)) {
-            cerb::memcpy16(_dest, _src, _times);
-        } else if constexpr (sizeof(T) == sizeof(u32)) {
-            cerb::memcpy32(_dest, _src, _times);
-        } else if constexpr (sizeof(T) == sizeof(u64)) {
-            cerb::memcpy64(_dest, _src, _times);
-        } else {
-            cerb::memcpy8(_dest, _src, _times * sizeof(T));
-        }
-    }
-
-    template<typename T, typename T2>
-    CERBLIB_NOT_X86_64_CONSTEXPR void memset(T *__restrict _dest, T2 _value, size_t _times) {
-        if (_times == 0) UNLIKELY {
-            return;
-        }
-
+    [[nodiscard]] CERBLIB_COMPILE_TIME
+    auto str2uint(const char *str) -> T {
         static_assert(
-            sizeof(T) == sizeof(u8) ||
-            sizeof(T) == sizeof(u16) ||
-            sizeof(T) == sizeof(u32) ||
-            sizeof(T) == sizeof(u64)
+                std::is_integral_v<T> &&
+                std::is_unsigned_v<T>
+        );
+        T result = 0;
+
+        constexpr_for<0, static_cast<int>(sizeof(T)), 1>(
+            [&](auto i){
+                result += static_cast<T>(static_cast<int>(str[i.value]) << (i.value * 8));
+            }
         );
 
-        if constexpr (sizeof(T) == sizeof(u8)) {
-            cerb::memset8(_dest, static_cast<u8>(_value), _times);
-        } else if constexpr (sizeof(T) == sizeof(u16)) {
-            cerb::memset16(_dest, static_cast<u16>(_value), _times);
-        } else if constexpr (sizeof(T) == sizeof(u32)) {
-            cerb::memset32(_dest, static_cast<u32>(_value), _times);
-        } else if constexpr (sizeof(T) == sizeof(u64)) {
-            cerb::memset64(_dest, static_cast<u64>(_value), _times);
-        }
+        return result;
     }
 }
 

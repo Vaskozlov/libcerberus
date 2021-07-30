@@ -1,11 +1,12 @@
 #ifndef cerberusTypes_h
 #define cerberusTypes_h
 
+#include <stddef.h>
+
 #if defined(__cplusplus)
 #  include <cstddef>
 #  include <cinttypes>
 #else
-#  include <stddef.h>
 #  include <inttypes.h>
 #endif /* __cplusplus */
 
@@ -50,19 +51,10 @@ namespace cerb {
 #  define bitsizeof(x) (sizeof(x) * 8)
 #endif /* bitsizeof */
 
-#if defined(asm)
-#  define asm __asm__
-#  define volatile __volatile
-#endif /* asm */
-
-#if !defined(STRX) && !defined(STR)
-#  define STRX(x) #x
-#  define STR(x) STRX(x)
-#endif /* STR and STRX */
-
-#ifndef offsetof
-#  define offsetof(t, d) __builtin_offsetof(t, d)
-#endif /* offsetof */
+#if !defined(CERBLIB_STRX) && !defined(CERBLIB_STR)
+#  define CERBLIB_STRX(x) #x
+#  define CERBLIB_STR(x) CERBLIB_STRX(x)
+#endif /* CERBLIB_STR and CERBLIB_STRX */
 
 #if defined(__cplusplus) && !defined(__BEGIN_DECLS)
 #  define __BEGIN_DECLS extern "C" {
@@ -102,172 +94,143 @@ namespace cerb {
 #  define UNLIKELY  [[unlikely]]
 #endif /* C++17-20 */
 
-#if defined(__clang__) && !defined(TRIVIAL)
-#  define TRIVIAL [[clang::trivial_abi]]
-#elif !defined(TRIVIAL)
-#  define TRIVIAL
+#ifndef CERBLIB_TRIVIAL
+#  if defined(__clang__)
+#    define CERBLIB_TRIVIAL [[clang::trivial_abi]]
+#  elif defined(__GNUC__)
+#    define CERBLIB_TRIVIAL __attribute__((trivial_abi))
+#  else
+#    define CERBLIB_TRIVIAL
+#  endif
 #endif
 
-#if defined(__DEPRECATED) && !defined(CERBLIB_DEPRECATED)
-#  define CERBLIB_DEPRECATED [[deprecated]]
-#  define CERBLIB_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
-#else
-#  define CERBLIB_DEPRECATED
-#  define CERBLIB_DEPRECATED_SUGGEST(ALT)
+#ifndef CERBLIB_DEPRECATED
+#  if defined(__DEPRECATED)
+#    define CERBLIB_DEPRECATED [[deprecated]]
+#    define CERBLIB_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
+#  else
+#    define CERBLIB_DEPRECATED
+#    define CERBLIB_DEPRECATED_SUGGEST(ALT)
+#  endif /* __DEPRECATED */
 #endif /* CERBLIB_DEPRECATED */
 
-#if defined(__DEPRECATED) && (__cplusplus >= 201703L)
-#  define CERBLIB17_DEPRECATED [[deprecated]]
-#  define CERBLIB17_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
-#else
-#  define CERBLIB17_DEPRECATED
-#  define CERBLIB17_DEPRECATED_SUGGEST(ALT)
+#ifndef CERBLIB17_DEPRECATED
+#  if defined(__DEPRECATED) && (__cplusplus >= 201703L)
+#    define CERBLIB17_DEPRECATED [[deprecated]]
+#    define CERBLIB17_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
+#  else
+#    define CERBLIB17_DEPRECATED
+#    define CERBLIB17_DEPRECATED_SUGGEST(ALT)
+#  endif /* __DEPRECATED */
 #endif /* CERBLIB17_DEPRECATED */
 
-#if defined(__DEPRECATED) && (__cplusplus >= 202002L)
-#  define CERBLIB20_DEPRECATED [[deprecated]]
-#  define CERBLIB20_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
-#else
-#  define CERBLIB20_DEPRECATED
-#  define CERBLIB20_DEPRECATED_SUGGEST(ALT)
+#ifndef CERBLIB20_DEPRECATED
+#  if defined(__DEPRECATED) && (__cplusplus >= 202002L)
+#    define CERBLIB20_DEPRECATED [[deprecated]]
+#    define CERBLIB20_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
+#  else
+#    define CERBLIB20_DEPRECATED
+#    define CERBLIB20_DEPRECATED_SUGGEST(ALT)
+#  endif /* __DEPRECATED */
 #endif /* CERBLIB20_DEPRECATED */
 
-#if !defined(CERBLIB17_CONSTEXPR) && (__cplusplus >= 201703L)
-#  define CERBLIB17_CONSTEXPR constexpr
-#else
-#  define CERBLIB17_CONSTEXPR CERBLIB_INLINE
+#ifndef CERBLIB17_CONSTEXPR
+#  if __cplusplus >= 201703L
+#    define CERBLIB17_CONSTEXPR constexpr
+#  else
+#    define CERBLIB17_CONSTEXPR
+#  endif
 #endif /* CERBLIB17_CONSTEXPR */
 
-#if !defined(CERBLIB20_CONSTEXPR) && (__cplusplus > 201703L)
-#  define CERBLIB20_CONSTEXPR constexpr
-#else
-#  define CERBLIB20_CONSTEXPR CERBLIB_INLINE
+#ifndef CERBLIB20_CONSTEXPR
+#  if __cplusplus >= 202002L
+#    define CERBLIB20_CONSTEXPR constexpr
+#  else
+#    define CERBLIB20_CONSTEXPR
+#  endif
 #endif /* CERBLIB20_CONSTEXPR */
 
 #ifndef CERBLIB_COMPILE_TIME
-#  if __cplusplus <= __cplusplus
+#  if __cplusplus <= 201703L
 #    define CERBLIB_COMPILE_TIME constexpr
 #  else
 #    define CERBLIB_COMPILE_TIME consteval
 #  endif /* C++17 */
 #endif /* CERBLIB_COMPILE_TIME */
 
-#if __cplusplus <= 202002L
-    constexpr auto operator ""_z(unsigned long long x) -> size_t {
-        return static_cast<size_t>(x);
-    }
+#if __cplusplus <= 201703L
+#  define CERBLIB_THREE_WAY_COMPARISON 0
+#elif __clang_major__ >= 10 || __GNUC__ >= 10
+#  define CERBLIB_THREE_WAY_COMPARISON 1
+#endif /* CERBLIB_THREE_WAY_COMPARISON */
 
-    constexpr auto operator ""_Z(unsigned long long x) -> size_t {
-        return static_cast<size_t>(x);
-    }
-#else
-/*
- * Do later, when C++23 will be released
- */
-#endif /* C++20 */
+#ifndef CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR
+#  define CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR bool Constexpr = true, \
+            typename std::enable_if<!Constexpr && x86_64, bool>::type = true
+#endif /* CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR */
 
-#if defined(__cplusplus)
-#  if __cplusplus <= 201703L
-#    define CERBLIB_THREE_WAY_COMPARISON 0
-#  elif defined(__clang__) && __clang_major__ >= 10 || defined(__GNUC__) && __GNUC__ >= 10
-#    define CERBLIB_THREE_WAY_COMPARISON 1
+#ifndef CERBLIB_NOT_FOR_X86_64_RUNTIME
+#  define CERBLIB_NOT_FOR_X86_64_RUNTIME bool Constexpr = true, \
+            typename std::enable_if<Constexpr || !x86_64, bool>::type = true
+#endif /* CERBLIB_NOT_FOR_X86_64_RUNTIME */
+
+#ifndef CERBLIB_JOIN_STR
+#  define CERBLIB_JOIN_STR(x,y) CERBLIB_STR(x ## y)
+#endif /* CERBLIB_JOIN_STR */
+
+#ifndef CERBLIB_DISABLE_WARNING
+#  ifdef _MSC_VER
+#    define CERBLIB_DO_PRAGMA(x) __pragma (#x)
+#    define CERBLIB_PRAGMA(compiler,x) CERBLIB_DO_PRAGMA(warning(x))
 #  else
-#    define CERBLIB_THREE_WAY_COMPARISON 0
-#  endif /* CERBLIB_THREE_WAY_COMPARISON */
-#endif /* _cplusplus */
+#    define CERBLIB_DO_PRAGMA(x) _Pragma (#x)
+#    define CERBLIB_PRAGMA(compiler,x) CERBLIB_DO_PRAGMA(compiler diagnostic x)
+#  endif
+#  if defined(__clang__)
+#    define CERBLIB_DISABLE_WARNING(gcc_unused,clang_option,msvc_unused) \
+        CERBLIB_PRAGMA(clang,push) CERBLIB_PRAGMA(clang,ignored CERBLIB_JOIN_STR(-W,clang_option))
+#    define CERBLIB_ENABLE_WARNING(gcc_unused,clang_option,msvc_unused) \
+        CERBLIB_PRAGMA(clang,pop)
+#  elif defined(_MSC_VER)
+#    define CERBLIB_DISABLE_WARNING(gcc_unused,clang_unused,msvc_errorcode) \
+        CERBLIB_PRAGMA(msvc,push) CERBLIB_DO_PRAGMA(warning(disable:##msvc_errorcode))
+#    define CERBLIB_ENABLE_WARNING(gcc_unused,clang_unused,msvc_errorcode) \
+        CERBLIB_PRAGMA(msvc,pop)
+#  elif defined(__GNUC__)
+#    if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
+#      define CERBLIB_DISABLE_WARNING(gcc_option,clang_unused,msvc_unused) \
+            CERBLIB_PRAGMA(GCC,push) CERBLIB_PRAGMA(GCC,ignored CERBLIB_JOIN_STR(-W,gcc_option))
+#      define CERBLIB_ENABLE_WARNING(gcc_option,clang_unused,msvc_unused) \
+            CERBLIB_PRAGMA(GCC,pop)
+#    else
+#      define CERBLIB_DISABLE_WARNING(gcc_option,clang_unused,msvc_unused) \
+            CERBLIB_PRAGMA(GCC,ignored CERBLIB_JOIN_STR(-W,gcc_option))
+#      define CERBLIB_ENABLE_WARNING(gcc_option,clang_option,msvc_unused) \
+            CERBLIB_PRAGMA(GCC,warning CERBLIB_JOIN_STR(-W,gcc_option))
+#    endif
+#  endif
+#endif /* CERBLIB_DISABLE_WARNING */
 
 #if defined(__cplusplus)
 #  include <array>
-#  include <atomic>
 #  include <limits>
 #  include <utility>
 #  include <type_traits>
-
-#  if __cplusplus >= 202002L
-#    include <bit>
-#  endif /* C++20 */
+#  include <cerberus/private/literals.hpp>
 
 namespace cerb {
-
-    namespace PRIVATE {
-        inline std::atomic<size_t> uid(0);
-    }
-
-    /**
-     * @brief thread safe return unsigned value
-     *
-     * @return unique unsigned value
-     */
-    CERBLIB_INLINE auto uuid() noexcept -> size_t {
-        return PRIVATE::uid++;
-    }
+    using namespace ::cerb::literals;
 
     template<typename T> [[nodiscard]]
-    constexpr auto getLimits(const T &value) -> std::numeric_limits<T> {
+    constexpr auto getLimits(const T &) -> std::numeric_limits<T> {
         return std::numeric_limits<T>();
     }
 
-    /**
-     * @brief byte mask for different types.
-     * 
-     * @tparam T type of bitmask
-     */
-    template<typename T>
-    union TRIVIAL byteMask{
-        T value;
-
-        std::array<u8,  sizeof(T) / sizeof(u8 )> mask_u8 ;
-        std::array<u16, sizeof(T) / sizeof(u16)> mask_u16;
-        std::array<u32, sizeof(T) / sizeof(u32)> mask_u32;
-        std::array<u64, sizeof(T) / sizeof(u64)> mask_u64;
-
-    public:
-        constexpr auto &getAsIntegral() noexcept {
-            static_assert(
-                sizeof(T) == sizeof(u8) ||
-                sizeof(T) == sizeof(u16) ||
-                sizeof(T) == sizeof(u32) ||
-                sizeof(T) == sizeof(u64)
-            );
-
-            if constexpr (sizeof(T) == sizeof(u8)) {
-                return mask_u8[0];
-            } else if constexpr (sizeof(T) == sizeof(u16)) {
-                return mask_u16[0];
-            } else if constexpr (sizeof(T) == sizeof(u32)) {
-                return mask_u32[0];
-            } else if constexpr (sizeof(T) == sizeof(u64)) {
-                return mask_u64[0];
-            }
-        }
-
-    public:
-        explicit constexpr byteMask(T _value)
-            : value(_value)
-        {}
-    };
-
-    /**
-     * @brief similar to C++20 std::bit_cast, but woks since C++17
-     * @tparam TO target type (must be the same size as FROM and trivially copyable)
-     * @tparam FROM current type (must be the same size as TO and trivially copyable)
-     * @param x value to translate
-     * @return bits of x as TO type
-     */
-    template<typename TO, typename FROM> [[nodiscard]]
-    CERBLIB17_CONSTEXPR auto bit_cast(const FROM &x) noexcept -> TO {
-        static_assert(
-            sizeof(TO) == sizeof(FROM) &&
-            std::is_trivially_copyable<FROM>::value &&
-            std::is_trivially_copyable<TO>::value
-        );
-    #if __cplusplus >= 202002L
-        return std::bit_cast<TO>(x);
-    #else
-        union { FROM current; TO target; } u = {x};
-        return u.target;
-    #endif /* C++20 */
-    }
+#if defined(__x86_64__)
+    constexpr auto x86_64 = true;
+#else
+    constexpr auto x86_64 = false;
+#endif
 
     /**
      * @brief constexpr for loop in C++
@@ -278,11 +241,11 @@ namespace cerb {
      * @tparam FUNCTION reference function which will be called
      * @param function  function which will be called
      */
-    template<auto BEGIN, auto END, auto INC, typename FUNCTION>
-    CERBLIB_COMPILE_TIME void constexpr_for(FUNCTION &&function) {
-        if constexpr (BEGIN < END) {
-            function(std::integral_constant<decltype(BEGIN), BEGIN>());
-            constexpr_for<BEGIN + INC, END, INC>(function);
+    template<auto Begin, auto End, auto Inc, typename Function>
+    constexpr void constexpr_for(Function &&function) {
+        if constexpr (Begin < End) {
+            function(std::integral_constant<decltype(Begin), Begin>());
+            constexpr_for<Begin + Inc, End, Inc>(function);
         }
     };
 
@@ -296,16 +259,25 @@ namespace cerb {
      * @return condition ? _on_true : _on_false
      */
     template<typename T>
-    constexpr auto cmov(bool condition, const T &_on_true, const T &_on_false) -> const T& {
-        return condition ? _on_true : _on_false;
+    constexpr auto cmov(bool condition, const T &on_true, const T &on_false) -> const T& {
+        return condition ? on_true : on_false;
     }
+
+    struct EmptyType {
+        u8 empty;
+
+        EmptyType() = delete;
+        ~EmptyType() = delete;
+        auto operator=(EmptyType &&)      -> EmptyType& = delete;
+        auto operator=(const EmptyType &) -> EmptyType& = delete;
+    };
 
     #if defined(__WINDOWS__) || defined(__WIN32__)
         constexpr auto endl = "\n\r";
     #else
         constexpr auto endl = '\n';
     #endif
-}
+} // namespace cerb
 
 #endif /* __cplusplus */
 

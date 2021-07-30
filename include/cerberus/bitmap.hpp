@@ -1,7 +1,7 @@
 #ifndef bitmap_hpp
 #define bitmap_hpp
 
-#include <cerberus/private/bitmapAPI.hpp>
+#include <cerberus/private/bitmapBase.hpp>
 
 #if defined(__has_warning)
 #  if __has_warning("-Wreorder-ctor")
@@ -11,245 +11,293 @@
 #endif
 
 namespace cerb {
-    template<typename T, size_t _size>
-    class TRIVIAL constBitmap : public PRIVATE::staticBitmap<T, _size>{
-        using PRIVATE::staticBitmap<T, _size>::_data;
+
+    template<typename T, size_t Size>
+    class ConstBitMap {
+        static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>);
 
     public:
-        using PRIVATE::staticBitmap<T, _size>::size;
-        using PRIVATE::staticBitmap<T, _size>::sizeOfArray;
-
-    public:
-        auto operator=(const constBitmap&) -> constBitmap& = default;
-        auto operator=(constBitmap&&) noexcept -> constBitmap& = default;
-
-        template<int POINTABLE, size_t SIZE>
-        auto operator=(const PRIVATE::bitmapAPI<T, POINTABLE, SIZE> &other) noexcept -> constBitmap& {
-            if (size() != other.size()) {
-                return *this;
-            }
-
-            cerb::memcpy(_data.get(), other.data1(), sizeOfArray());
-            return *this;
+        [[nodiscard]] constexpr
+        auto size() const -> size_t {
+            return Size;
         }
 
-    public:
-        constexpr constBitmap() = default;
-
-        constBitmap(constBitmap&) = default;
-        constBitmap(constBitmap&&) noexcept = default;
-    };
-    
-    template<typename T>
-    class TRIVIAL freeBitmap final : public PRIVATE::pointableBitmap<T>{
-        using PRIVATE::pointableBitmap<T>::_data;
-        using PRIVATE::pointableBitmap<T>::_size;
-
-    public:
-        using PRIVATE::pointableBitmap<T>::size;
-        using PRIVATE::pointableBitmap<T>::sizeOfData;
-        using PRIVATE::pointableBitmap<T>::sizeOfArray;
-        using PRIVATE::pointableBitmap<T>::toAPI;
-
-    public:
-        CERBLIB_INLINE void forceResize(size_t newSize) {
-            _size[0] = newSize;
+        [[nodiscard]] static constexpr
+        auto sizeOfArray() -> size_t {
+            return Size / bitsizeof(T) + (Size % bitsizeof(T) > 0);
         }
 
-    public:
-        inline auto operator=(freeBitmap<T> &&other) noexcept -> freeBitmap& {
-            _size[0] = std::exchange(other._size, 0);
-            _data = std::exchange(other._data, nullptr);
+        [[nodiscard]] constexpr
+        auto sizeOfData() const {
+            return sizeOfArray() * sizeof(T);
         }
 
-        template<int POINTABLE, size_t SIZE>
-        auto operator=(const PRIVATE::bitmapAPI<T, POINTABLE, SIZE> &other) -> freeBitmap& {
-            if (sizeOfArray() < other.sizeOfArray()) UNLIKELY {
-                _size[0] = 0;
-                _data.set(nullptr);
-                return *this;
-            }
-
-            _size[0] = other.size();
-            cerb::memcpy(_data.get(), other.data(), sizeOfArray());
-
-            return *this;
-       }
-
-    public:
-        freeBitmap(freeBitmap&) = default;
-        freeBitmap(freeBitmap<T> &&other) noexcept = default;
-
-        CERBLIB_INLINE freeBitmap()
-            : PRIVATE::pointableBitmap<T>::bitmapAPI(nullptr, 0)
-        {}
-
-        CERBLIB_INLINE freeBitmap(T *buffer, size_t size)
-                : PRIVATE::pointableBitmap<T>::bitmapAPI(buffer, size)
-        {}
-
-        template<int POINTABLE, size_t SIZE>
-        inline freeBitmap(PRIVATE::bitmapAPI<T, POINTABLE, SIZE> &other, T *buffer)
-            : PRIVATE::pointableBitmap<T>::bitmapAPI(buffer, other.size())
-        {
-            cerb::memcpy(_data.get(), other.data(), sizeOfArray());
+        [[nodiscard]] constexpr
+        auto data() noexcept -> T * {
+            return m_data.data();
         }
-
-        template<size_t bitmapSize>
-        inline freeBitmap(const constBitmap<T, bitmapSize> &other, T *buffer)
-            : PRIVATE::bitmapAPI<T, true>::bitmapAPI(buffer, bitmapSize)
-        {
-            cerb::memcpy(buffer, other.data(), other.sizeOfArray());
-        }
-    };
-
-    template<typename T>
-    class TRIVIAL bitmap final : public PRIVATE::bitmapAPI<T, true>{
-        u64 _capacity;
 
     private:
-        using PRIVATE::pointableBitmap<T>::_data;
-        using PRIVATE::pointableBitmap<T>::_size;
+        std::array<T, sizeOfArray()> m_data = {0};
 
     public:
-        using PRIVATE::pointableBitmap<T>::size;
-        using PRIVATE::pointableBitmap<T>::sizeOfData;
-        using PRIVATE::pointableBitmap<T>::sizeOfArray;
-        using PRIVATE::pointableBitmap<T>::toAPI;
+        constexpr auto clear() noexcept -> void {
+        #pragma unroll 4
+            for (auto &elem: m_data) {
+                elem = 0;
+            }
+        }
+
+        CERBLIB_DEPRECATED_SUGGEST("set<>")
+        constexpr auto set(size_t index, u8 value) noexcept -> void {
+            auto elemIndex = index / bitsizeof(T);
+            auto bitIndex  = index % bitsizeof(T);
+
+            m_data[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
+            m_data[elemIndex] |= static_cast<T>(value) << bitIndex;
+        }
+
+        template<u8 value>
+        constexpr auto set(size_t index) noexcept -> void {
+            auto elemIndex = index / bitsizeof(T);
+            auto bitIndex  = index % bitsizeof(T);
+
+            if constexpr (value) {
+                m_data[elemIndex] |= (value << static_cast<T>(bitIndex));
+            } else {
+                m_data[elemIndex] &= ~(1 << static_cast<T>(bitIndex));
+            }
+        }
+
+        [[nodiscard]] constexpr
+        auto isEmpty() const noexcept -> bool {
+            return PRIVATE::isEmpty(m_data, size());
+        }
 
     public:
-        [[nodiscard]]
-        CERBLIB_INLINE auto capacity() const -> size_t {
-            return _capacity;
+        [[nodiscard]] constexpr
+        auto at(size_t index) const noexcept -> u8 {
+            return PRIVATE::at(m_data, index);
         }
 
-        [[nodiscard]]
-        CERBLIB_INLINE auto capacityOfArray() const -> size_t {
-            return capacity() / bitsizeof(T);
+        [[nodiscard]] constexpr
+        auto operator[](size_t index) noexcept -> cerb::PRIVATE::BitmapElem<T> {
+            auto elemIndex = index / bitsizeof(T);
+            auto bitIndex  = index % bitsizeof(T);
+
+            return cerb::PRIVATE::BitmapElem<T>(bitIndex, &m_data[elemIndex]);
         }
 
-        [[nodiscard]]
-        CERBLIB_INLINE auto capacitySize() const -> size_t {
-            return capacityOfArray() * sizeof(T);
+        [[nodiscard]] constexpr
+        auto operator[](size_t index) const noexcept -> cerb::PRIVATE::BitmapElem<T> {
+            auto elemIndex = index / bitsizeof(T);
+            auto bitIndex  = index % bitsizeof(T);
+
+            return cerb::PRIVATE::BitmapElem<T>(bitIndex, &m_data[elemIndex]);
+        }
+
+        template<u8 firstValue> [[nodiscard]] constexpr
+        auto find_if() const noexcept -> size_t {
+            return PRIVATE::bitmap_find_if<firstValue>(m_data, size());
         }
 
     public:
-        inline void forceResize(size_t newSize) {
-            if (capacityOfArray() > sizeOfArray()) {
-                auto oldSize = capacityOfArray();
-                auto oldBuffer = _data.get();
+        auto operator=(ConstBitMap&&) noexcept -> ConstBitMap& = default;
+        auto operator=(const ConstBitMap&) noexcept -> ConstBitMap& = default;
 
-                _capacity = cerb::align<cerb::log2(bitsizeof(T))>(newSize);
-                _data = static_cast<T*>(::operator new(capacitySize()));
-                cerb::memcpy(_data.get(), oldBuffer, oldSize);
+    public:
+        ConstBitMap() noexcept = default;
+        ~ConstBitMap() noexcept = default;
 
-                ::operator delete(oldBuffer);
+        ConstBitMap(ConstBitMap&) noexcept = default;
+        ConstBitMap(ConstBitMap&&) noexcept = default;
+    };
 
-                for (; oldSize < sizeOfArray(); oldSize++) {
-                    _data[oldSize] = 0;
+    template<typename T, bool Freestanding = false>
+    class Bitmap {
+        static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>);
+
+    private:
+        T *m_data;
+        size_t m_size;
+
+    public:
+        [[nodiscard]] constexpr
+        auto size() const noexcept -> size_t {
+            return m_size;
+        }
+
+        [[nodiscard]] constexpr
+        auto sizeOfArray() const noexcept -> size_t {
+            return m_size / bitsizeof(T) + (m_size % bitsizeof(T) > 0);
+        }
+
+        [[nodiscard]] constexpr
+        auto sizeOfData() const noexcept {
+            return sizeOfArray() * sizeof(T);
+        }
+
+        [[nodiscard]] constexpr
+        auto data() noexcept -> T * {
+            return m_data;
+        }
+
+    public:
+        constexpr auto clear() noexcept -> void {
+        #pragma unroll 4
+            for (size_t i = 0; i < sizeOfArray(); ++i) {
+                m_data[i] = 0;
+            }
+        }
+
+        CERBLIB_DEPRECATED_SUGGEST("set<>")
+        constexpr auto set(size_t index, u8 value) noexcept -> void {
+            auto elemIndex = index / bitsizeof(T);
+            auto bitIndex  = index % bitsizeof(T);
+
+            m_data[elemIndex] = m_data[elemIndex] & ~(static_cast<T>(1) << bitIndex);
+            m_data[elemIndex] |= static_cast<T>(value) << bitIndex;
+        }
+
+        template<u8 value>
+        constexpr auto set(size_t index) noexcept -> void {
+            auto elemIndex = index / bitsizeof(T);
+            auto bitIndex  = index % bitsizeof(T);
+
+            if constexpr (value) {
+                m_data[elemIndex] |= (value << static_cast<T>(bitIndex));
+            } else {
+                m_data[elemIndex] &= ~(1 << static_cast<T>(bitIndex));
+            }
+        }
+
+        [[nodiscard]] constexpr
+        auto isEmpty() const noexcept -> bool {
+            return PRIVATE::isEmpty(m_data, size());
+        }
+
+        constexpr auto resize(size_t size) -> void {
+            auto newArraySize = size / bitsizeof(T) + (size % bitsizeof(T)) != 0;
+
+            if (sizeOfArray() < newArraySize) {
+                T * newData;
+
+                if constexpr (!Freestanding) {
+                    newData = new T[newArraySize];
+                    cerb::memcpy(newData, m_data, sizeOfArray());
+                } else {
+                    newData = m_data;
                 }
+
+                cerb::memset<T>(newData + sizeOfArray(), 0, newArraySize - sizeOfArray());
             }
 
-            _size[0] = newSize;
+            m_size = size;
         }
 
     public:
-
-        inline auto operator=(bitmap &&other) noexcept -> bitmap<T>& {
-            ::operator delete(_data.get());
-
-            _size[0] = std::exchange(other.size(), 0);
-            _data = std::exchange(other._data, nullptr);
-            _capacity = std::exchange(other.capacity(), nullptr);
-
-            return *this;
+        [[nodiscard]] constexpr
+        auto at(size_t index) const noexcept -> u8 {
+            auto elemIndex = index / bitsizeof(T);
+            auto bitIndex  = index % bitsizeof(T);
+            return (m_data[elemIndex] & (static_cast<T>(1) << bitIndex)) != 0;
         }
 
-        template<int POINTABLE, size_t SIZE>
-        inline auto operator=(const PRIVATE::bitmapAPI<T, POINTABLE, SIZE> &other) noexcept -> bitmap<T>& {
-            if (capacityOfArray() < other.sizeOfArray()) UNLIKELY {
-                ::operator delete(_data.get());
-                _capacity = cerb::align<cerb::log2(bitsizeof(T))>(other.size());
-                _data = static_cast<T*>(::operator new(capacitySize()));
-            }
+        [[nodiscard]] constexpr
+        auto operator[](size_t index) noexcept -> cerb::PRIVATE::BitmapElem<T> {
+            auto elemIndex = index / bitsizeof(T);
+            auto bitIndex  = index % bitsizeof(T);
 
-            _size[0] = other.size();
-            cerb::memcpy(_data.get(), other.data(), sizeOfArray());
-
-            return *this;
+            return cerb::PRIVATE::BitmapElem<T>(bitIndex, &m_data[elemIndex]);
         }
 
-        template<size_t bitmapSize>
-        inline auto operator=(constBitmap<T, bitmapSize> &other) noexcept -> bitmap<T>& {
-            if (other.sizeOfArray() < capacityOfArray()) UNLIKELY {
-                ::operator delete (_data.get());
-                _capacity = cerb::align<cerb::log2(bitsizeof(T))>(other.size());
-                _data = static_cast<T*>(::operator new(capacitySize()));
-            }
+        [[nodiscard]] constexpr
+        auto operator[](size_t index) const noexcept -> cerb::PRIVATE::BitmapElem<T> {
+            auto elemIndex = index / bitsizeof(T);
+            auto bitIndex  = index % bitsizeof(T);
 
-            _size[0] = other.size();
-            cerb::memcpy(_data.get(), other.data(), other.sizeOfData());
-
-            return *this;
+            return cerb::PRIVATE::BitmapElem<T>(bitIndex, &m_data[elemIndex]);
         }
 
-        template<size_t bitmapSize>
-        auto operator=(constBitmap<T, bitmapSize> &&other) -> bitmap<T>& = delete;
+        template<u8 firstValue> [[nodiscard]] constexpr
+                auto find_if() const noexcept -> size_t {
+            return PRIVATE::bitmap_find_if<firstValue>(m_data, size());
+        }
 
     public:
-        CERBLIB_INLINE bitmap() :
-                _capacity(0),
-                PRIVATE::pointableBitmap<T>::bitmapAPI(nullptr, 0)
-        {}
+        constexpr auto operator=(const Bitmap& other) noexcept -> Bitmap& {
+            static_assert(!Freestanding);
 
-        template<int POINTABLE, size_t SIZE>
-        inline bitmap(PRIVATE::bitmapAPI<T, POINTABLE, SIZE> &other) noexcept :
-                _capacity(cerb::align<cerb::log2(bitsizeof(T))>(other.size())),
-                PRIVATE::pointableBitmap<T>::bitmapAPI(
-                        static_cast<T*>(::operator new(other.sizeOfData())),
-                        other.size()
-                )
+            if (sizeOfArray() < other.sizeOfArray()) {
+                delete[] m_data;
+                m_data = new T[other.sizeOfArray()];
+            }
+
+            m_size = other.size();
+            cerb::memcpy(m_data, other.m_data, sizeOfArray());
+            return *this;
+        }
+
+        constexpr auto operator=(Bitmap&& other) noexcept -> Bitmap&
         {
-            cerb::memcpy(_data.get(), other.data(), other.sizeOfArray());
+            if constexpr (!Freestanding) {
+                delete[] m_data;
+            }
+
+            m_data = other.m_data;
+            m_size = other.m_size;
+
+            other.m_size = 0;
+            other.m_data = nullptr;
+
+            return *this;
         }
 
-        inline bitmap(bitmap &&other) noexcept {
-            _size[0] = std::exchange(other._size, 0);
-            _data = std::exchange(other._data, nullptr);
-            _capacity = std::exchange(other._capacity, 0);
-        }
-
-        template<size_t bitmapSize>
-        inline bitmap(constBitmap<T, bitmapSize> &other) noexcept :
-                _capacity(other.sizeOfArray() * bitsizeof(T)),
-                PRIVATE::pointableBitmap<T>::bitmapAPI(
-                        static_cast<T*>(
-                                ::operator new(other.sizeOfData())
-                        ),
-                        bitmapSize
-                )
+    public: // Bitmap do NOT work in constexpr context :/ but just in case everything is constexpr
+        constexpr Bitmap(Bitmap& other)
+        : m_data(new T[other.sizeOfArray()]), m_size(other.size())
         {
-            cerb::memcpy(_data.get(), other.data(), capacityOfArray());
+            static_assert(!Freestanding);
+            #if (__cplusplus >= 202002L)
+                if constexpr (!std::is_constant_evaluated() && cerb::x86_64) {
+                    cerb::memcpy<T, false>(m_data, other.m_data, sizeOfArray());
+                    return;
+                }
+            #endif
+            cerb::memcpy<T, true>(m_data, other.m_data, sizeOfArray());
         }
 
-        explicit inline bitmap(size_t numberOfElems) :
-                PRIVATE::pointableBitmap<T>::bitmapAPI(
-                    static_cast<T*>(::operator new(
-                        (numberOfElems / bitsizeof(T) + ((numberOfElems % bitsizeof(T)) != 0)) * sizeof(T))
-                    ),
-                    numberOfElems
-            ), _capacity(cerb::align<cerb::log2(bitsizeof(T))>(numberOfElems))
-        {}
+        constexpr Bitmap(Bitmap&& other)
+        : m_data(other.m_data), m_size(other.size())
+        {
+            other.m_size = 0;
+            other.m_data = nullptr;
+        }
 
-        ~bitmap() {
-            ::operator delete (_data.get());
+        explicit constexpr Bitmap(size_t size)
+        : m_data(new T[size / bitsizeof(T) + (size % bitsizeof(T)) != 0]), m_size(size)
+        {
+            static_assert(!Freestanding);
+        }
+
+        explicit constexpr Bitmap(T *data, size_t size)
+        : m_data(data), m_size(size)
+        {
+            static_assert(Freestanding);
+        }
+
+        CERBLIB20_CONSTEXPR ~Bitmap() noexcept(Freestanding)
+        {
+            if constexpr (!Freestanding) {
+                delete[] m_data;
+            }
         }
     };
 }
 
 #if defined(__has_warning)
 #  if __has_warning("-Wreorder-ctor")
-#     pragma GCC diagnostic pop
+#    pragma GCC diagnostic pop
 #  endif
 #endif
 

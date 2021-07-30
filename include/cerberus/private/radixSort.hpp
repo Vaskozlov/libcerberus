@@ -4,6 +4,7 @@
 #include <cerberus/types.h>
 #include <cerberus/math.hpp>
 #include <cerberus/string.hpp>
+#include <cerberus/bit.hpp>
 
 namespace cerb {
     template<typename T>
