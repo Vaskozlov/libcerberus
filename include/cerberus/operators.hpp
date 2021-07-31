@@ -2,7 +2,7 @@
 #define CERBERUS_OPERATORS_HPP
 
 #include <cerberus/types.h>
-#include <cerberus/private/class_operators.hpp>
+#include <cerberus/private/classOperators.hpp>
 
 namespace cerb {
     enum struct arithmetic {

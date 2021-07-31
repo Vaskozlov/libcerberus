@@ -1,5 +1,5 @@
-#ifndef CERBERUS_CLASS_OPERATORS_HPP
-#define CERBERUS_CLASS_OPERATORS_HPP
+#ifndef CERBERUS_CLASSOPERATORS_HPP
+#define CERBERUS_CLASSOPERATORS_HPP
 
 #ifndef CERBERUS_OPERATORS_HPP
 #  error Cerblib class operators must be included adter cerberus/operators
@@ -572,4 +572,4 @@
         );                                                                                                             \
     }
 
-#endif /* CERBERUS_CLASS_OPERATORS_HPP */
+#endif /* CERBERUS_CLASSOPERATORS_HPP */

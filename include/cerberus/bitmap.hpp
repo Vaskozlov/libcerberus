@@ -85,6 +85,11 @@ namespace cerb {
             return PRIVATE::bitmap_find_if<firstValue>(m_data, size());
         }
 
+        template<u8 firstValue> [[nodiscard]] constexpr
+        auto find_if(size_t times) const noexcept -> size_t {
+            return PRIVATE::bitmap_find_if<firstValue>(m_data, times, size());
+        }
+
     public:
         auto operator=(ConstBitMap&&) noexcept -> ConstBitMap& = default;
         auto operator=(const ConstBitMap&) noexcept -> ConstBitMap& = default;
