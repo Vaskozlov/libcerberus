@@ -180,7 +180,7 @@ namespace cerb {
 
 #ifndef CERBLIB_UNROLL
 #  if defined(__clang__) || defined(__GNUC__)
-#    define CERBLIB_UNROLL _Pragma(unroll)
+#    define CERBLIB_UNROLL _Pragma(#unroll)
 #  else
 #    define CERBLIB_UNROLL 
 #  endif
@@ -188,7 +188,7 @@ namespace cerb {
 
 #ifndef CERBLIB_UNROLL_N
 #  if defined(__clang__) || defined(__GNUC__)
-#    define CERBLIB_UNROLL_N(N) _Pragma(unroll CERBLIB_STR(N))
+#    define CERBLIB_UNROLL_N(N) _Pragma(CERBLIB_STR(unroll N))
 #  else
 #    define CERBLIB_UNROLL_N(N) 
 #  endif

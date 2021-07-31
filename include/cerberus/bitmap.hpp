@@ -3,13 +3,6 @@
 
 #include <cerberus/private/bitmapBase.hpp>
 
-#if defined(__has_warning)
-#  if __has_warning("-Wreorder-ctor")
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wreorder-ctor"
-#  endif
-#endif
-
 namespace cerb {
 
     template<typename T, size_t Size>
@@ -46,15 +39,6 @@ namespace cerb {
             for (auto &elem: m_data) {
                 elem = 0;
             }
-        }
-
-        CERBLIB_DEPRECATED_SUGGEST("set<>")
-        constexpr auto set(size_t index, u8 value) noexcept -> void {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
-
-            m_data[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
-            m_data[elemIndex] |= static_cast<T>(value) << bitIndex;
         }
 
         template<u8 value>
@@ -150,15 +134,6 @@ namespace cerb {
             }
         }
 
-        CERBLIB_DEPRECATED_SUGGEST("set<>")
-        constexpr auto set(size_t index, u8 value) noexcept -> void {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
-
-            m_data[elemIndex] = m_data[elemIndex] & ~(static_cast<T>(1) << bitIndex);
-            m_data[elemIndex] |= static_cast<T>(value) << bitIndex;
-        }
-
         template<u8 value>
         constexpr auto set(size_t index) noexcept -> void {
             auto elemIndex = index / bitsizeof(T);
@@ -177,7 +152,7 @@ namespace cerb {
         }
 
         constexpr auto resize(size_t size) -> void {
-            auto newArraySize = size / bitsizeof(T) + (size % bitsizeof(T)) != 0;
+        auto newArraySize = size / bitsizeof(T) + (size % bitsizeof(T)) != 0;
 
             if (sizeOfArray() < newArraySize) {
                 T * newData;
@@ -254,6 +229,8 @@ namespace cerb {
         }
 
     public: // Bitmap do NOT work in constexpr context :/ but just in case everything is constexpr
+
+        CERBLIB_DISABLE_WARNING(constant-evaluated, constant-evaluated, 0)
         constexpr Bitmap(Bitmap& other)
         : m_data(new T[other.sizeOfArray()]), m_size(other.size())
         {
@@ -266,6 +243,7 @@ namespace cerb {
             #endif
             cerb::memcpy<T, true>(m_data, other.m_data, sizeOfArray());
         }
+        CERBLIB_ENABLE_WARNING(constant-evaluated, constant-evaluated, 0)
 
         constexpr Bitmap(Bitmap&& other)
         : m_data(other.m_data), m_size(other.size())
@@ -294,11 +272,5 @@ namespace cerb {
         }
     };
 }
-
-#if defined(__has_warning)
-#  if __has_warning("-Wreorder-ctor")
-#    pragma GCC diagnostic pop
-#  endif
-#endif
 
 #endif /* bitmap_hpp */

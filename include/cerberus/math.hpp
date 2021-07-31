@@ -22,12 +22,12 @@
 
 #if defined(_MSC_VER)
 namespace cerb::PRIVATE {
-    [[nodiscard]] constexpr
-    auto findFreeBitForward(u64 value) -> u64 {
+    template<unsigned Value> [[nodiscard]] constexpr
+    auto findBitForward(u64 value) -> u64 {
         u64 j = 0;
 
         for (; value > 0; j++) {
-            if ((value & 0b1ull) == 0) {
+            if ((value & 0b1ull) == Value) {
                 return j;
             }
             value >>= 1;
@@ -35,12 +35,12 @@ namespace cerb::PRIVATE {
         return j + 1;
     }
 
-    [[nodiscard]] constexpr
-    auto findFreeBitReverse(u64 value) -> u64 {
+    template<unsigned Value> [[nodiscard]] constexpr
+    auto findBitReverse(u64 value) -> u64 {
         u64 j = 63;
 
         for (; value > 0; j--) {
-            if ((value & (1ULL<<63ULL)) == 0) {
+            if ((value & (1ULL<<63ULL)) == Value) {
                 return j;
             }
             value <<= 1;
@@ -182,47 +182,9 @@ namespace cerb {
 
     template<size_t WinConstexpr = 1>
     [[nodiscard]] constexpr
-    auto findFreeBitForward(u64 value) -> u64 {
-        if (value == 0) {
-            return UINT32_MAX;
-        }
-
-        #if defined(__clang__) || defined(__GNUC__)
-            return __builtin_ctzl(value);
-        #elif defined(_MSC_VER)
-            #if (__cplusplus >= 202002L)
-                if (std::is_constant_evaluated()) {
-                    return PRIVATE::findFreeBitForward(value);
-                } else {
-                    unsigned long result;
-                    _BitScanForward64(&result, value);
-                    return result;
-                }
-            #else
-                if constexpr (WinConstexpr == 1) {
-                    return PRIVATE::findFreeBitForward(value);
-                } else {
-                    unisgned long result;
-                    _BitScanForward64(&result, value);
-                    return result;
-                }
-            #endif
-        #else
-            #error Unsupported compiler
-        #endif
-    }
-
-    template<size_t WinConstexpr = 1>
-    [[nodiscard]] constexpr
     auto findSetBitForward(u64 value) -> u64 {
-        return findFreeBit<WinConstexpr>(~value);
-    }
-
-    template<size_t WinConstexpr = 1>
-    [[nodiscard]] constexpr
-    auto findFreeBitReverse(u64 value) -> u64 {
         if (value == 0) {
-            return UINT32_MAX;
+            return UINTMAX_MAX;
         }
 
         #if defined(__clang__) || defined(__GNUC__)
@@ -230,7 +192,7 @@ namespace cerb {
         #elif defined(_MSC_VER)
             #if (__cplusplus >= 202002L)
                 if (std::is_constant_evaluated()) {
-                    return PRIVATE::findFreeBitReverse(value);
+                    return PRIVATE::findBitForward<1>(value);
                 } else {
                     unsigned long result;
                     _BitScanForward64(&result, value);
@@ -238,7 +200,7 @@ namespace cerb {
                 }
             #else
                 if constexpr (WinConstexpr == 1) {
-                    return PRIVATE::findFreeBitReverse(value);
+                    return PRIVATE::findBitForward<1>(value);
                 } else {
                     unisgned long result;
                     _BitScanForward64(&result, value);
@@ -248,11 +210,49 @@ namespace cerb {
         #else
             #error Unsupported compiler
         #endif
+    }
+
+    template<size_t WinConstexpr = 1>
+    [[nodiscard]] constexpr
+    auto findFreeBitForward(u64 value) -> u64 {
+        return findSetBitForward<WinConstexpr>(~value);
     }
 
     template<size_t WinConstexpr = 1>
     [[nodiscard]] constexpr
     auto findSetBitReverse(u64 value) -> u64 {
+        if (value == 0) {
+            return UINTMAX_MAX;
+        }
+
+        #if defined(__clang__) || defined(__GNUC__)
+            return __builtin_ctzl(value);
+        #elif defined(_MSC_VER)
+            #if (__cplusplus >= 202002L)
+                if (std::is_constant_evaluated()) {
+                    return PRIVATE::findBitForward<1>(value);
+                } else {
+                    unsigned long result;
+                    _BitScanForward64(&result, value);
+                    return result;
+                }
+            #else
+                if constexpr (WinConstexpr == 1) {
+                    return PRIVATE::findBitForward<1>(value);
+                } else {
+                    unisgned long result;
+                    _BitScanForward64(&result, value);
+                    return result;
+                }
+            #endif
+        #else
+            #error Unsupported compiler
+        #endif
+    }
+
+    template<size_t WinConstexpr = 1>
+    [[nodiscard]] constexpr
+    auto findFreeBitReverse(u64 value) -> u64 {
         return findFreeBitReverse<WinConstexpr>(~value);
     }
 

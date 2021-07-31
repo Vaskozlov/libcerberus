@@ -5,7 +5,6 @@
 #include <cerberus/types.h>
 #include <cerberus/math.hpp>
 #include <cerberus/string.hpp>
-#include <cerberus/arrayProtocol.hpp>
 
 #pragma pack (push, 1)
 
@@ -178,7 +177,7 @@ namespace cerb::PRIVATE {
                     bitIndex < limit % bitsizeof(T),
                     i * bitsizeof(T) + bitIndex,
                     std::numeric_limits<size_t>::max()
-                    );
+            );
         }
 
         return std::numeric_limits<size_t>::max();

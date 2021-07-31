@@ -76,15 +76,6 @@ namespace cerb {
             this->clear2();
         }
 
-        CERBLIB_DEPRECATED_SUGGEST("set<>")
-        constexpr auto set1(size_t index, u8 value) noexcept -> void {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
-
-            m_data1[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
-            m_data1[elemIndex] |= static_cast<T>(value) << bitIndex;
-        }
-
         template<u8 value>
         constexpr auto set1(size_t index) noexcept -> void {
             static_assert(value < 2);
@@ -99,15 +90,6 @@ namespace cerb {
             }
         }
 
-        CERBLIB_DEPRECATED_SUGGEST("set<>")
-        constexpr auto set2(size_t index, u8 value) noexcept -> void {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
-
-            m_data2[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
-            m_data2[elemIndex] |= static_cast<T>(value) << bitIndex;
-        }
-
         template<u8 value>
         constexpr auto set2(size_t index) noexcept -> void {
             static_assert(value < 2);
@@ -120,18 +102,6 @@ namespace cerb {
             } else {
                 m_data2[elemIndex] &= ~(1 << static_cast<T>(bitIndex));
             }
-        }
-
-        CERBLIB_DEPRECATED_SUGGEST("set<>")
-        constexpr auto set(size_t index, u8 value) noexcept -> void {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
-
-            m_data1[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
-            m_data2[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
-
-            m_data1[elemIndex] |= static_cast<T>(value) << bitIndex;
-            m_data2[elemIndex] |= static_cast<T>(value) << bitIndex;
         }
 
         template<u8 value>
@@ -300,15 +270,6 @@ namespace cerb {
             }
         }
 
-        CERBLIB_DEPRECATED_SUGGEST("set<>")
-        constexpr auto set2(size_t index, u8 value) noexcept -> void {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
-
-            m_data2[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
-            m_data2[elemIndex] |= static_cast<T>(value) << bitIndex;
-        }
-
         template<u8 value>
         constexpr auto set2(size_t index) noexcept -> void {
             static_assert(value < 2);
@@ -321,18 +282,6 @@ namespace cerb {
             } else {
                 m_data2[elemIndex] &= ~(1 << static_cast<T>(bitIndex));
             }
-        }
-
-        CERBLIB_DEPRECATED_SUGGEST("set<>")
-        constexpr auto set(size_t index, u8 value) noexcept -> void {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
-
-            m_data1[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
-            m_data2[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
-
-            m_data1[elemIndex] |= static_cast<T>(value) << bitIndex;
-            m_data2[elemIndex] |= static_cast<T>(value) << bitIndex;
         }
 
         template<u8 value>
