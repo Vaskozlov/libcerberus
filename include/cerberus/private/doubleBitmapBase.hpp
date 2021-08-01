@@ -51,87 +51,118 @@ namespace cerb::PRIVATE {
         {}
     };
 
-    template<u8 FirstValue, u8 SecondValue, size_t Size, typename T> [[nodiscard]] constexpr
+    template<u8 FirstValue, u8 SecondValue, typename T> CERBLIB_INLINE
+    auto reverse_function(T value1, T value2) {
+        if constexpr (FirstValue == 0) {
+            value1 = ~value1;
+        }
+        if constexpr (SecondValue == 0) {
+            value2 = ~value2;
+        }
+
+        return value1 & value2;
+    };
+
+    template<u8 FirstValue, u8 SecondValue, typename T> [[nodiscard]] constexpr
     auto bitmap_find_if(
-            const T *data1,
-            const T *data2,
+            T data1,
+            T data2,
             size_t limit
         ) noexcept -> size_t
     {
         size_t i = 0;
-        auto reverse_function = [](T value1, T value2) -> T {
-            if constexpr (FirstValue == 1) {
-                value1 = ~value1;
-            }
-            if constexpr (SecondValue) {
-                value2 = ~value2;
-            }
-
-            return value1 | value2;
-        };
 
         CERBLIB_UNROLL_N(4)
-        for (; i < limit / bitsizeof(T); ++i) {
-            T value = reverse_function(data1[i], data2[i]);
+        for (; i < limit / bitsizeof(data1[0]); ++i) {
+            auto value = reverse_function<FirstValue, SecondValue>(data1[i], data2[i]);
 
-            if (value < std::numeric_limits<T>::max()) {
-                return i * bitsizeof(T) + cerb::findFreeBitForward(static_cast<u64>(value));
+            if (value != 0) {
+                return i * bitsizeof(data1[0]) + cerb::findSetBitForward(static_cast<u64>(value));
             }
         }
 
-        T value = reverse_function(data1[i], data2[i]);
+        auto value = reverse_function<FirstValue, SecondValue>(data1[i], data2[i]);
 
-        if (value < std::numeric_limits<T>::max()) {
-            auto bitIndex = cerb::findFreeBitForward(static_cast<u64>(value));
+        if (value != 0) {
+            auto bitIndex = cerb::findSetBitForward(static_cast<u64>(value));
             return cerb::cmov<size_t>(
-                    bitIndex < limit % bitsizeof(T),
-                    i * bitsizeof(T) + bitIndex,
+                    bitIndex < limit % bitsizeof(data1[0]),
+                    i * bitsizeof(data1[0]) + bitIndex,
                     std::numeric_limits<size_t>::max()
             );
         }
-
         return std::numeric_limits<size_t>::max();
     }
 
-    template<u8 FirstValue, u8 SecondValue, size_t Size, typename T> [[nodiscard]] constexpr
-    auto bitmap_find_if(
-            const std::array<T, Size> &data1,
-            const std::array<T, Size> &data2,
-            size_t limit
-        ) noexcept -> size_t
-    {
+    template<u8 FirstValue, u8 SecondValue, typename T> [[nodiscard]] constexpr
+    auto bitmap_find_if(T data1, T data2, size_t times, size_t limit) {
         size_t i = 0;
-        auto reverse_function = [](T value1, T value2) -> T {
-            if constexpr (FirstValue == 1) {
-                value1 = ~value1;
-            }
-            if constexpr (SecondValue) {
-                value2 = ~value2;
-            }
+        size_t matches = 1;
+        size_t start_index = 0;
 
-            return value1 | value2;
-        };
+        for (; i < limit / bitsizeof(data1[0]); ++i) {
+            auto value = reverse_function<FirstValue, SecondValue>(data1[i], data2[i]);
 
-        CERBLIB_UNROLL_N(4)
-        for (; i < limit / bitsizeof(T); ++i) {
-            T value = reverse_function(data1[i], data2[i]);
+            while (true) {
+                if (value != 0) {
+                    size_t index = cerb::findSetBitForward(value);
 
-            if (value < std::numeric_limits<T>::max()) {
-                return i * bitsizeof(T) + cerb::findFreeBitForward(static_cast<u64>(value));
+                    if (matches == 1 || index != 0) {
+                        start_index = i * bitsizeof(data1[0]) + index;
+                        matches = 1;
+                    }
+
+                    auto bit_test = cerb::pow2<size_t>(index);
+                    value &= ~bit_test;
+                    bit_test <<= 1;
+                    ++index;
+
+                    for (; index < bitsizeof(data1[0]); ++index) {
+                        if (matches == times) {
+                            return start_index;
+                        } else if ((value & bit_test) == bit_test) {
+                            ++matches;
+                            value &= ~bit_test;
+                            bit_test <<= 1;
+                        } else {
+                            matches = 1;
+                            start_index = 0;
+                            break;
+                        }
+                    }
+                } else {
+                    break;
+                }
             }
         }
 
-        T value = reverse_function(data1[i], data2[i]);
+        auto value = reverse_function<FirstValue, SecondValue>(data1[i], data2[i]);
 
-        if (value < std::numeric_limits<T>::max()) {
-            auto bitIndex = cerb::findFreeBitForward(static_cast<u64>(value));
-            return cerb::cmov<size_t>(
-                    bitIndex < limit % bitsizeof(T),
-                    i * bitsizeof(T) + bitIndex,
-                    std::numeric_limits<size_t>::max()
-            );
+        if (value != 0) {
+            size_t index = cerb::findSetBitForward(value);
+            size_t bit_test = cerb::pow2<size_t>(index);
+
+            if (matches == 1 || index != 0) {
+                start_index = i * bitsizeof(data1[0]) + index;
+                matches = 1;
+            }
+
+            for (; index < bitsizeof(data1[0]) && index < limit % bitsizeof(data1[0]); ++index) {
+                if (matches == times) {
+                    return start_index;
+                } else if ((value & bit_test) == bit_test) {
+                    ++matches;
+                    value &= ~bit_test;
+                    bit_test <<= 1;
+                } else {
+                    matches = 1;
+                    start_index = 0;
+                    break;
+                }
+            }
         }
-        return std::numeric_limits<size_t>::max();
+
+        return UINTMAX_MAX;
     }
 } // namespace cerb::PRIVATE
 

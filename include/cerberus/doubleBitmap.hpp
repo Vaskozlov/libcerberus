@@ -169,17 +169,22 @@ namespace cerb {
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if1() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue>(m_data1, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, const std::array<T, sizeOfArray()>&>(m_data1, size());
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if2() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue>(m_data2, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, const std::array<T, sizeOfArray()>&>(m_data2, size());
         }
 
         template<u8 firstValue, u8 SecondValue> [[nodiscard]] constexpr
         auto find_if() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue>(m_data1, m_data2, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue, const std::array<T, sizeOfArray()>&>(m_data1, m_data2, size());
+        }
+
+        template<u8 firstValue, u8 SecondValue> [[nodiscard]] constexpr
+        auto find_if(size_t times) const noexcept -> size_t {
+            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue, const std::array<T, sizeOfArray()>&>(m_data1, m_data2, times, size());
         }
 
     public:
@@ -349,17 +354,17 @@ namespace cerb {
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if1() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue>(m_data1, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, const T*>(m_data1, size());
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if2() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue>(m_data2, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, const T*>(m_data2, size());
         }
 
         template<u8 firstValue, u8 SecondValue> [[nodiscard]] constexpr
         auto find_if() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue>(m_data1, m_data2, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue, const T*>(m_data1, m_data2, size());
         }
 
     public:

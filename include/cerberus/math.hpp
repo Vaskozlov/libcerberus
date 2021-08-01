@@ -119,7 +119,7 @@ namespace cerb {
             return mask.value;
 
         } else if constexpr (std::is_integral_v<T>) {
-            return static_cast<T>(1) << static_cast<T>(power);
+            return static_cast<T>(1) << power;
         } else {
             return 0;
         }
@@ -226,7 +226,7 @@ namespace cerb {
         }
 
         #if defined(__clang__) || defined(__GNUC__)
-            return __builtin_ctzl(value);
+            return __builtin_clzl(value);
         #elif defined(_MSC_VER)
             #if (__cplusplus >= 202002L)
                 if (std::is_constant_evaluated()) {
@@ -253,7 +253,7 @@ namespace cerb {
     template<size_t WinConstexpr = 1>
     [[nodiscard]] constexpr
     auto findFreeBitReverse(u64 value) -> u64 {
-        return findFreeBitReverse<WinConstexpr>(~value);
+        return findSetBitReverse<WinConstexpr>(~value);
     }
 
     /**

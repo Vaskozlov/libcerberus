@@ -47,9 +47,9 @@ namespace cerb {
             auto bitIndex  = index % bitsizeof(T);
 
             if constexpr (value) {
-                m_data[elemIndex] |= (value << static_cast<T>(bitIndex));
+                m_data[elemIndex] |= (static_cast<T>(1) << bitIndex);
             } else {
-                m_data[elemIndex] &= ~(1 << static_cast<T>(bitIndex));
+                m_data[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
             }
         }
 
@@ -82,12 +82,22 @@ namespace cerb {
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if() const noexcept -> size_t {
-            return PRIVATE::bitmap_find_if<firstValue>(m_data, size());
+            return PRIVATE::bitmap_find_if<firstValue, const std::array<T, sizeOfArray()>&>(m_data, size());
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if(size_t times) const noexcept -> size_t {
-            return PRIVATE::bitmap_find_if<firstValue>(m_data, times, size());
+            return PRIVATE::bitmap_find_if<firstValue, const std::array<T, sizeOfArray()>&>(m_data, times, size());
+        }
+
+        template<u8 firstValue> [[nodiscard]] constexpr
+        auto find_if2(size_t times) const noexcept -> size_t {
+            return PRIVATE::bitmap_find_if2<firstValue, const std::array<T, sizeOfArray()>&>(m_data, times, size());
+        }
+
+        template<u8 Value> [[nodiscard]] constexpr
+        auto is_value_set(size_t index, size_t times) -> bool {
+            return PRIVATE::bitmap_is_set<Value, const std::array<T, sizeOfArray()>&, T>(m_data, index, times);
         }
 
     public:
@@ -200,8 +210,8 @@ namespace cerb {
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
-                auto find_if() const noexcept -> size_t {
-            return PRIVATE::bitmap_find_if<firstValue>(m_data, size());
+        auto find_if() const noexcept -> size_t {
+            return PRIVATE::bitmap_find_if<firstValue, const T*>(m_data, size());
         }
 
     public:
