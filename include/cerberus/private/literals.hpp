@@ -6,24 +6,34 @@
 #endif
 
 namespace cerb::literals {
-    CERBLIB_COMPILE_TIME auto operator ""_z(unsigned long long x) -> size_t {
+    consteval auto operator ""_z(unsigned long long x) -> size_t {
         return static_cast<size_t>(x);
     }
 
-    CERBLIB_COMPILE_TIME auto operator ""_Z(unsigned long long x) -> size_t {
+    consteval auto operator ""_Z(unsigned long long x) -> size_t {
         return static_cast<size_t>(x);
     }
 
-    CERBLIB_COMPILE_TIME auto operator "" _2val(const char *str, size_t len) {
+    consteval auto operator "" _2val(const char *str, size_t len) {
         uintmax_t result = 0;
         uintmax_t modifier = 10;
 
-        if (str[0] == 'b') {
-            modifier = 2;
-        } else if (str[0] == 'o') {
-            modifier = 8;
-        } else if (str[0] == 'x' || str[0] == 'X') {
-            modifier = 16;
+        switch (str[0]) {
+            case 'b':
+                modifier = 2;
+                break;
+
+            case '0':
+                modifier = 8;
+                break;
+
+                case 'x':
+            case 'X':
+                modifier = 16;
+                break;
+
+            default:
+                break;
         }
 
         if (modifier != 10) {

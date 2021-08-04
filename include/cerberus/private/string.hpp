@@ -6,7 +6,6 @@
 #endif /* CERBERUS_STRING_HPP */
 
 namespace cerb::PRIVATE {
-    template<CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR>
     CERBLIB_INLINE void memset8(void *__restrict ptr, u8 value2set, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -18,7 +17,6 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    template<CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR>
     CERBLIB_INLINE void memset16(void *__restrict ptr, u16 value, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -30,7 +28,6 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    template<CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR>
     CERBLIB_INLINE void memset32(void *__restrict ptr, u32 value, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -42,7 +39,6 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    template<CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR>
     CERBLIB_INLINE void memset64(void *__restrict ptr, u64 value, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -54,7 +50,6 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    template<CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR>
     void memcpy8(void *__restrict dest, const void *__restrict src, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -66,7 +61,6 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    template<CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR>
     void memcpy16(void *__restrict dest, const void *__restrict src, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -78,7 +72,6 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    template<CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR>
     void memcpy32(void *__restrict dest, const void *__restrict src, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -90,7 +83,6 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    template<CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR>
     void memcpy64(void *__restrict dest, const void *__restrict src, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -102,19 +94,42 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    template<typename T,
-            CERBLIB_NOT_FOR_X86_64_RUNTIME>
-    constexpr void memcpy(void *__restrict dest, const void *__restrict src, size_t times) {
-        static_assert(std::is_integral_v<T>);
+    template<typename T> CERBLIB_INLINE
+    auto memset(void *__restrict ptr, T value, size_t times) -> void {
+        static_assert(
+            std::is_integral_v<T> &&
+            sizeof(T) <= sizeof(u64)
+        );
 
-        T *dest_copy;
-        const T *converted_src = static_cast<const T*>(src);
-        T *converted_dest = dest_copy = static_cast<T*>(dest);
+        if (times == 0) UNLIKELY {
+            return;
+        }
+        if constexpr(sizeof(T) == sizeof(u8)) {
+            cerb::PRIVATE::memset8(ptr, cerb::bit_cast<u8>(value), times);
+        } else if constexpr (sizeof(T) == sizeof(u16)) {
+            cerb::PRIVATE::memset16(ptr, cerb::bit_cast<u16>(value), times);
+        } else if constexpr (sizeof(T) == sizeof(u32)) {
+            cerb::PRIVATE::memset32(ptr, cerb::bit_cast<u32>(value), times);
+        } else if constexpr (sizeof(T) == sizeof(u64)) {
+            cerb::PRIVATE::memset64(ptr, cerb::bit_cast<u64>(value), times);
+        }
+    }
 
-        while (converted_dest < dest_copy + times) {
-            *converted_dest = *converted_src;
-            converted_src++;
-            converted_dest++;
+    template<typename T> CERBLIB_INLINE
+    void memcpy(T *__restrict dest, const T *__restrict src, size_t times) {
+        if (times == 0) UNLIKELY {
+            return;
+        }
+        if constexpr (sizeof(T) == sizeof(u8)) {
+            cerb::PRIVATE::memcpy8(dest, src, times);
+        } else if constexpr (sizeof(T) == sizeof(u16)) {
+            cerb::PRIVATE::memcpy16(dest, src, times);
+        } else if constexpr (sizeof(T) == sizeof(u32)) {
+            cerb::PRIVATE::memcpy32(dest, src, times);
+        } else if constexpr (sizeof(T) == sizeof(u64)) {
+            cerb::PRIVATE::memcpy64(dest, src, times);
+        } else {
+            cerb::PRIVATE::memcpy8(dest, src, times * sizeof(T));
         }
     }
 }

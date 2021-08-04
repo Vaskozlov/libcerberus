@@ -55,7 +55,11 @@ namespace cerb {
 
         [[nodiscard]] constexpr
         auto isEmpty() const noexcept -> bool {
-            return PRIVATE::isEmpty(m_data, size());
+            if (std::is_constant_evaluated()) {
+                return PRIVATE::isEmpty<const std::array<T, sizeOfArray()>&>(m_data, size());
+            } else {
+                return PRIVATE::isEmpty<const T*>(m_data.data(), size());
+            }
         }
 
     public:
@@ -101,15 +105,36 @@ namespace cerb {
         }
 
     public:
-        auto operator=(ConstBitMap&&) noexcept -> ConstBitMap& = default;
-        auto operator=(const ConstBitMap&) noexcept -> ConstBitMap& = default;
+        [[nodiscard]] constexpr CERBLIB_INLINE
+        static auto copy(ConstBitMap &to, const ConstBitMap &from) {
+            CERBLIB_UNROLL_N(4)
+            for (size_t i = 0; i < sizeOfArray(); i++) {
+                to.m_data[i] = from.m_data[i];
+            }
+        }
 
     public:
-        ConstBitMap() noexcept = default;
-        ~ConstBitMap() noexcept = default;
+        auto operator=(ConstBitMap&& other) noexcept -> ConstBitMap& {
+            copy(*this, other);
+            return *this;
+        }
 
-        ConstBitMap(ConstBitMap&) noexcept = default;
-        ConstBitMap(ConstBitMap&&) noexcept = default;
+        constexpr auto operator=(const ConstBitMap& other) noexcept -> ConstBitMap& {
+            copy(*this, other);
+            return *this;
+        }
+
+    public:
+        constexpr ConstBitMap() noexcept = default;
+        CERBLIB20_CONSTEXPR ~ConstBitMap() noexcept = default;
+
+        constexpr ConstBitMap(ConstBitMap& other) noexcept {
+            copy(*this, other);
+        }
+
+        constexpr ConstBitMap(ConstBitMap&& other) noexcept {
+            copy(*this, other);
+        }
     };
 
     template<typename T, bool Freestanding = false>
@@ -163,7 +188,7 @@ namespace cerb {
 
         [[nodiscard]] constexpr
         auto isEmpty() const noexcept -> bool {
-            return PRIVATE::isEmpty(m_data, size());
+            return PRIVATE::isEmpty<const T*>(m_data, size());
         }
 
         constexpr auto resize(size_t size) -> void {
@@ -250,13 +275,12 @@ namespace cerb {
         : m_data(new T[other.sizeOfArray()]), m_size(other.size())
         {
             static_assert(!Freestanding);
-            #if (__cplusplus >= 202002L)
-                if constexpr (!std::is_constant_evaluated() && cerb::x86_64) {
-                    cerb::memcpy<T, false>(m_data, other.m_data, sizeOfArray());
-                    return;
-                }
-            #endif
-            cerb::memcpy<T, true>(m_data, other.m_data, sizeOfArray());
+
+            if (std::is_constant_evaluated() || !cerb::x86_64) {
+                cerb::memcpy<T, true>(m_data, other.m_data, sizeOfArray());
+            } else {
+                cerb::memcpy<T, false>(m_data, other.m_data, sizeOfArray());
+            }
         }
         CERBLIB_ENABLE_WARNING(constant-evaluated, constant-evaluated, 0)
 

@@ -8,5 +8,11 @@
 #include <cerberus/pair.hpp>
 #include <cerberus/algorithms.hpp>
 
+namespace cerb::cx {
+    template<typename T>
+    class Map {
+
+    };
+}
 
 #endif /* CERBERUS_MAP_HPP */

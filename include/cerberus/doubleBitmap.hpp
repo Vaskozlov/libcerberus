@@ -43,30 +43,24 @@ namespace cerb {
 
         CERBLIB_DISABLE_WARNING(constant-evaluated,constant-evaluated,0)
         constexpr auto clear1() noexcept -> void {
-            #if (__cplusplus >= 202002L)
-                if constexpr (!std::is_constant_evaluated() && cerb::x86_64) {
-                    cerb::memset<T, false>(m_data1.data(), 0, sizeOfArray());
-                    return;
+            if (std::is_constant_evaluated() || !cerb::x86_64) {
+                CERBLIB_UNROLL_N(4)
+                for (auto &elem: m_data1) {
+                    elem = 0;
                 }
-            #endif
-
-            CERBLIB_UNROLL_N(4)
-            for (auto &elem: m_data1) {
-                elem = 0;
+            } else {
+                cerb::memset<T>(m_data1.data(), 0, sizeOfArray());
             }
         }
 
         constexpr auto clear2() noexcept -> void {
-            #if (__cplusplus >= 202002L)
-                if constexpr (!std::is_constant_evaluated() && cerb::x86_64) {
-                    cerb::memset<T, false>(m_data2.data(), 0, sizeOfArray());
-                    return;
+            if (std::is_constant_evaluated() || !cerb::x86_64) {
+                CERBLIB_UNROLL_N(4)
+                for (auto &elem: m_data2) {
+                    elem = 0;
                 }
-            #endif
-
-            CERBLIB_UNROLL_N(4)
-            for (auto &elem: m_data2) {
-                elem = 0;
+            } else {
+                cerb::memset<T>(m_data2.data(), 0, sizeOfArray());
             }
         }
         CERBLIB_ENABLE_WARNING(constant-evaluated,constant-evaluated,0)
@@ -122,12 +116,12 @@ namespace cerb {
 
         [[nodiscard]] constexpr
         auto isEmpty1() const noexcept -> bool {
-            return cerb::PRIVATE::isEmpty(m_data1, size());
+            return cerb::PRIVATE::isEmpty<const std::array<T, sizeOfArray()>&>(m_data1, size());
         }
 
         [[nodiscard]] constexpr
         auto isEmpty2() const noexcept -> bool {
-            return cerb::PRIVATE::isEmpty(m_data2, size());
+            return cerb::PRIVATE::isEmpty<const std::array<T, sizeOfArray()>&>(m_data2, size());
         }
 
         [[nodiscard]] constexpr
@@ -234,25 +228,11 @@ namespace cerb {
 
         CERBLIB_DISABLE_WARNING(constant-evaluated,constant-evaluated,0)
         constexpr auto clear1() noexcept -> void {
-            #if (__cplusplus >= 202002L)
-                if constexpr (!std::is_constant_evaluated() && cerb::x86_64) {
-                    cerb::memset<T, false>(m_data1, 0, sizeOfArray());
-                    return;
-                }
-            #endif
-
-            cerb::memset<T, true>(m_data1, 0, sizeOfArray());
+            cerb::memset<T>(m_data1, 0, sizeOfArray());
         }
 
         constexpr auto clear2() noexcept -> void {
-            #if (__cplusplus >= 202002L)
-                if constexpr (!std::is_constant_evaluated() && cerb::x86_64) {
-                    cerb::memset<T, false>(m_data2, 0, sizeOfArray());
-                    return;
-                }
-            #endif
-
-            cerb::memset<T, true>(m_data2, 0, sizeOfArray());
+            cerb::memset<T>(m_data2, 0, sizeOfArray());
         }
         CERBLIB_ENABLE_WARNING(constant-evaluated,constant-evaluated,0)
 
@@ -307,12 +287,12 @@ namespace cerb {
 
         [[nodiscard]] constexpr
         auto isEmpty1() const noexcept -> bool {
-            return cerb::PRIVATE::isEmpty(m_data1, size());
+            return cerb::PRIVATE::isEmpty<const T*>(m_data1, size());
         }
 
         [[nodiscard]] constexpr
         auto isEmpty2() const noexcept -> bool {
-            return cerb::PRIVATE::isEmpty(m_data2, size());
+            return cerb::PRIVATE::isEmpty<const T*>(m_data2, size());
         }
 
         [[nodiscard]] constexpr
@@ -388,18 +368,15 @@ namespace cerb {
             m_data2 = new T[other.sizeOfArray()];
             m_size = other.size();
 
-            #if (__cplusplus >= 202002L)
-                if constexpr (!std::is_constant_evaluated() && cerb::x86_64) {
-                    cerb::memcpy<T>(m_data1, other.m_data1, sizeOfArray());
-                    cerb::memcpy<T>(m_data2, other.m_data1, sizeOfArray());
-                    return *this;
+            if (std::is_constant_evaluated() || !cerb::x86_64) {
+                CERBLIB_UNROLL_N(4)
+                for (size_t i = 0; i < sizeOfArray(); ++i) {
+                    m_data1[i] = other.m_data1[i];
+                    m_data2[i] = other.m_data2[i];
                 }
-            #endif
-
-            CERBLIB_UNROLL_N(4)
-            for (size_t i = 0; i < sizeOfArray(); ++i) {
-                m_data1[i] = other.m_data1[i];
-                m_data2[i] = other.m_data2[i];
+            } else {
+                cerb::memcpy<T>(m_data1, other.m_data1, sizeOfArray());
+                cerb::memcpy<T>(m_data2, other.m_data1, sizeOfArray());
             }
 
             return *this;
@@ -412,18 +389,16 @@ namespace cerb {
           m_size(other.size())
         {
             static_assert(!Freestanding);
-            #if (__cplusplus >= 202002L)
-                if constexpr (!std::is_constant_evaluated() && cerb::x86_64) {
-                    cerb::memcpy<T>(m_data1, other.m_data1, sizeOfArray());
-                    cerb::memcpy<T>(m_data2, other.m_data1, sizeOfArray());
-                    return;
-                }
-            #endif
 
-            CERBLIB_UNROLL_N(4)
-            for (size_t i = 0; i < sizeOfArray(); ++i) {
-                m_data1[i] = other.m_data1[i];
-                m_data2[i] = other.m_data2[i];
+            if (std::is_constant_evaluated() || !cerb::x86_64) {
+                CERBLIB_UNROLL_N(4)
+                for (size_t i = 0; i < sizeOfArray(); ++i) {
+                    m_data1[i] = other.m_data1[i];
+                    m_data2[i] = other.m_data2[i];
+                }
+            } else {
+                cerb::memcpy<T>(m_data1, other.m_data1, sizeOfArray());
+                cerb::memcpy<T>(m_data2, other.m_data1, sizeOfArray());
             }
         }
 

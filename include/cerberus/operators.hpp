@@ -14,17 +14,18 @@ namespace cerb {
     };
 
     enum struct comparison : u16 {
-        not_equal = 0b0,
-        equal = 0b1,
-        greater = 0b10,
-        greater_equal = 0b11,
-        less = 0b100,
-        less_equal = 0b101
+        not_equal       = 0b000,
+        equal           = 0b001,
+        greater         = 0b010,
+        greater_equal   = 0b011,
+        less            = 0b100,
+        less_equal      = 0b101
     };
 
     namespace operators {
 
-        constexpr auto comparison_contains(comparison value, comparison contains) -> bool {
+        [[nodiscard]] constexpr
+        auto comparison_contains(comparison value, comparison contains) -> bool {
             return (static_cast<u16>(value) & static_cast<u16>(contains)) != 0;
         }
 

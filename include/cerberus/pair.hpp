@@ -38,7 +38,7 @@ namespace cerb {
                 : first(t_first), second(t_second)
         {}
 
-        CERBLIB20_CONSTEXPR ~pair() noexcept = default;
+        constexpr ~pair() noexcept = default;
     };
 } // namespace cerb
 

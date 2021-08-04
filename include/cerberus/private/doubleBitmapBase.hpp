@@ -34,7 +34,7 @@ namespace cerb::PRIVATE {
         auto operator=(DoubleBitmapElem<T>&&) noexcept -> DoubleBitmapElem<T>& = default;
         auto operator=(const DoubleBitmapElem<T>&) noexcept -> DoubleBitmapElem<T>& = default;
 
-        constexpr auto operator=(cerb::pair<u8, u8> newValues) noexcept -> DoubleBitmapElem<T>& {
+        constexpr auto operator=(const cerb::pair<u8, u8> &newValues) noexcept -> DoubleBitmapElem<T>& {
             first = newValues.first;
             second = newValues.second;
 
@@ -140,7 +140,7 @@ namespace cerb::PRIVATE {
 
         if (value != 0) {
             size_t index = cerb::findSetBitForward(value);
-            size_t bit_test = cerb::pow2<size_t>(index);
+            auto bit_test = cerb::pow2<size_t>(index);
 
             if (matches == 1 || index != 0) {
                 start_index = i * bitsizeof(data1[0]) + index;

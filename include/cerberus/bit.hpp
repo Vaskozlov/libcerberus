@@ -100,7 +100,7 @@ namespace cerb {
 
     public:
         template<int SIZE>
-        CERBLIB_COMPILE_TIME explicit BitPattern(const char (&input)[SIZE]) {
+        consteval explicit BitPattern(const char (&input)[SIZE]) {
             T cur_bit = (1<<(SIZE - 2));
 
             for (const auto elem: input) {

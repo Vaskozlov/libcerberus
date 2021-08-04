@@ -34,42 +34,6 @@ namespace cerb::PRIVATE {
             0x7fffffffffffffff, 0xffffffffffffffff
     };
 
-    constexpr inline u64 notBit[] = {
-            0xffffffffffffffff,
-            0xfffffffffffffffe, 0xfffffffffffffffd,
-            0xfffffffffffffffb, 0xfffffffffffffff7,
-            0xffffffffffffffef, 0xffffffffffffffdf,
-            0xffffffffffffffbf, 0xffffffffffffff7f,
-            0xfffffffffffffeff, 0xfffffffffffffdff,
-            0xfffffffffffffbff, 0xfffffffffffff7ff,
-            0xffffffffffffefff, 0xffffffffffffdfff,
-            0xffffffffffffbfff, 0xffffffffffff7fff,
-            0xfffffffffffeffff, 0xfffffffffffdffff,
-            0xfffffffffffbffff, 0xfffffffffff7ffff,
-            0xffffffffffefffff, 0xffffffffffdfffff,
-            0xffffffffffbfffff, 0xffffffffff7fffff,
-            0xfffffffffeffffff, 0xfffffffffdffffff,
-            0xfffffffffbffffff, 0xfffffffff7ffffff,
-            0xffffffffefffffff, 0xffffffffdfffffff,
-            0xffffffffbfffffff, 0xffffffff7fffffff,
-            0xfffffffeffffffff, 0xfffffffdffffffff,
-            0xfffffffbffffffff, 0xfffffff7ffffffff,
-            0xffffffefffffffff, 0xffffffdfffffffff,
-            0xffffffbfffffffff, 0xffffff7fffffffff,
-            0xfffffeffffffffff, 0xfffffdffffffffff,
-            0xfffffbffffffffff, 0xfffff7ffffffffff,
-            0xffffefffffffffff, 0xffffdfffffffffff,
-            0xffffbfffffffffff, 0xffff7fffffffffff,
-            0xfffeffffffffffff, 0xfffdffffffffffff,
-            0xfffbffffffffffff, 0xfff7ffffffffffff,
-            0xffefffffffffffff, 0xffdfffffffffffff,
-            0xffbfffffffffffff, 0xff7fffffffffffff,
-            0xfeffffffffffffff, 0xfdffffffffffffff,
-            0xfbffffffffffffff, 0xf7ffffffffffffff,
-            0xefffffffffffffff, 0xdfffffffffffffff,
-            0xbfffffffffffffff, 0x7fffffffffffffff
-    };
-
     template<typename T>
     class CERBLIB_TRIVIAL BitmapElem {
         u16 m_bitIndex;
@@ -123,32 +87,18 @@ namespace cerb::PRIVATE {
         return (data[elemIndex] & (static_cast<T>(1) << bitIndex)) != 0;
     }
 
-    template<size_t Size, typename T> [[nodiscard]] constexpr
-    auto isEmpty(const std::array<T, Size> &data, size_t limit) noexcept -> bool {
-        size_t i = 0;
-
-        CERBLIB_UNROLL_N(4)
-        for (; i < limit / bitsizeof(T); i++) {
-            if (data[i] > 0) {
-                return false;
-            }
-        }
-
-        return (data[i] & cerb::PRIVATE::value2bits[limit % bitsizeof(T)]) == 0;
-    }
-
     template<typename T> [[nodiscard]] constexpr
-    auto isEmpty(const T *data, size_t limit) noexcept -> bool {
+    auto isEmpty(T data, size_t limit) noexcept -> bool {
         size_t i = 0;
 
         CERBLIB_UNROLL_N(4)
-        for (; i < limit / bitsizeof(T); i++) {
+        for (; i < limit / bitsizeof(data[0]); i++) {
             if (data[i] > 0) {
                 return false;
             }
         }
 
-        return (data[i] & cerb::PRIVATE::value2bits[limit % bitsizeof(T)]) == 0;
+        return (data[i] % cerb::pow2<size_t>(limit % bitsizeof(data[0]))) == 0;
     }
 
     template<u8 FirstValue, typename T> [[nodiscard]] constexpr
@@ -191,7 +141,7 @@ namespace cerb::PRIVATE {
             while (true) {
                 if (value != 0) {
                     size_t index = cerb::findSetBitForward(value);
-                    size_t bit_test = cerb::pow2<size_t>(index);
+                    auto bit_test = cerb::pow2<size_t>(index);
 
                     if (matches == 1 || index != 0) {
                         start_index = i * bitsizeof(data[0]) + index;
@@ -221,7 +171,7 @@ namespace cerb::PRIVATE {
 
         if (value != 0) {
             size_t index = cerb::findSetBitForward(value);
-            size_t bit_test = cerb::pow2<size_t>(index);
+            auto bit_test = cerb::pow2<size_t>(index);
 
             if (matches == 1 || index != 0) {
                 start_index = i * bitsizeof(data[0]) + index;

@@ -1,8 +1,6 @@
 #ifndef cerberusTypes_h
 #define cerberusTypes_h
 
-#include <stddef.h>
-
 #if defined(__cplusplus)
 #  include <cstddef>
 #  include <cinttypes>
@@ -14,11 +12,9 @@
 #  include <alloca.h>
 #else
 #  include <malloc.h>
-
 #  ifndef alloca
 #    define alloca(x) _alloca(x)
 #  endif /* alloca */
-
 #endif /* __unix__ */
 
 #if defined(__cplusplus)
@@ -55,48 +51,42 @@ namespace cerb {
 #  define bitsizeof(x) (sizeof(x) * 8)
 #endif /* bitsizeof */
 
-#if !defined(CERBLIB_STRX) && !defined(CERBLIB_STR)
-#  define CERBLIB_STRX(x) #x
-#  define CERBLIB_STR(x) CERBLIB_STRX(x)
-#endif /* CERBLIB_STR and CERBLIB_STRX */
+#define CERBLIB_STRX(x) #x
+#define CERBLIB_STR(x) CERBLIB_STRX(x)
 
-#if defined(__cplusplus) && !defined(__BEGIN_DECLS)
-#  define __BEGIN_DECLS extern "C" {
-#  define __END_DECLS }
-#elif !defined(__BEGIN_DECLS)
-#  define __BEGIN_DECLS
-#  define __END_DECLS
+#if defined(__cplusplus)
+#  define CERBLIB_BEGIN_DECLS extern "C" {
+#  define CERBLIB_END_DECLS }
+#elif
+#  define CERBLIB_BEGIN_DECLS
+#  define CERBLIB_END_DECLS
 #endif /* __BEGIN_DECLS */
 
-#if (__cplusplus < 201703L)
-#  error cerberus requires at least C++17
+#if (__cplusplus < 202002L)
+#  error cerberus requires at least C++20
 #endif /* C++17 */
 
 #ifndef CERBLIB_NOT_X86_64_CONSTEXPR
-#  if defined(__x86_64)
+#  if defined(__x86_64__)
 #    define CERBLIB_NOT_X86_64_CONSTEXPR CERBLIB_INLINE
 #  else
 #    define CERBLIB_NOT_X86_64_CONSTEXPR constexpr
 #  endif
 #endif
 
-#if !defined(CERBLIB_INLINE)
-#  if defined(__unix__)
-#    define CERBLIB_INLINE __attribute__((always_inline)) inline
-#  else
-#    define CERBLIB_INLINE __forceinline
-#  endif
-#endif /* CERBLIB_INLINE */
+#if defined(__unix__) // todo: check if window's clang need this
+#  define CERBLIB_INLINE __attribute__((always_inline)) inline
+#else
+#  define CERBLIB_INLINE __forceinline
+#endif
 
-#if (__cplusplus <= 201703L)
-// C++17 or earlier here
-#  define LIKELY
-#  define UNLIKELY
-#elif defined(__cplusplus)
-// C++20 here
+#ifndef LIKELY
 #  define LIKELY    [[likely]]
+#endif /* LIKELY */
+
+#ifndef UNLIKELY
 #  define UNLIKELY  [[unlikely]]
-#endif /* C++17-20 */
+#endif /* UNLIKELY */
 
 #ifndef CERBLIB_TRIVIAL
 #  if defined(__clang__)
@@ -105,8 +95,8 @@ namespace cerb {
 #    define CERBLIB_TRIVIAL __attribute__((trivial_abi))
 #  else
 #    define CERBLIB_TRIVIAL
-#  endif
-#endif
+#  endif /* COMPILER */
+#endif /* CERBLIB_TRIVIAL */
 
 #ifndef CERBLIB_DEPRECATED
 #  if defined(__DEPRECATED)
@@ -118,16 +108,6 @@ namespace cerb {
 #  endif /* __DEPRECATED */
 #endif /* CERBLIB_DEPRECATED */
 
-#ifndef CERBLIB17_DEPRECATED
-#  if defined(__DEPRECATED) && (__cplusplus >= 201703L)
-#    define CERBLIB17_DEPRECATED [[deprecated]]
-#    define CERBLIB17_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
-#  else
-#    define CERBLIB17_DEPRECATED
-#    define CERBLIB17_DEPRECATED_SUGGEST(ALT)
-#  endif /* __DEPRECATED */
-#endif /* CERBLIB17_DEPRECATED */
-
 #ifndef CERBLIB20_DEPRECATED
 #  if defined(__DEPRECATED) && (__cplusplus >= 202002L)
 #    define CERBLIB20_DEPRECATED [[deprecated]]
@@ -138,14 +118,6 @@ namespace cerb {
 #  endif /* __DEPRECATED */
 #endif /* CERBLIB20_DEPRECATED */
 
-#ifndef CERBLIB17_CONSTEXPR
-#  if __cplusplus >= 201703L
-#    define CERBLIB17_CONSTEXPR constexpr
-#  else
-#    define CERBLIB17_CONSTEXPR
-#  endif
-#endif /* CERBLIB17_CONSTEXPR */
-
 #ifndef CERBLIB20_CONSTEXPR
 #  if __cplusplus >= 202002L
 #    define CERBLIB20_CONSTEXPR constexpr
@@ -154,35 +126,27 @@ namespace cerb {
 #  endif
 #endif /* CERBLIB20_CONSTEXPR */
 
-#ifndef CERBLIB_COMPILE_TIME
-#  if __cplusplus <= 201703L
-#    define CERBLIB_COMPILE_TIME constexpr
-#  else
-#    define CERBLIB_COMPILE_TIME consteval
-#  endif /* C++17 */
-#endif /* CERBLIB_COMPILE_TIME */
-
-#if __cplusplus <= 201703L
-#  define CERBLIB_THREE_WAY_COMPARISON 0
-#elif __clang_major__ >= 10 || __GNUC__ >= 10
-#  define CERBLIB_THREE_WAY_COMPARISON 1
+#ifndef CERBLIB_THREE_WAY_COMPARISON
+#  if __clang_major__ >= 10 || __GNUC__ >= 10
+#    define CERBLIB_THREE_WAY_COMPARISON 1
+#  endif
 #endif /* CERBLIB_THREE_WAY_COMPARISON */
 
 #ifndef CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR
-#  define CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR bool Constexpr = true, \
+#  define CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR(DFLT) bool Constexpr = (DFLT), \
             typename std::enable_if<!Constexpr && x86_64, bool>::type = true
 #endif /* CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR */
 
 #ifndef CERBLIB_NOT_FOR_X86_64_RUNTIME
-#  define CERBLIB_NOT_FOR_X86_64_RUNTIME bool Constexpr = true, \
+#  define CERBLIB_NOT_FOR_X86_64_RUNTIME(DFLT) bool Constexpr = (DFLT), \
             typename std::enable_if<Constexpr || !x86_64, bool>::type = true
 #endif /* CERBLIB_NOT_FOR_X86_64_RUNTIME */
 
 #ifndef CERBLIB_UNROLL
-#  if defined(__clang__) || defined(__GNUC__)
+#  if defined(__clang__) || defined(__GNUC__) || defined(_MSC_VER)
 #    define CERBLIB_UNROLL _Pragma(#unroll)
 #  else
-#    define CERBLIB_UNROLL 
+#    define CERBLIB_UNROLL
 #  endif
 #endif /* CERBLIB_UNROLL */
 
@@ -190,7 +154,7 @@ namespace cerb {
 #  if defined(__clang__) || defined(__GNUC__)
 #    define CERBLIB_UNROLL_N(N) _Pragma(CERBLIB_STR(unroll N))
 #  else
-#    define CERBLIB_UNROLL_N(N) 
+#    define CERBLIB_UNROLL_N(N)
 #  endif
 #endif /* CERBLIB_UNROLL */
 
@@ -246,11 +210,11 @@ namespace cerb {
         return std::numeric_limits<T>();
     }
 
-#if defined(__x86_64__)
-    constexpr auto x86_64 = true;
-#else
-    constexpr auto x86_64 = false;
-#endif
+#  if defined(__x86_64__)
+     constexpr auto x86_64 = true;
+#  else
+     constexpr auto x86_64 = false;
+#  endif
 
     /**
      * @brief constexpr for loop in C++
@@ -300,5 +264,4 @@ namespace cerb {
 } // namespace cerb
 
 #endif /* __cplusplus */
-
 #endif /* cerberusTypes_h */
