@@ -3,6 +3,7 @@
 
 #include <cerberus/types.h>
 #include <cerberus/bit.hpp>
+#include <cerberus/literals.hpp>
 
 #ifndef isinf
 #  define isinf(x) __builtin_isinf (x)
@@ -52,6 +53,8 @@ namespace cerb::PRIVATE {
 
 namespace cerb {
 
+    using namespace ::cerb::literals;
+
     enum AlignMode : u32 {
         CEIL,
         TRUNC,
@@ -62,12 +65,12 @@ namespace cerb {
     constexpr T pi = static_cast<T>(3.14159265358979323846);
 
     /**
-     * @brief returns maximum value of _lhs and _rhs
+     * @brief returns maximum value of lhs and rhs
      * 
      * @tparam T 
-     * @param _lhs first value
-     * @param _rhs second value
-     * @return T max(_lhs, _rhs) 
+     * @param lhs first value
+     * @param rhs second value
+     * @return T max(lhs, rhs)
      */
     template<typename T>
     constexpr auto max(const T &lhs, const T &rhs) -> const T& {
@@ -75,12 +78,12 @@ namespace cerb {
     }
 
     /**
-     * @brief returns minimum value of _lhs and _rhs
+     * @brief returns minimum value of lhs and rhs
      * 
      * @tparam T
-     * @param _lhs first value
-     * @param _rhs second value
-     * @return T min(_lhs, _rhs) 
+     * @param lhs first value
+     * @param rhs second value
+     * @return T min(lhs, rhs)
      */
     template<typename T>
     constexpr auto min(const T &lhs, const T &rhs) -> const T& {

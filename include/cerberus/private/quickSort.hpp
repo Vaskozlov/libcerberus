@@ -6,8 +6,8 @@
 namespace cerb {
     namespace PRIVATE {
 
-        template <typename T>
-        CERBLIB_INLINE auto Partition(T *data, size_t lo, size_t hi) -> size_t {
+        template <typename T> CERBLIB_INLINE
+        auto Partition(T *data, size_t lo, size_t hi) -> size_t {
             auto j = static_cast<intmax_t>(hi + 1);
             auto i = static_cast<intmax_t>(lo) - 1ll;
             auto pivot = data[lo + (hi - lo) / 2_z];
@@ -34,10 +34,9 @@ namespace cerb {
         }
     } // namespace cerb::PRIVATE
 
-    template<typename T>
+    template<typename T> CERBLIB_INLINE
     auto QuickSort(T *data, size_t count) {
         if (count <= 1) UNLIKELY return;
-
         PRIVATE::QuickSort(data, 0_z, count - 1);
     }
 } // namespace cerb

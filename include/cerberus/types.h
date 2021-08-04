@@ -200,10 +200,8 @@ namespace cerb {
 #  include <limits>
 #  include <utility>
 #  include <type_traits>
-#  include <cerberus/private/literals.hpp>
 
 namespace cerb {
-    using namespace ::cerb::literals;
 
     template<typename T> [[nodiscard]]
     constexpr auto getLimits(const T &) -> std::numeric_limits<T> {
@@ -234,10 +232,10 @@ namespace cerb {
     };
 
     /**
-     * @brief short form of conditional ? _lhs : _rhs
+     * @brief short form of conditional ? lhs : rhs
      * 
      * @tparam T 
-     * @param condition if true function returns _lhs otherwise _rhs is returned
+     * @param condition if true function returns lhs otherwise rhs is returned
      * @param _on_true 
      * @param _on_false 
      * @return condition ? _on_true : _on_false

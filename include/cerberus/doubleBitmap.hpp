@@ -182,15 +182,31 @@ namespace cerb {
         }
 
     public:
-        auto operator=(ConstDoubleBitmap&&) noexcept -> ConstDoubleBitmap& = default;
-        auto operator=(const ConstDoubleBitmap&) noexcept -> ConstDoubleBitmap& = default;
+        auto operator=(ConstDoubleBitmap&& other) noexcept -> ConstDoubleBitmap& {
+            cerb::memcpy(m_data1, other.m_data1, m_data1.size());
+            cerb::memcpy(m_data2, other.m_data2, m_data2.size());
+        }
+
+        auto operator=(const ConstDoubleBitmap& other) noexcept -> ConstDoubleBitmap& {
+            cerb::memcpy(m_data1, other.m_data1, m_data1.size());
+            cerb::memcpy(m_data2, other.m_data2, m_data2.size());
+        }
 
     public:
         ConstDoubleBitmap() noexcept = default;
         ~ConstDoubleBitmap() noexcept = default;
 
-        ConstDoubleBitmap(ConstDoubleBitmap&) noexcept = default;
-        ConstDoubleBitmap(ConstDoubleBitmap&&) noexcept = default;
+        constexpr ConstDoubleBitmap(const ConstDoubleBitmap& other) noexcept
+        {
+            cerb::memcpy(m_data1, other.m_data1, m_data1.size());
+            cerb::memcpy(m_data2, other.m_data2, m_data2.size());
+        }
+
+        constexpr ConstDoubleBitmap(ConstDoubleBitmap&& other) noexcept
+        {
+            cerb::memcpy(m_data1, other.m_data1, m_data1.size());
+            cerb::memcpy(m_data2, other.m_data2, m_data2.size());
+        }
     };
 
     template<typename T, bool Freestanding = false>

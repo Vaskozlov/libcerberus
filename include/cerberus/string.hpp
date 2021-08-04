@@ -3,6 +3,7 @@
 
 #include <cerberus/types.h>
 #include <cerberus/bit.hpp>
+#include <cerberus/type_traits.hpp>
 #include <cerberus/private/string.hpp>
 
 namespace cerb {
@@ -29,6 +30,18 @@ namespace cerb {
         }
     }
 
+    template<typename T, size_t Size, typename V> constexpr
+    auto memset(std::array<T, Size> &t_array, V value, size_t times) {
+        if (!std::is_constant_evaluated()) {
+            memset(t_array.data(), value, times);
+        } else {
+            CERBLIB_UNROLL_N(4)
+            for (size_t i = 0; i < times; i++) {
+                t_array[i] = value;
+            }
+        }
+    }
+
     template<typename T> constexpr
     auto memcpy(T *__restrict dest, const T *__restrict src, size_t times) -> void {
         if (
@@ -50,6 +63,18 @@ namespace cerb {
         }
     }
 
+    template<typename T, size_t Size> constexpr
+    auto memcpy(std::array<T, Size> &dest, const std::array<T, Size> &src, size_t times) {
+        if (!std::is_constant_evaluated()) {
+            memcpy(dest.data(), src.data(), times);
+        } else {
+            CERBLIB_UNROLL_N(4)
+            for (size_t i = 0; i < Size; ++i) {
+                dest[i] = src[i];
+            }
+        }
+    }
+
     CERBLIB_ENABLE_WARNING(constant-evaluated,constant-evaluated,0)
 
     template<typename T>
@@ -62,7 +87,7 @@ namespace cerb {
 
         T result = 0;
         for (size_t i = 0; i < sizeof(T); i++) {
-            result |= static_cast<T>(str[i]) << (i * 8);
+            result |= static_cast<T>(cerb::bit_cast<unsigned char>(str[i])) << (i * 8);
         }
 
         return result;

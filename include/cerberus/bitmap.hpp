@@ -1,6 +1,7 @@
 #ifndef bitmap_hpp
 #define bitmap_hpp
 
+#include <cerberus/string.hpp>
 #include <cerberus/private/bitmapBase.hpp>
 
 namespace cerb {
@@ -105,22 +106,13 @@ namespace cerb {
         }
 
     public:
-        [[nodiscard]] constexpr CERBLIB_INLINE
-        static auto copy(ConstBitMap &to, const ConstBitMap &from) {
-            CERBLIB_UNROLL_N(4)
-            for (size_t i = 0; i < sizeOfArray(); i++) {
-                to.m_data[i] = from.m_data[i];
-            }
-        }
-
-    public:
         auto operator=(ConstBitMap&& other) noexcept -> ConstBitMap& {
-            copy(*this, other);
+            cerb::memcpy(m_data, other.m_data, m_data.size());
             return *this;
         }
 
         constexpr auto operator=(const ConstBitMap& other) noexcept -> ConstBitMap& {
-            copy(*this, other);
+            cerb::memcpy(m_data, other.m_data, m_data.size());
             return *this;
         }
 
@@ -275,12 +267,7 @@ namespace cerb {
         : m_data(new T[other.sizeOfArray()]), m_size(other.size())
         {
             static_assert(!Freestanding);
-
-            if (std::is_constant_evaluated() || !cerb::x86_64) {
-                cerb::memcpy<T, true>(m_data, other.m_data, sizeOfArray());
-            } else {
-                cerb::memcpy<T, false>(m_data, other.m_data, sizeOfArray());
-            }
+            cerb::memcpy<T>(m_data, other.m_data, sizeOfArray());
         }
         CERBLIB_ENABLE_WARNING(constant-evaluated, constant-evaluated, 0)
 

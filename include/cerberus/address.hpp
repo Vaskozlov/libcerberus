@@ -102,9 +102,9 @@ namespace cerb {
         Address,
         constexpr,
         constexpr,
-        _lhs, _rhs, OP,
+        lhs, rhs, OP,
         {
-            return Address(cerb::operators::count<OP>(_lhs.value(), _rhs.value()));
+            return Address(cerb::operators::count<OP>(lhs.value(), rhs.value()));
         }
     )
 
@@ -112,9 +112,9 @@ namespace cerb {
         Address,
         constexpr,
         constexpr,
-        _lhs, _rhs, OP,
+        lhs, rhs, OP,
         {
-            return cerb::operators::compare<OP>(_lhs.raw(), _rhs.raw());
+            return cerb::operators::compare<OP>(lhs.raw(), rhs.raw());
         }
     )
 } // namespace cerb

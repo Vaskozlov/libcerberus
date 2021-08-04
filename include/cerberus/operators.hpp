@@ -30,49 +30,49 @@ namespace cerb {
         }
 
         template<comparison OP, typename T1, typename T2>
-        constexpr auto compare(const T1 &_lhs, const T2 _rhs) -> bool {
+        constexpr auto compare(const T1 &lhs, const T2 rhs) -> bool {
             if constexpr (OP == comparison::greater) {
-                return _lhs > _rhs;
+                return lhs > rhs;
             } else if constexpr (OP == comparison::greater_equal) {
-                return _lhs >= _rhs;
+                return lhs >= rhs;
             } else if constexpr (OP == comparison::less) {
-                return _lhs < _rhs;
+                return lhs < rhs;
             } else if constexpr (OP == comparison::less_equal) {
-                return _lhs <= _rhs;
+                return lhs <= rhs;
             } else if constexpr (OP == comparison::equal) {
-                return _lhs == _rhs;
+                return lhs == rhs;
             } else if constexpr (OP == comparison::not_equal) {
-                return _lhs != _rhs;
+                return lhs != rhs;
             }
         }
 
         template<arithmetic OP, typename T1, typename T2>
-        constexpr auto count(const T1 &_lhs, const T2 &_rhs) {
+        constexpr auto count(const T1 &lhs, const T2 &rhs) {
             if constexpr (OP == arithmetic::addition) {
-                return _lhs + _rhs;
+                return lhs + rhs;
             } else if constexpr (OP == arithmetic::subtraction) {
-                return _lhs - _rhs;
+                return lhs - rhs;
             } else if constexpr (OP == arithmetic::multiplication) {
-                return _lhs * _rhs;
+                return lhs * rhs;
             } else if constexpr (OP == arithmetic::division) {
-                return _lhs / _rhs;
+                return lhs / rhs;
             } else if constexpr (OP == arithmetic::modulo) {
-                return _lhs % _rhs;
+                return lhs % rhs;
             }
         }
 
         template<arithmetic OP, typename T1, typename T2>
-        constexpr auto count_equal(T1 &_lhs, const T2 &_rhs) -> void {
+        constexpr auto count_equal(T1 &lhs, const T2 &rhs) -> void {
             if constexpr (OP == arithmetic::addition) {
-                _lhs += _rhs;
+                lhs += rhs;
             } else if constexpr (OP == arithmetic::subtraction) {
-                _lhs -= _rhs;
+                lhs -= rhs;
             } else if constexpr (OP == arithmetic::multiplication) {
-                _lhs *= _rhs;
+                lhs *= rhs;
             } else if constexpr (OP == arithmetic::division) {
-                _lhs /= _rhs;
+                lhs /= rhs;
             } else if constexpr (OP == arithmetic::modulo) {
-                _lhs %= _rhs;
+                lhs %= rhs;
             }
         }
     } // namespace cerb::operators

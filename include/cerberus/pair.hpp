@@ -12,12 +12,12 @@ namespace cerb {
         T2 second;
 
     public:
-        constexpr friend auto operator==(pair &_lhs, pair &_rhs) -> bool {
-            return _lhs.first == _rhs.first && _lhs.second == _rhs.second;
+        constexpr friend auto operator==(pair &lhs, pair &rhs) -> bool {
+            return lhs.first == rhs.first && lhs.second == rhs.second;
         }
 
-        constexpr friend auto operator!=(pair &_lhs, pair &_rhs) -> bool {
-            return _lhs.first != _rhs.first || _lhs.second != _rhs.second;
+        constexpr friend auto operator!=(pair &lhs, pair &rhs) -> bool {
+            return lhs.first != rhs.first || lhs.second != rhs.second;
         }
 
     public:

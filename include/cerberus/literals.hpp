@@ -1,9 +1,8 @@
 #ifndef CERBERUS_LITERALS_HPP
 #define CERBERUS_LITERALS_HPP
 
-#ifndef cerberusTypes_h
-#  error Do NOT inlude cerberus/private/literals.hpp without cerberus/types.h
-#endif
+#include <cerberus/types.h>
+#include <cerberus/string.hpp>
 
 namespace cerb::literals {
     consteval auto operator ""_z(unsigned long long x) -> size_t {
@@ -12,6 +11,23 @@ namespace cerb::literals {
 
     consteval auto operator ""_Z(unsigned long long x) -> size_t {
         return static_cast<size_t>(x);
+    }
+
+    consteval auto operator "" _hash(const char *str, size_t len) -> u64 {
+        switch (len) {
+            case 1: return cerb::bit_cast<unsigned char>(str[0]);
+            case 2: return str2uint<u16>(str);
+            case 4: return str2uint<u32>(str);
+            case 8: return str2uint<u64>(str);
+            default:
+            {
+                u64 result = 0;
+                for (size_t i = 0; i < len; ++i) {
+                    result = result * 31ul + cerb::bit_cast<unsigned char>(str[i]);
+                }
+                return result;
+            }
+        }
     }
 
     consteval auto operator "" _2val(const char *str, size_t len) {

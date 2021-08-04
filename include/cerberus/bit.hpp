@@ -1,10 +1,7 @@
 #ifndef CERBERUS_BIT_HPP
 #define CERBERUS_BIT_HPP
 
-#if __cplusplus > 201703L
-#  include <bit>
-#endif /* C++20 */
-
+#include <bit>
 #include <cerberus/types.h>
 
 namespace cerb {
@@ -48,7 +45,7 @@ namespace cerb {
 
     public:
         explicit constexpr ByteMask(T _value)
-                : value(_value)
+        : value(_value)
         {}
     };
 
@@ -78,8 +75,9 @@ namespace cerb {
     template<typename T>
     class CERBLIB_TRIVIAL BitPattern {
         static_assert(std::is_integral_v<T>);
-        T expected{0};
-        T mask{~static_cast<T>(0)};
+
+        T expected { 0 };
+        T mask { ~static_cast<T>(0) };
 
     public:
         constexpr friend auto operator==(const BitPattern<T>& pattern, const T& value) -> bool {

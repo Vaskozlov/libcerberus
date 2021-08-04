@@ -6,7 +6,8 @@
 #endif /* CERBERUS_STRING_HPP */
 
 namespace cerb::PRIVATE {
-    CERBLIB_INLINE void memset8(void *__restrict ptr, u8 value2set, size_t times) {
+    CERBLIB_INLINE
+    void memset8(void *__restrict ptr, u8 value2set, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
                 "rep stosb\n"
@@ -17,7 +18,8 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    CERBLIB_INLINE void memset16(void *__restrict ptr, u16 value, size_t times) {
+    CERBLIB_INLINE
+    void memset16(void *__restrict ptr, u16 value, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
                 "rep stosw\n"
@@ -28,7 +30,8 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    CERBLIB_INLINE void memset32(void *__restrict ptr, u32 value, size_t times) {
+    CERBLIB_INLINE
+    void memset32(void *__restrict ptr, u32 value, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
                 "rep stosl\n"
@@ -39,7 +42,8 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
-    CERBLIB_INLINE void memset64(void *__restrict ptr, u64 value, size_t times) {
+    CERBLIB_INLINE
+    void memset64(void *__restrict ptr, u64 value, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
                 "rep stosq\n"
@@ -50,6 +54,7 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
+    CERBLIB_INLINE
     void memcpy8(void *__restrict dest, const void *__restrict src, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -61,6 +66,7 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
+    CERBLIB_INLINE
     void memcpy16(void *__restrict dest, const void *__restrict src, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -72,6 +78,7 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
+    CERBLIB_INLINE
     void memcpy32(void *__restrict dest, const void *__restrict src, size_t times) {
         #if defined(__x86_64__)
             asm volatile (
@@ -83,6 +90,7 @@ namespace cerb::PRIVATE {
         #endif /* __x86_64__ */
     }
 
+    CERBLIB_INLINE
     void memcpy64(void *__restrict dest, const void *__restrict src, size_t times) {
         #if defined(__x86_64__)
             asm volatile (

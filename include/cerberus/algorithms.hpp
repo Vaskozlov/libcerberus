@@ -6,9 +6,8 @@
 #include <cerberus/private/radixSort.hpp>
 
 namespace cerb {
-    template<typename Iterator, typename T>
-    constexpr auto find(Iterator first, Iterator last, const T& value) -> Iterator
-    {
+    template<typename Iterator, typename T> constexpr
+    auto find(Iterator first, Iterator last, const T& value) -> Iterator {
         for (; first != last; ++first) {
             if (*first == value) {
                 return first;
@@ -17,9 +16,8 @@ namespace cerb {
         return last;
     }
 
-    template<typename Iterator, class UnaryPredicate>
-    constexpr Iterator find_if(Iterator first, Iterator last, UnaryPredicate p)
-    {
+    template<typename Iterator, class UnaryPredicate> constexpr
+    Iterator find_if(Iterator first, Iterator last, UnaryPredicate p) {
         for (; first != last; ++first) {
             if (p(*first)) {
                 return first;
