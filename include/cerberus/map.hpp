@@ -16,8 +16,15 @@ namespace cerb::gl::PRIVATE {
     struct basic_set {
         using value_type = T;
         using const_value_type = const T;
-        using iterator = value_type*;
+
+#if defined(_MSC_VER)
+        using iterator = std::_Array_iterator<T, Size>;
+        using const_iterator = const std::_Array_const_iterator<T, Size>;
+#else
+        using iterator = value_type*; 
         using const_iterator = const_value_type*;
+#endif
+
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
