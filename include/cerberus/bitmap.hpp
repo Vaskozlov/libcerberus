@@ -31,8 +31,20 @@ namespace cerb {
             return m_data.data();
         }
 
+    public:
+        using size_type             = size_t;
+        using value_type            = T;
+        using const_value_type      = const T;
+        using pointer               = T *;
+        using const_pointer         = const T *;
+
+        using storage_t             = std::array<T, sizeOfArray()>;
+        using ref_storage_t         = std::array<T, sizeOfArray()>&;
+        using const_storage_t       = const std::array<T, sizeOfArray()>;
+        using const_ref_storage_t   = const std::array<T, sizeOfArray()>&;
+
     private:
-        std::array<T, sizeOfArray()> m_data = {0};
+        storage_t m_data = {0};
 
     public:
         constexpr auto clear() noexcept -> void {
@@ -54,12 +66,22 @@ namespace cerb {
             }
         }
 
+        template<u8 Value>
+        constexpr auto set(size_t index, size_t times) noexcept -> void {
+            if (std::is_constant_evaluated()) {
+                cerb::PRIVATE::bitmap_set<Value, ref_storage_t, T>(m_data, index, times);
+            }
+            else {
+                cerb::PRIVATE::bitmap_set<Value, pointer, T>(m_data.data(), index, times);
+            }
+        }
+
         [[nodiscard]] constexpr
         auto isEmpty() const noexcept -> bool {
             if (std::is_constant_evaluated()) {
-                return PRIVATE::isEmpty<const std::array<T, sizeOfArray()>&>(m_data, size());
+                return PRIVATE::isEmpty<const_ref_storage_t>(m_data, size());
             } else {
-                return PRIVATE::isEmpty<const T*>(m_data.data(), size());
+                return PRIVATE::isEmpty<const_pointer>(m_data.data(), size());
             }
         }
 
@@ -87,22 +109,17 @@ namespace cerb {
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if() const noexcept -> size_t {
-            return PRIVATE::bitmap_find_if<firstValue, const std::array<T, sizeOfArray()>&>(m_data, size());
+            return PRIVATE::bitmap_find_if<firstValue, const_ref_storage_t>(m_data, size());
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if(size_t times) const noexcept -> size_t {
-            return PRIVATE::bitmap_find_if<firstValue, const std::array<T, sizeOfArray()>&>(m_data, times, size());
-        }
-
-        template<u8 firstValue> [[nodiscard]] constexpr
-        auto find_if2(size_t times) const noexcept -> size_t {
-            return PRIVATE::bitmap_find_if2<firstValue, const std::array<T, sizeOfArray()>&>(m_data, times, size());
+            return PRIVATE::bitmap_find_if<firstValue, const_ref_storage_t>(m_data, times, size());
         }
 
         template<u8 Value> [[nodiscard]] constexpr
         auto is_value_set(size_t index, size_t times) -> bool {
-            return PRIVATE::bitmap_is_set<Value, const std::array<T, sizeOfArray()>&, T>(m_data, index, times);
+            return PRIVATE::bitmap_is_set<Value, const_ref_storage_t, T>(m_data, index, times);
         }
 
     public:
@@ -133,8 +150,15 @@ namespace cerb {
     class Bitmap {
         static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>);
 
+    public:
+        using size_type             = size_t;
+        using value_type            = T;
+        using const_value_type      = const T;
+        using pointer               = T *;
+        using const_pointer         = const T *;
+
     private:
-        T *m_data;
+        pointer m_data;
         size_t m_size;
 
     public:
@@ -180,14 +204,14 @@ namespace cerb {
 
         [[nodiscard]] constexpr
         auto isEmpty() const noexcept -> bool {
-            return PRIVATE::isEmpty<const T*>(m_data, size());
+            return PRIVATE::isEmpty<const_pointer>(m_data, size());
         }
 
         constexpr auto resize(size_t size) -> void {
         auto newArraySize = size / bitsizeof(T) + (size % bitsizeof(T)) != 0;
 
             if (sizeOfArray() < newArraySize) {
-                T * newData;
+                pointer newData;
 
                 if constexpr (!Freestanding) {
                     newData = new T[newArraySize];
@@ -228,7 +252,7 @@ namespace cerb {
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if() const noexcept -> size_t {
-            return PRIVATE::bitmap_find_if<firstValue, const T*>(m_data, size());
+            return PRIVATE::bitmap_find_if<firstValue, const_pointer>(m_data, size());
         }
 
     public:

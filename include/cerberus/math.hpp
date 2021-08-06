@@ -53,13 +53,14 @@ namespace cerb::PRIVATE {
 #endif /* _MSC_VER */
 
 namespace cerb {
+
+    using namespace ::cerb::literals;
+
     enum AlignMode : u32 {
         CEIL,
         TRUNC,
         ALIGN
     };
-
-    using namespace ::cerb::literals;
 
     template<typename T = double> constexpr
     T pi = static_cast<T>(3.14159265358979323846);

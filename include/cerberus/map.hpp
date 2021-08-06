@@ -11,26 +11,27 @@
 #include <cerberus/allocator.hpp>
 #include <cerberus/algorithms.hpp>
 
-namespace cerb::gl::PRIVATE {
+namespace cerb::PRIVATE::gl {
     template<typename T, size_t Size>
     struct basic_set {
         using value_type = T;
         using const_value_type = const T;
+        using storage_t = std::array<value_type, Size>;
 
-#if defined(_MSC_VER)
+    #if defined(_MSC_VER)
         using iterator = std::_Array_iterator<T, Size>;
         using const_iterator = const std::_Array_const_iterator<T, Size>;
-#else
+    #else
         using iterator = value_type*; 
         using const_iterator = const_value_type*;
-#endif
+    #endif
 
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     protected:
         size_t m_size { 0 };
-        std::array<value_type, Size> m_data {};
+        storage_t m_data {};
 
     public:
         constexpr auto begin() noexcept -> iterator {
@@ -144,16 +145,16 @@ namespace cerb::gl::PRIVATE {
 namespace cerb {
     namespace gl {
         template<typename T, size_t Size>
-        class set : public cerb::gl::PRIVATE::basic_set<T, Size> {
+        class set : public cerb::PRIVATE::gl::basic_set<T, Size> {
             using value_type = T;
             using const_value_type = const T;
-            using parent_class = cerb::gl::PRIVATE::basic_set<T, Size>;
+            using base_class = cerb::PRIVATE::gl::basic_set<T, Size>;
 
-            using parent_class::begin;
-            using parent_class::end;
-            using parent_class::m_data;
-            using parent_class::m_size;
-            using parent_class::self;
+            using base_class::begin;
+            using base_class::end;
+            using base_class::m_data;
+            using base_class::m_size;
+            using base_class::self;
 
         private:
             constexpr auto search(const_value_type& key) noexcept {
@@ -199,32 +200,32 @@ namespace cerb {
 
         public:
             constexpr set(const set &other) noexcept
-            : parent_class(other.self())
+            : base_class(other.self())
             {}
 
             constexpr set(set&& other) noexcept
-            : parent_class(std::move(other.self()))
+            : base_class(std::move(other.self()))
             {}
 
             constexpr set(const std::initializer_list<const_value_type> &args) noexcept
-            : parent_class(args)
+            : base_class(args)
             {}
 
             template<typename... Ts>
             explicit constexpr set(Ts&&... args) noexcept
-            : parent_class(args...)
+            : base_class(args...)
             {}
         };
 
         template<typename T1, typename T2, size_t Size>
-        class map : public cerb::gl::PRIVATE::basic_set<cerb::pair<T1, T2>, Size> {
+        class map : public cerb::PRIVATE::gl::basic_set<cerb::pair<T1, T2>, Size> {
             using key_type = T1;
             using value_type = T2;
             using const_key_type = const T1;
             using const_value_type = const T2;
             using map_elem = cerb::pair<key_type , value_type>;
             using const_map_elem = const cerb::pair<key_type , value_type>;
-            using parent_class = cerb::gl::PRIVATE::basic_set<cerb::pair<T1, T2>, Size>;
+            using parent_class = cerb::PRIVATE::gl::basic_set<cerb::pair<T1, T2>, Size>;
 
             using parent_class::begin;
             using parent_class::end;

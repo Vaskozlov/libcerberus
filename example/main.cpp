@@ -73,27 +73,14 @@ consteval auto TEST8() -> int {
     return 0;
 }
 
+#include <set>
 using namespace cerb::literals;
 
-
 auto main(int argc, char *argv[]) -> int {
-    cerb::gl::set<int, 8> a({10, 20});
+    cerb::ConstBitMap<u64, 256> a {};
+    a.set<1>(1, 100);
 
-    std::cout << "10 " << a.contains(10) << std::endl;
-    std::cout <<  "20 " << a.contains(20) << std::endl;
-    std::cout << "30 " << a.contains(30) << std::endl;
-    a.insert(30);
-    std::cout << "10 " << a.contains(10) << std::endl;
-    std::cout <<  "20 " << a.contains(20) << std::endl;
-    std::cout << "30 " << a.contains(30) << std::endl;
-    a.erase(10);
-    std::cout << "10 " << a.contains(10) << std::endl;
-    std::cout <<  "20 " << a.contains(20) << std::endl;
-    std::cout << "30 " << a.contains(30) << std::endl;
-    a.insert(10);
-    std::cout << "10 " << a.contains(10) << std::endl;
-    std::cout <<  "20 " << a.contains(20) << std::endl;
-    std::cout << "30 " << a.contains(30) << std::endl;
+    std::cout << a.is_value_set<1>(1, 100) << std::endl;
 
     return 0;
 }

@@ -35,9 +35,21 @@ namespace cerb {
             return m_data1.data();
         }
 
+    public:
+        using size_type             = size_t;
+        using value_type            = T;
+        using const_value_type      = const T;
+        using pointer               = T *;
+        using const_pointer         = const T *;
+
+        using storage_t             = std::array<T, sizeOfArray()>;
+        using ref_storage_t         = std::array<T, sizeOfArray()>&;
+        using const_storage_t       = const std::array<T, sizeOfArray()>;
+        using const_ref_storage_t   = const std::array<T, sizeOfArray()>&;
+
     private:
-        std::array<T, sizeOfArray()> m_data1 = {0};
-        std::array<T, sizeOfArray()> m_data2 = {0};
+        storage_t m_data1 = {0};
+        storage_t m_data2 = {0};
 
     public:
 
@@ -49,7 +61,7 @@ namespace cerb {
                     elem = 0;
                 }
             } else {
-                cerb::memset<T>(m_data1.data(), 0, sizeOfArray());
+                cerb::memset<value_type>(m_data1.data(), 0, sizeOfArray());
             }
         }
 
@@ -60,7 +72,7 @@ namespace cerb {
                     elem = 0;
                 }
             } else {
-                cerb::memset<T>(m_data2.data(), 0, sizeOfArray());
+                cerb::memset<value_type>(m_data2.data(), 0, sizeOfArray());
             }
         }
         CERBLIB_ENABLE_WARNING(constant-evaluated,constant-evaluated,0)
@@ -116,12 +128,12 @@ namespace cerb {
 
         [[nodiscard]] constexpr
         auto isEmpty1() const noexcept -> bool {
-            return cerb::PRIVATE::isEmpty<const std::array<T, sizeOfArray()>&>(m_data1, size());
+            return cerb::PRIVATE::isEmpty<const_ref_storage_t>(m_data1, size());
         }
 
         [[nodiscard]] constexpr
         auto isEmpty2() const noexcept -> bool {
-            return cerb::PRIVATE::isEmpty<const std::array<T, sizeOfArray()>&>(m_data2, size());
+            return cerb::PRIVATE::isEmpty<const_ref_storage_t>(m_data2, size());
         }
 
         [[nodiscard]] constexpr
@@ -163,22 +175,22 @@ namespace cerb {
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if1() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue, const std::array<T, sizeOfArray()>&>(m_data1, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, const_ref_storage_t>(m_data1, size());
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if2() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue, const std::array<T, sizeOfArray()>&>(m_data2, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, const_ref_storage_t>(m_data2, size());
         }
 
         template<u8 firstValue, u8 SecondValue> [[nodiscard]] constexpr
         auto find_if() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue, const std::array<T, sizeOfArray()>&>(m_data1, m_data2, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue, const_ref_storage_t>(m_data1, m_data2, size());
         }
 
         template<u8 firstValue, u8 SecondValue> [[nodiscard]] constexpr
         auto find_if(size_t times) const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue, const std::array<T, sizeOfArray()>&>(m_data1, m_data2, times, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue, const_ref_storage_t>(m_data1, m_data2, times, size());
         }
 
     public:
@@ -211,9 +223,17 @@ namespace cerb {
 
     template<typename T, bool Freestanding = false>
     class DoubleBitmap {
-        T *m_data1;
-        T *m_data2;
-        size_t m_size;
+    public:
+        using size_type             = size_t;
+        using value_type            = T;
+        using const_value_type      = const T;
+        using pointer               = T *;
+        using const_pointer         = const T *;
+
+    private:
+        pointer m_data1;
+        pointer m_data2;
+        size_type m_size;
 
     public:
         [[nodiscard]] constexpr
@@ -244,11 +264,11 @@ namespace cerb {
 
         CERBLIB_DISABLE_WARNING(constant-evaluated,constant-evaluated,0)
         constexpr auto clear1() noexcept -> void {
-            cerb::memset<T>(m_data1, 0, sizeOfArray());
+            cerb::memset<value_type>(m_data1, 0, sizeOfArray());
         }
 
         constexpr auto clear2() noexcept -> void {
-            cerb::memset<T>(m_data2, 0, sizeOfArray());
+            cerb::memset<value_type>(m_data2, 0, sizeOfArray());
         }
         CERBLIB_ENABLE_WARNING(constant-evaluated,constant-evaluated,0)
 
@@ -303,12 +323,12 @@ namespace cerb {
 
         [[nodiscard]] constexpr
         auto isEmpty1() const noexcept -> bool {
-            return cerb::PRIVATE::isEmpty<const T*>(m_data1, size());
+            return cerb::PRIVATE::isEmpty<const_pointer>(m_data1, size());
         }
 
         [[nodiscard]] constexpr
         auto isEmpty2() const noexcept -> bool {
-            return cerb::PRIVATE::isEmpty<const T*>(m_data2, size());
+            return cerb::PRIVATE::isEmpty<const_pointer>(m_data2, size());
         }
 
         [[nodiscard]] constexpr
@@ -337,7 +357,7 @@ namespace cerb {
             auto elemIndex = index / bitsizeof(T);
             auto bitIndex  = index % bitsizeof(T);
 
-            return cerb::PRIVATE::DoubleBitmapElem<T>(bitIndex, &m_data1[elemIndex], &m_data2[elemIndex]);
+            return cerb::PRIVATE::DoubleBitmapElem<value_type>(bitIndex, &m_data1[elemIndex], &m_data2[elemIndex]);
         }
 
         [[nodiscard]] constexpr
@@ -345,22 +365,22 @@ namespace cerb {
             auto elemIndex = index / bitsizeof(T);
             auto bitIndex  = index % bitsizeof(T);
 
-            return cerb::PRIVATE::DoubleBitmapElem<T>(bitIndex, &m_data1[elemIndex], &m_data2[elemIndex]);
+            return cerb::PRIVATE::DoubleBitmapElem<value_type>(bitIndex, &m_data1[elemIndex], &m_data2[elemIndex]);
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if1() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue, const T*>(m_data1, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, const_pointer>(m_data1, size());
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if2() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue, const T*>(m_data2, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, const_pointer>(m_data2, size());
         }
 
         template<u8 firstValue, u8 SecondValue> [[nodiscard]] constexpr
         auto find_if() const noexcept -> size_t {
-            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue, const T*>(m_data1, m_data2, size());
+            return cerb::PRIVATE::bitmap_find_if<firstValue, SecondValue, const_pointer>(m_data1, m_data2, size());
         }
 
     public:
@@ -391,8 +411,8 @@ namespace cerb {
                     m_data2[i] = other.m_data2[i];
                 }
             } else {
-                cerb::memcpy<T>(m_data1, other.m_data1, sizeOfArray());
-                cerb::memcpy<T>(m_data2, other.m_data1, sizeOfArray());
+                cerb::memcpy<value_type>(m_data1, other.m_data1, sizeOfArray());
+                cerb::memcpy<value_type>(m_data2, other.m_data1, sizeOfArray());
             }
 
             return *this;
@@ -413,8 +433,8 @@ namespace cerb {
                     m_data2[i] = other.m_data2[i];
                 }
             } else {
-                cerb::memcpy<T>(m_data1, other.m_data1, sizeOfArray());
-                cerb::memcpy<T>(m_data2, other.m_data1, sizeOfArray());
+                cerb::memcpy<value_type>(m_data1, other.m_data1, sizeOfArray());
+                cerb::memcpy<value_type>(m_data2, other.m_data1, sizeOfArray());
             }
         }
 

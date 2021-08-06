@@ -2,12 +2,13 @@
 #define CERBERUS_SET_HPP
 
 #include <memory>
+#include <iostream>
 #include <cerberus/types.h>
 #include <cerberus/allocator.hpp>
 
 namespace cerb {
     template<typename T>
-    class Set {
+    struct Set {
         enum Color : bool {
             red = true,
             black = false
@@ -21,11 +22,11 @@ namespace cerb {
         public:
             explicit Node(const T &value)
             : data(value), color(red),
-              left(nullptr), right(nullpt), root(nullpt)
+            left(nullptr), right(nullptr), root(nullptr)
             {}
         };
 
-    private:
+    public:
         Node *root;
 
     protected:
@@ -101,25 +102,60 @@ namespace cerb {
                         std::swap(parent_pt->color, grand_parent_pt->color);
                         pt = parent_pt;
                     }
-                } else {
-
+                }
+                else {
+                    Node *uncle_pt = grand_parent_pt->left;
+                    if ((uncle_pt != nullptr) && (uncle_pt->color == red)) {
+                        grand_parent_pt->color = red;
+                        parent_pt->color = black;
+                        uncle_pt->color = black;
+                        pt = grand_parent_pt;
+                    }
+                    else {
+                        if (pt == parent_pt->left) {
+                            rotateRight(root_node, parent_pt);
+                            pt = parent_pt;
+                            parent_pt = pt->root;
+                        }
+                        rotateLeft(root_node, grand_parent_pt);
+                        std::swap(parent_pt->color, grand_parent_pt->color);
+                        pt = parent_pt;
+                    }
                 }
             }
+            root_node->color = black;
         }
 
     private:
-        static Node *Insert(Node *root, Node *pt) {
+        static Node *RBTInsert(Node *root, Node *pt) {
             if (root == nullptr) UNLIKELY {
                 return pt;
             } else if (pt->data < root->data) {
-                root->left = Insert(root->left, pt);
+                root->left = RBTInsert(root->left, pt);
                 root->left->root = root;
-            } else if (pr->data > root->data) {
-                root->right = Insert(root->right, pt);
+            } else if (pt->data > root->data) {
+                root->right = RBTInsert(root->right, pt);
                 root->right->root = root;
             }
 
             return root;
+        }
+
+    public:
+        void insert(const T& value) {
+            Node *pt = new Node(value);
+            root = RBTInsert(root, pt);
+            fixViolation(root, pt);
+        }
+
+        static void inorderHelper(Node *root)
+        {
+            if (root == NULL)
+                return;
+
+            inorderHelper(root->left);
+            std::cout << root->data << "  ";
+            inorderHelper(root->right);
         }
     };
 }

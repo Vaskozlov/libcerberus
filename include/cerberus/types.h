@@ -204,8 +204,8 @@ namespace cerb {
         EmptyType &operator=(const EmptyType &) = delete;
     };
 
-    template<typename T> [[nodiscard]]
-    constexpr auto getLimits(const T &) -> std::numeric_limits<T> {
+    template<typename T> [[nodiscard]] constexpr
+    auto getLimits(const T &) -> std::numeric_limits<T> {
         return std::numeric_limits<T>();
     }
 
