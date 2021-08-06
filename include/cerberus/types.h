@@ -5,6 +5,7 @@
 #  include <cstddef>
 #  include <cinttypes>
 #else
+#  include <stddef.h>
 #  include <inttypes.h>
 #endif /* __cplusplus */
 
@@ -64,7 +65,7 @@ namespace cerb {
 
 #if (__cplusplus < 202002L)
 #  error cerberus requires at least C++20
-#endif /* C++17 */
+#endif /* C++20 */
 
 #ifndef CERBLIB_NOT_X86_64_CONSTEXPR
 #  if defined(__x86_64__)
@@ -132,16 +133,6 @@ namespace cerb {
 #  endif
 #endif /* CERBLIB_THREE_WAY_COMPARISON */
 
-#ifndef CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR
-#  define CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR(DFLT) bool Constexpr = (DFLT), \
-            typename std::enable_if<!Constexpr && x86_64, bool>::type = true
-#endif /* CERBLIB_ONLY_FOR_X86_64_AND_NO_CONSTEXPR */
-
-#ifndef CERBLIB_NOT_FOR_X86_64_RUNTIME
-#  define CERBLIB_NOT_FOR_X86_64_RUNTIME(DFLT) bool Constexpr = (DFLT), \
-            typename std::enable_if<Constexpr || !x86_64, bool>::type = true
-#endif /* CERBLIB_NOT_FOR_X86_64_RUNTIME */
-
 #ifndef CERBLIB_UNROLL
 #  if defined(__clang__) || defined(__GNUC__) || defined(_MSC_VER)
 #    define CERBLIB_UNROLL _Pragma(#unroll)
@@ -203,6 +194,16 @@ namespace cerb {
 
 namespace cerb {
 
+    struct EmptyType
+    {
+        u8 empty;
+
+        EmptyType() = delete;
+        ~EmptyType() = delete;
+        EmptyType &operator=(EmptyType &&) = delete;
+        EmptyType &operator=(const EmptyType &) = delete;
+    };
+
     template<typename T> [[nodiscard]]
     constexpr auto getLimits(const T &) -> std::numeric_limits<T> {
         return std::numeric_limits<T>();
@@ -214,6 +215,12 @@ namespace cerb {
      constexpr auto x86_64 = false;
 #  endif
 
+#  if defined(__WINDOWS__) || defined(__WIN32__)
+     constexpr auto endl = "\n\r";
+#  else
+     constexpr auto endl = '\n';
+#  endif
+
     /**
      * @brief constexpr for loop in C++
      * 
@@ -223,8 +230,8 @@ namespace cerb {
      * @tparam FUNCTION reference function which will be called
      * @param function  function which will be called
      */
-    template<auto Begin, auto End, auto Inc, typename Function>
-    constexpr void constexpr_for(Function &&function) {
+    template<auto Begin, auto End, auto Inc, typename Function> constexpr
+    auto constexpr_for(Function &&function) -> void {
         if constexpr (Begin < End) {
             function(std::integral_constant<decltype(Begin), Begin>());
             constexpr_for<Begin + Inc, End, Inc>(function);
@@ -240,25 +247,10 @@ namespace cerb {
      * @param _on_false 
      * @return condition ? _on_true : _on_false
      */
-    template<typename T>
-    constexpr auto cmov(bool condition, const T &on_true, const T &on_false) -> const T& {
+    template<typename T> constexpr
+    auto cmov(bool condition, const T &on_true, const T &on_false) -> const T& {
         return condition ? on_true : on_false;
     }
-
-    struct EmptyType {
-        u8 empty;
-
-        EmptyType() = delete;
-        ~EmptyType() = delete;
-        auto operator=(EmptyType &&)      -> EmptyType& = delete;
-        auto operator=(const EmptyType &) -> EmptyType& = delete;
-    };
-
-    #if defined(__WINDOWS__) || defined(__WIN32__)
-        constexpr auto endl = "\n\r";
-    #else
-        constexpr auto endl = '\n';
-    #endif
 } // namespace cerb
 
 #endif /* __cplusplus */

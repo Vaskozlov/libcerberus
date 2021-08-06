@@ -33,15 +33,20 @@ namespace cerb {
         constexpr auto compare(const T1 &lhs, const T2 rhs) -> bool {
             if constexpr (OP == comparison::greater) {
                 return lhs > rhs;
-            } else if constexpr (OP == comparison::greater_equal) {
+            }
+            else if constexpr (OP == comparison::greater_equal) {
                 return lhs >= rhs;
-            } else if constexpr (OP == comparison::less) {
+            }
+            else if constexpr (OP == comparison::less) {
                 return lhs < rhs;
-            } else if constexpr (OP == comparison::less_equal) {
+            }
+            else if constexpr (OP == comparison::less_equal) {
                 return lhs <= rhs;
-            } else if constexpr (OP == comparison::equal) {
+            }
+            else if constexpr (OP == comparison::equal) {
                 return lhs == rhs;
-            } else if constexpr (OP == comparison::not_equal) {
+            }
+            else if constexpr (OP == comparison::not_equal) {
                 return lhs != rhs;
             }
         }
@@ -50,13 +55,17 @@ namespace cerb {
         constexpr auto count(const T1 &lhs, const T2 &rhs) {
             if constexpr (OP == arithmetic::addition) {
                 return lhs + rhs;
-            } else if constexpr (OP == arithmetic::subtraction) {
+            }
+            else if constexpr (OP == arithmetic::subtraction) {
                 return lhs - rhs;
-            } else if constexpr (OP == arithmetic::multiplication) {
+            }
+            else if constexpr (OP == arithmetic::multiplication) {
                 return lhs * rhs;
-            } else if constexpr (OP == arithmetic::division) {
+            }
+            else if constexpr (OP == arithmetic::division) {
                 return lhs / rhs;
-            } else if constexpr (OP == arithmetic::modulo) {
+            }
+            else if constexpr (OP == arithmetic::modulo) {
                 return lhs % rhs;
             }
         }
@@ -65,17 +74,20 @@ namespace cerb {
         constexpr auto count_equal(T1 &lhs, const T2 &rhs) -> void {
             if constexpr (OP == arithmetic::addition) {
                 lhs += rhs;
-            } else if constexpr (OP == arithmetic::subtraction) {
+            }
+            else if constexpr (OP == arithmetic::subtraction) {
                 lhs -= rhs;
-            } else if constexpr (OP == arithmetic::multiplication) {
+            }
+            else if constexpr (OP == arithmetic::multiplication) {
                 lhs *= rhs;
-            } else if constexpr (OP == arithmetic::division) {
+            }
+            else if constexpr (OP == arithmetic::division) {
                 lhs /= rhs;
-            } else if constexpr (OP == arithmetic::modulo) {
+            }
+            else if constexpr (OP == arithmetic::modulo) {
                 lhs %= rhs;
             }
         }
     } // namespace cerb::operators
 }
-
 #endif /*  CERBERUS_OPERATORS_HPP */

@@ -14,24 +14,25 @@ namespace cerb {
     template<typename T> constexpr
     auto memset(void *__restrict ptr, T value, size_t times) -> void {
         if (
-            !std::is_constant_evaluated() &&
             cerb::x86_64 &&
-            std::is_integral_v<T>
+            !std::is_constant_evaluated() &&
+            (std::is_integral_v<T> || std::is_floating_point_v<T>)
         ) {
             return cerb::PRIVATE::memset<T>(ptr, value, times);
         } else {
-            T *copy_of_ptr;
-            auto *address = copy_of_ptr = static_cast<T *>(ptr);
+            T *ptr_copy;
+            auto *address = ptr_copy = static_cast<T *>(ptr);
 
             CERBLIB_UNROLL_N(4)
-            while (address < copy_of_ptr + times) {
+            while (address < ptr_copy + times) {
                 *(address++) = value;
             }
         }
     }
 
     template<typename T, size_t Size, typename V> constexpr
-    auto memset(std::array<T, Size> &t_array, V value, size_t times) {
+    auto memset(std::array<T, Size> &t_array, V value, size_t times)
+    {
         if (!std::is_constant_evaluated()) {
             memset(t_array.data(), value, times);
         } else {
@@ -43,14 +44,16 @@ namespace cerb {
     }
 
     template<typename T> constexpr
-    auto memcpy(T *__restrict dest, const T *__restrict src, size_t times) -> void {
-        if (
+    auto memcpy(T *__restrict dest, const T *__restrict src, size_t times) -> void
+    {
+        if (cerb::x86_64 &&
             !std::is_constant_evaluated() &&
-            cerb::x86_64 &&
-            std::is_integral_v<T>
+            (std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_default_constructible_v<T>)
         ) {
             cerb::PRIVATE::memcpy(dest, src, times);
-        } else {
+        }
+        else
+        {
             T *dest_copy = dest;
             const T *converted_src = src;
             T *converted_dest = dest;
@@ -64,10 +67,14 @@ namespace cerb {
     }
 
     template<typename T, size_t Size> constexpr
-    auto memcpy(std::array<T, Size> &dest, const std::array<T, Size> &src, size_t times) {
-        if (!std::is_constant_evaluated()) {
+    auto memcpy(std::array<T, Size> &dest, const std::array<T, Size> &src, size_t times)
+    {
+        if (!std::is_constant_evaluated())
+        {
             memcpy(dest.data(), src.data(), times);
-        } else {
+        }
+        else
+        {
             CERBLIB_UNROLL_N(4)
             for (size_t i = 0; i < Size; ++i) {
                 dest[i] = src[i];
@@ -80,10 +87,7 @@ namespace cerb {
     template<typename T>
     [[nodiscard]] consteval
     auto str2uint(const char *str) -> T {
-        static_assert(
-            std::is_integral_v<T> &&
-            std::is_unsigned_v<T>
-        );
+        static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>);
 
         T result = 0;
         for (size_t i = 0; i < sizeof(T); i++) {

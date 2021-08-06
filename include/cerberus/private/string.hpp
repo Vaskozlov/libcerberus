@@ -112,14 +112,31 @@ namespace cerb::PRIVATE {
         if (times == 0) UNLIKELY {
             return;
         }
+
         if constexpr(sizeof(T) == sizeof(u8)) {
-            cerb::PRIVATE::memset8(ptr, cerb::bit_cast<u8>(value), times);
+            cerb::PRIVATE::memset8(
+                    ptr,
+                    cerb::bit_cast<u8>(value),
+                    times
+            );
         } else if constexpr (sizeof(T) == sizeof(u16)) {
-            cerb::PRIVATE::memset16(ptr, cerb::bit_cast<u16>(value), times);
+            cerb::PRIVATE::memset16(
+                    ptr,
+                    cerb::bit_cast<u16>(value),
+                    times
+            );
         } else if constexpr (sizeof(T) == sizeof(u32)) {
-            cerb::PRIVATE::memset32(ptr, cerb::bit_cast<u32>(value), times);
+            cerb::PRIVATE::memset32(
+                    ptr,
+                    cerb::bit_cast<u32>(value),
+                    times
+            );
         } else if constexpr (sizeof(T) == sizeof(u64)) {
-            cerb::PRIVATE::memset64(ptr, cerb::bit_cast<u64>(value), times);
+            cerb::PRIVATE::memset64(
+                    ptr,
+                    cerb::bit_cast<u64>(value),
+                    times
+            );
         }
     }
 
@@ -128,16 +145,37 @@ namespace cerb::PRIVATE {
         if (times == 0) UNLIKELY {
             return;
         }
+
         if constexpr (sizeof(T) == sizeof(u8)) {
-            cerb::PRIVATE::memcpy8(dest, src, times);
+            cerb::PRIVATE::memcpy8(
+                    reinterpret_cast<u8*>(dest),
+                    reinterpret_cast<const u8*>(src),
+                    times
+            );
         } else if constexpr (sizeof(T) == sizeof(u16)) {
-            cerb::PRIVATE::memcpy16(dest, src, times);
+            cerb::PRIVATE::memcpy16(
+                    reinterpret_cast<u16*>(dest),
+                    reinterpret_cast<const u16*>(src),
+                    times
+            );
         } else if constexpr (sizeof(T) == sizeof(u32)) {
-            cerb::PRIVATE::memcpy32(dest, src, times);
+            cerb::PRIVATE::memcpy32(
+                    reinterpret_cast<u32*>(dest),
+                    reinterpret_cast<const u32*>(src),
+                    times
+            );
         } else if constexpr (sizeof(T) == sizeof(u64)) {
-            cerb::PRIVATE::memcpy64(dest, src, times);
+            cerb::PRIVATE::memcpy64(
+                    reinterpret_cast<u64*>(dest),
+                    reinterpret_cast<const u64*>(src),
+                    times
+            );
         } else {
-            cerb::PRIVATE::memcpy8(dest, src, times * sizeof(T));
+            cerb::PRIVATE::memcpy8(
+                    reinterpret_cast<u8*>(dest),
+                    reinterpret_cast<const u8*>(src),
+                    times * sizeof(T)
+            );
         }
     }
 }

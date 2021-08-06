@@ -2,8 +2,6 @@
 #define CERBERUS_ALGORITHMS_HPP
 
 #include <cerberus/types.h>
-#include <cerberus/private/quickSort.hpp>
-#include <cerberus/private/radixSort.hpp>
 
 namespace cerb {
     template<typename Iterator, typename T> constexpr

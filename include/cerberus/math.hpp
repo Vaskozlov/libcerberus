@@ -1,6 +1,7 @@
 #ifndef cerberusMath_hpp
 #define cerberusMath_hpp
 
+#include <cerberus/map.hpp>
 #include <cerberus/types.h>
 #include <cerberus/bit.hpp>
 #include <cerberus/literals.hpp>
@@ -52,17 +53,16 @@ namespace cerb::PRIVATE {
 #endif /* _MSC_VER */
 
 namespace cerb {
-
-    using namespace ::cerb::literals;
-
     enum AlignMode : u32 {
         CEIL,
         TRUNC,
         ALIGN
     };
-    
-    template<typename T = double>
-    constexpr T pi = static_cast<T>(3.14159265358979323846);
+
+    using namespace ::cerb::literals;
+
+    template<typename T = double> constexpr
+    T pi = static_cast<T>(3.14159265358979323846);
 
     /**
      * @brief returns maximum value of lhs and rhs
@@ -72,8 +72,8 @@ namespace cerb {
      * @param rhs second value
      * @return T max(lhs, rhs)
      */
-    template<typename T>
-    constexpr auto max(const T &lhs, const T &rhs) -> const T& {
+    template<typename T> constexpr
+    auto max(const T &lhs, const T &rhs) -> const T& {
         return cmov(lhs > rhs, lhs, rhs);
     }
 
@@ -85,8 +85,8 @@ namespace cerb {
      * @param rhs second value
      * @return T min(lhs, rhs)
      */
-    template<typename T>
-    constexpr auto min(const T &lhs, const T &rhs) -> const T& {
+    template<typename T> constexpr
+    auto min(const T &lhs, const T &rhs) -> const T& {
         return cmov(lhs < rhs, lhs, rhs);
     }
 
@@ -99,28 +99,26 @@ namespace cerb {
      */
     template<typename T>
     constexpr auto pow2(u32 power) -> T {
-        static_assert(
-            std::is_integral_v<T> ||
-            std::is_floating_point_v<T>
-        );
+        static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
 
         if constexpr (std::is_floating_point_v<T>) {
-            static_assert(
-               sizeof(T) == sizeof(u32) || sizeof(T) == sizeof(u64)
-            );
+            static_assert(sizeof(T) == sizeof(u32) || sizeof(T) == sizeof(u64));
 
             cerb::ByteMask<T> mask{static_cast<T>(1.0)};
 
             if constexpr (sizeof(T) == sizeof(u32)) {
                 mask.getAsIntegral() += "x80 0000"_2val * power;
-            } else {
+            }
+            else {
                 mask.getAsIntegral() += "x10 0000 0000 0000"_2val * power;
             }
-            return mask.value;
 
-        } else if constexpr (std::is_integral_v<T>) {
+            return mask.value;
+        }
+        else if constexpr (std::is_integral_v<T>) {
             return static_cast<T>(1) << power;
-        } else {
+        }
+        else {
             return 0;
         }
     }
@@ -133,31 +131,32 @@ namespace cerb {
      * @param value 
      * @return T or ResultType
      */
-    template<typename ResultType = EmptyType, typename T>
-    constexpr auto abs(T value) {
-        if constexpr(std::is_unsigned_v<T>) {
+    template<typename ResultType = EmptyType, typename T> constexpr
+    auto abs(T value) {
+        if constexpr (std::is_unsigned_v<T>) {
             return value;
-        } else if constexpr (std::is_floating_point_v<T>) {
-            static_assert(
-                sizeof(T) == sizeof(u32) || sizeof(T) == sizeof(u64)
-            );
-
+        }
+        else if constexpr (std::is_floating_point_v<T>) {
             ByteMask<T> mask(value);
 
             if constexpr (sizeof(T) == sizeof(u32)) {
                 mask.getAsIntegral() &= INT32_MAX;
-            } else {
+            }
+            else {
                 mask.getAsIntegral() &= INT64_MAX;
             }
 
             if constexpr (std::is_same_v<ResultType, EmptyType>) {
                 return mask.value;
-            } else {
+            }
+            else {
                 return static_cast<ResultType>(mask.value);
             }
-        } else if constexpr (std::is_same_v<ResultType, EmptyType>){
+        }
+        else if constexpr (std::is_same_v<ResultType, EmptyType>){
             return cmov(value < 0, -value, value);
-        } else {
+        }
+        else {
             return static_cast<ResultType>(cmov(value < 0, -value, value));
         }
     }
@@ -168,9 +167,11 @@ namespace cerb {
         
         if constexpr (mode == AlignMode::TRUNC) {
             return value & ~(pow2<T>(powerOf2) - 1);
-        } else if constexpr (mode == AlignMode::CEIL) {
+        }
+        else if constexpr (mode == AlignMode::CEIL) {
             return value + (pow2<T>(powerOf2) - value % pow2<T>(powerOf2));
-        } else {
+        }
+        else {
             return cmov (
                 value % pow2<T>(powerOf2) == 0,
                 value, align<powerOf2,
@@ -216,7 +217,8 @@ namespace cerb {
         #elif defined(_MSC_VER)
             if (std::is_constant_evaluated()) {
                 return PRIVATE::findBitForward<1>(value);
-            } else {
+            }
+            else {
                 unsigned long result;
                 _BitScanForward64(&result, value);
                 return result;
@@ -243,22 +245,24 @@ namespace cerb {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
 
         if constexpr (std::is_integral_v<T>) {
-        #if defined(__unix__)
-            if constexpr (sizeof(T) <= sizeof(u32)) {
-                return (bitsizeof(u32) - 1) - __builtin_clz(value);
-            } else {
-                return (bitsizeof(u64) - 1) - __builtin_clzl(value);
-            }
-        #else
-            return findSetBit(static_cast<u64>(value));
-        #endif
+            #if defined(__clang__) || defined(__GNUC__)
+                if constexpr (sizeof(T) <= sizeof(u32)) {
+                    return (bitsizeof(u32) - 1) - __builtin_clz(value);
+                }
+                else {
+                    return (bitsizeof(u64) - 1) - __builtin_clzl(value);
+                }
+            #else
+                return findSetBitReverse(static_cast<u64>(value));
+            #endif
         } else {
             cerb::ByteMask<T> mask(value);
 
             if constexpr (sizeof(T) == sizeof(u32)) {
                 return ((mask.getAsIntegral() & "xFF80 0000"_2val) >> 23) - 0x7fu;
-            } else {
-                return ((mask.getAsIntegral() & "xFFF0 0000 0000 0000"_2val) >> 52) - 1023;
+            }
+            else {
+                return ((mask.getAsIntegral() & "xFFF0 0000 0000 0000"_2val) >> 52) - 0x3ffu;
             }
         }
     }

@@ -27,20 +27,7 @@ namespace cerb {
     template<typename T>
     inline constexpr auto is_iterative_v = is_iterative<T>::value;
 
-
-    template<bool Iterate = true, typename F, typename T>
-    [[nodiscard]] constexpr CERBLIB_INLINE
-    auto forEach(F &&func, T value) {
-        if constexpr (!cerb::is_iterative_v<T> || !Iterate) {
-            func(value);
-        } else {
-            for (auto &elem: value) {
-                func(elem);
-            }
-        }
-    }
-
-    template<bool Iterate = false, typename F, typename... Ts, typename std::enable_if<!Iterate, bool>::type = true>
+    template<typename F, typename... Ts>
     [[nodiscard]] constexpr CERBLIB_INLINE
     auto forEach(F &&func, Ts&&... values) {
         auto _ = {
