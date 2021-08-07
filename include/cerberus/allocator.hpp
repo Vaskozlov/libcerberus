@@ -5,7 +5,7 @@
 
 namespace cerb {
     template<typename T>
-    struct ConstAllocator {
+    struct CERBLIB_TRIVIAL ConstAllocator {
         using value_type = T;
         using size_type = size_t;
         using difference_type = ptrdiff_t;
@@ -33,7 +33,7 @@ namespace cerb {
         constexpr ConstAllocator(const ConstAllocator&) noexcept = default;
 
         template<class U>
-        constexpr ConstAllocator(const ConstAllocator<U> &) noexcept { }
+        constexpr explicit ConstAllocator(const ConstAllocator<U> &) noexcept { }
     };
 }
 

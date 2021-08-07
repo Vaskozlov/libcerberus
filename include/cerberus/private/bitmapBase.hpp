@@ -9,6 +9,9 @@
 #pragma pack (push, 1)
 
 namespace cerb::PRIVATE {
+    using bitmap_value_type = uintmax_t;
+    constexpr auto bitmap_elem_size = bitsizeof(bitmap_value_type);
+
     constexpr inline u64 value2bits[] = {
             0x0, 0x1, 0x3,
             0x7, 0xf, 0x1f,
@@ -65,7 +68,7 @@ namespace cerb::PRIVATE {
     };
 
     template<u8 FirstValue, typename T> constexpr
-    auto reverse_function(T value) {
+    auto reverse_function(T value) -> T{
         if constexpr (FirstValue == 1) {
             return value;
         } else {
@@ -73,18 +76,11 @@ namespace cerb::PRIVATE {
         }
     };
 
-    template<size_t Size, typename T> [[nodiscard]] constexpr
-    auto at(const std::array<T, Size> &data, size_t index) noexcept -> u8 {
-        auto elemIndex = index / bitsizeof(T);
-        auto bitIndex  = index % bitsizeof(T);
-        return (data[elemIndex] & (static_cast<T>(1) << bitIndex)) != 0;
-    }
-
     template<typename T> [[nodiscard]] constexpr
-    auto at(const T *data, size_t index) noexcept -> u8 {
-        auto elemIndex = index / bitsizeof(T);
-        auto bitIndex  = index % bitsizeof(T);
-        return (data[elemIndex] & (static_cast<T>(1) << bitIndex)) != 0;
+    auto at(T data, size_t index) noexcept -> u8 {
+        auto elemIndex = index / bitmap_elem_size;
+        auto bitIndex  = index % bitmap_elem_size;
+        return (data[elemIndex] & (static_cast<bitmap_value_type>(1) << bitIndex)) != 0;
     }
 
     template<typename T> [[nodiscard]] constexpr
@@ -92,13 +88,13 @@ namespace cerb::PRIVATE {
         size_t i = 0;
 
         CERBLIB_UNROLL_N(4)
-        for (; i < limit / bitsizeof(data[0]); i++) {
+        for (; i < limit / bitmap_elem_size; i++) {
             if (data[i] > 0) {
                 return false;
             }
         }
 
-        return (data[i] % cerb::pow2<size_t>(limit % bitsizeof(data[0]))) == 0;
+        return (data[i] % cerb::pow2<size_t>(limit % bitmap_elem_size)) == 0;
     }
 
     template<u8 FirstValue, typename T> [[nodiscard]] constexpr
@@ -106,11 +102,11 @@ namespace cerb::PRIVATE {
         size_t i = 0;
 
         CERBLIB_UNROLL_N(2)
-        for (; i < limit / bitsizeof(data[0]); ++i) {
+        for (; i < limit / bitmap_elem_size; ++i) {
             auto value = reverse_function<FirstValue>(data[i]);
 
             if (value != 0) {
-                return i * bitsizeof(data[0]) + cerb::findSetBitForward(static_cast<u64>(value));
+                return i * bitmap_elem_size + cerb::findSetBitForward(static_cast<u64>(value));
             }
         }
 
@@ -119,8 +115,8 @@ namespace cerb::PRIVATE {
         if (value != 0) {
             auto bitIndex = cerb::findSetBitForward(static_cast<u64>(value));
             return cerb::cmov<size_t>(
-                    bitIndex < limit % bitsizeof(data[0]),
-                    i * bitsizeof(data[0]) + bitIndex,
+                    bitIndex < limit % bitmap_elem_size,
+                    i * bitmap_elem_size + bitIndex,
                     std::numeric_limits<size_t>::max()
             );
         }
@@ -128,29 +124,28 @@ namespace cerb::PRIVATE {
         return std::numeric_limits<size_t>::max();
     }
 
-    template<u8 Value, typename T, typename VT> [[nodiscard]] constexpr
+    template<u8 Value, typename T> constexpr
     auto bitmap_set(T data, size_t position, size_t times) -> void {
-        size_t index = position / bitsizeof(data[0]);
-        size_t before_alignment = cerb::min(times, bitsizeof(data[0]) - position % bitsizeof(data[0]));
+        size_t index = position / bitmap_elem_size;
+        size_t before_alignment = cerb::min(times, bitmap_elem_size - position % bitmap_elem_size) % bitmap_elem_size;
 
-        if (before_alignment % bitsizeof(VT) != 0) {
+        if (before_alignment % bitmap_elem_size != 0) {
             times -= before_alignment;
             before_alignment = cerb::pow2<size_t>(before_alignment) - 1;
 
             if constexpr (Value == 1) {
-                data[index++] |= (static_cast<VT>(Value) * before_alignment) << position % bitsizeof(data[0]);
+                data[index++] |= (static_cast<bitmap_value_type>(Value) * before_alignment) << position % bitmap_elem_size;
             }
             else {
-                data[index++] &= ~((static_cast<VT>(Value) * before_alignment) << position % bitsizeof(data[0]));
+                data[index++] &= ~((static_cast<bitmap_value_type>(Value) * before_alignment) << position % bitmap_elem_size);
             }
         }
 
         auto i = static_cast<intmax_t>(times);
-        constexpr auto comparator = std::numeric_limits<VT>::max() * Value;
 
-        for (; i - static_cast<intmax_t>(bitsizeof(data[0])) >= 0; i -= bitsizeof(data[0])) {
+        for (; i - static_cast<intmax_t>(bitmap_elem_size) >= 0; i -= bitmap_elem_size) {
             if constexpr (Value == 1) {
-                data[index++] |= ~static_cast<VT>(0);
+                data[index++] |= ~static_cast<bitmap_value_type>(0);
             }
             else {
                 data[index++] = 0;
@@ -164,21 +159,21 @@ namespace cerb::PRIVATE {
         size_t after_alignment = cerb::pow2<size_t>(i) - 1;
 
         if constexpr (Value == 1) {
-            data[index] |= static_cast<VT>(Value) * after_alignment;
+            data[index] |= static_cast<bitmap_value_type>(Value) * after_alignment;
         }
         else {
-            data[index] &= ~(static_cast<VT>(Value) * after_alignment);
+            data[index] &= ~(static_cast<bitmap_value_type>(Value) * after_alignment);
         }
     }
 
-    template<u8 Value, typename T, typename VT> [[nodiscard]] constexpr
+    template<u8 Value, typename T> [[nodiscard]] constexpr
     auto bitmap_is_set(T data, size_t position, size_t times) -> bool {
-        size_t index = position / bitsizeof(data[0]);
-        size_t before_alignment = cerb::min(times, bitsizeof(data[0]) - position % bitsizeof(data[0]));
+        size_t index = position / bitmap_elem_size;
+        size_t before_alignment = cerb::min(times, bitmap_elem_size - position % bitmap_elem_size);
         times -= before_alignment;
 
         before_alignment = cerb::pow2<size_t>(before_alignment) - 1;
-        before_alignment = before_alignment << position % bitsizeof(data[0]);
+        before_alignment = before_alignment << position % bitmap_elem_size;
 
         if ((reverse_function<Value>(data[index]) & before_alignment) != before_alignment) {
             return false;
@@ -187,8 +182,9 @@ namespace cerb::PRIVATE {
         ++index;
 
         auto i = static_cast<intmax_t>(times);
-        constexpr auto comparator = std::numeric_limits<VT>::max() * Value;
-        for (; i - static_cast<intmax_t>(bitsizeof(data[0])) >= 0; i -= bitsizeof(data[0])) {
+        constexpr auto comparator = std::numeric_limits<bitmap_value_type>::max() * Value;
+
+        for (; i - static_cast<intmax_t>(bitmap_elem_size) >= 0; i -= bitmap_elem_size) {
             if (data[index++] != comparator) {
                 return false;
             }
@@ -212,10 +208,10 @@ namespace cerb::PRIVATE {
         long last_match = 0;
         size_t i = 0, matches = 0;
 
-        for (; i < limit / bitsizeof(data[0]); ++i) {
+        for (; i < limit / bitmap_elem_size; ++i) {
             auto value = reverse_function<FirstValue>(data[i]);
 
-            if (last_match == bitsizeof(data[0]) - 1) {
+            if (last_match == bitmap_elem_size - 1) {
                 last_match = -1;
             }
 
@@ -229,7 +225,7 @@ namespace cerb::PRIVATE {
                 }
 
                 if (matches == times) UNLIKELY {
-                    return i * bitsizeof(data[0]) + (cerb::bit_cast<unsigned long>(new_match) - times);
+                    return i * bitmap_elem_size + (cerb::bit_cast<unsigned long>(new_match) - times);
                 }
 
                 last_match = new_match;
@@ -242,37 +238,37 @@ namespace cerb::PRIVATE {
 
     template<u8 FirstValue, typename T> [[nodiscard]] constexpr
     auto bitmap_find_if(T data, size_t times, size_t limit) -> size_t {
-        if (times >= bitsizeof(data[0])) UNLIKELY {
+        if (times >= bitmap_elem_size) UNLIKELY {
             return bitmap_long_find_if<FirstValue>(data, times, limit);
         }
 
         size_t i = 0;
 
-        for (; i < limit / bitsizeof(data[0]); ++i) {
+        for (; i < limit / bitmap_elem_size; ++i) {
             auto mask = cerb::pow2<size_t>(times) - 1;
             auto value = reverse_function<FirstValue>(data[i]);
 
             if (value != 0) UNLIKELY {
                 size_t j = 0;
 
-                for (; j < bitsizeof(data[0]) - times; ++j) {
+                for (; j < bitmap_elem_size - times; ++j) {
                     if ((value & mask) == mask) {
-                        return i * bitsizeof(data[0]) + j;
+                        return i * bitmap_elem_size + j;
                     }
                     mask <<= 1;
                 }
 
-                if ((value & mask) != 0) LIKELY {
+                if ((value & mask) == value) {
                     // we get amount of remaining bits in the number
                     auto remainder = cerb::findFreeBitReverse(value & mask) - 1;
                     mask = cerb::pow2<size_t>(times - remainder) - 1;
 
                     if (
-                            (i + 1 < limit / bitsizeof(data[0]) ||
-                            limit < (i + 1) * bitsizeof(data[0] + times - remainder)) &&
+                            (i + 1 < limit / bitmap_elem_size ||
+                            limit < (i + 1) * bitmap_elem_size - (times - remainder)) &&
                             (reverse_function<FirstValue>(data[i + 1]) & mask) == mask
                     ) {
-                        return (i + 1) * bitsizeof(data[0]) - remainder - 1;
+                        return (i + 1) * bitmap_elem_size - (times - remainder);
                     }
                 }
             }
@@ -287,30 +283,30 @@ namespace cerb::PRIVATE {
 /*
     template<u8 FirstValue, typename T> [[nodiscard]] constexpr
     auto bitmap_find_if2(T data, size_t times, size_t limit) -> size_t {
-        if (times >= bitsizeof(data[0])) UNLIKELY {
+        if (times >= bitmap_elem_size) UNLIKELY {
             bitmap_find_if<FirstValue>(data, times, limit);
         }
 
         size_t i = 0;
         size_t matches = 0;
-        auto mask = cerb::pow2<size_t>(times) - 1;
+        auto m_mask = cerb::pow2<size_t>(times) - 1;
 
-        for (; i < limit / bitsizeof(data[0]); ++i) {
+        for (; i < limit / bitmap_elem_size; ++i) {
             auto value = reverse_function<FirstValue>(data[i]);
 
             if (value != 0) {
 
                 size_t j = 0;
-                for (; j < bitsizeof(data[0]) - times; ++j) {
-                    if ((value & mask) == mask) {
-                        return i * bitsizeof(data[0]) + j;
+                for (; j < bitmap_elem_size - times; ++j) {
+                    if ((value & m_mask) == m_mask) {
+                        return i * bitmap_elem_size + j;
                     }
-                    mask *= 2ULL;
+                    m_mask *= 2ULL;
                 }
 
-                mask = cerb::pow2<size_t>(times - cerb::findFreeBitReverse(value) - 1) - 1;
-                if ((reverse_function<FirstValue>(data[i + 1]) & mask) == mask) {
-                    return (i) * bitsizeof(data[0]) + (bitsizeof(data[0]) - cerb::findFreeBitReverse(value));
+                m_mask = cerb::pow2<size_t>(times - cerb::findFreeBitReverse(value) - 1) - 1;
+                if ((reverse_function<FirstValue>(data[i + 1]) & m_mask) == m_mask) {
+                    return (i) * bitmap_elem_size + (bitmap_elem_size - cerb::findFreeBitReverse(value));
                 }
             }
         }

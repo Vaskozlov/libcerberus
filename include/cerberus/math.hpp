@@ -63,7 +63,7 @@ namespace cerb {
     };
 
     template<typename T = double> constexpr
-    T pi = static_cast<T>(3.14159265358979323846);
+    T PI = static_cast<T>(3.14159265358979323846);
 
     /**
      * @brief returns maximum value of lhs and rhs
@@ -136,28 +136,23 @@ namespace cerb {
     auto abs(T value) {
         if constexpr (std::is_unsigned_v<T>) {
             return value;
-        }
-        else if constexpr (std::is_floating_point_v<T>) {
+        } else if constexpr (std::is_floating_point_v<T>) {
             ByteMask<T> mask(value);
 
             if constexpr (sizeof(T) == sizeof(u32)) {
                 mask.getAsIntegral() &= INT32_MAX;
-            }
-            else {
+            } else {
                 mask.getAsIntegral() &= INT64_MAX;
             }
 
             if constexpr (std::is_same_v<ResultType, EmptyType>) {
                 return mask.value;
-            }
-            else {
+            } else {
                 return static_cast<ResultType>(mask.value);
             }
-        }
-        else if constexpr (std::is_same_v<ResultType, EmptyType>){
+        } else if constexpr (std::is_same_v<ResultType, EmptyType>){
             return cmov(value < 0, -value, value);
-        }
-        else {
+        } else {
             return static_cast<ResultType>(cmov(value < 0, -value, value));
         }
     }
@@ -168,11 +163,9 @@ namespace cerb {
         
         if constexpr (mode == AlignMode::TRUNC) {
             return value & ~(pow2<T>(powerOf2) - 1);
-        }
-        else if constexpr (mode == AlignMode::CEIL) {
+        } else if constexpr (mode == AlignMode::CEIL) {
             return value + (pow2<T>(powerOf2) - value % pow2<T>(powerOf2));
-        }
-        else {
+        } else {
             return cmov (
                 value % pow2<T>(powerOf2) == 0,
                 value, align<powerOf2,

@@ -1,5 +1,5 @@
-#ifndef cerberusTypes_h
-#define cerberusTypes_h
+#ifndef CERBERUS_TYPES_H
+#define CERBERUS_TYPES_H
 
 #if defined(__cplusplus)
 #  include <cstddef>
@@ -66,14 +66,6 @@ namespace cerb {
 #if (__cplusplus < 202002L)
 #  error cerberus requires at least C++20
 #endif /* C++20 */
-
-#ifndef CERBLIB_NOT_X86_64_CONSTEXPR
-#  if defined(__x86_64__)
-#    define CERBLIB_NOT_X86_64_CONSTEXPR CERBLIB_INLINE
-#  else
-#    define CERBLIB_NOT_X86_64_CONSTEXPR constexpr
-#  endif
-#endif
 
 #if defined(__unix__) // todo: check if window's clang need this
 #  define CERBLIB_INLINE __attribute__((always_inline)) inline
@@ -231,10 +223,10 @@ namespace cerb {
      * @param function  function which will be called
      */
     template<auto Begin, auto End, auto Inc, typename Function> constexpr
-    auto constexpr_for(Function &&function) -> void {
+    auto constexprFor(Function &&function) -> void {
         if constexpr (Begin < End) {
             function(std::integral_constant<decltype(Begin), Begin>());
-            constexpr_for<Begin + Inc, End, Inc>(function);
+            constexprFor<Begin + Inc, End, Inc>(function);
         }
     };
 
@@ -254,4 +246,4 @@ namespace cerb {
 } // namespace cerb
 
 #endif /* __cplusplus */
-#endif /* cerberusTypes_h */
+#endif /* CERBERUS_TYPES_H */

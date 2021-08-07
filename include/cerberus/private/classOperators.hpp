@@ -7,7 +7,7 @@
 
 #define CERBLIB_CLASS_ARITHMETIC(CLASS, ATTRIBUTES, EXT_ATTRIBUTES,                                                    \
                                     left_arg_name, right_arg_name, operator_name, CODE)                                \
-    template<cerb::arithmetic operator_name>                                                                \
+    template<cerb::Arithmetic operator_name>                                                                \
     ATTRIBUTES                                                                                                   \
     auto CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE(                                                                        \
                 const CLASS &left_arg_name,                                                                            \
@@ -16,35 +16,35 @@
         CODE                                                                                                           \
     EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
     auto operator+(const CLASS &left_arg_name, const CLASS &right_arg_name) -> CLASS {                                 \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::arithmetic::addition>(                           \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::Arithmetic::addition>(                           \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
     auto operator-(const CLASS &left_arg_name, const CLASS &right_arg_name) -> CLASS {                                 \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::arithmetic::subtraction>(                        \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::Arithmetic::subtraction>(                        \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
     auto operator*(const CLASS &left_arg_name, const CLASS &right_arg_name) -> CLASS {                                 \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::arithmetic::multiplication>(                     \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::Arithmetic::multiplication>(                     \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
     auto operator/(const CLASS &left_arg_name, const CLASS &right_arg_name) -> CLASS {                                 \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::arithmetic::division>(                           \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::Arithmetic::division>(                           \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
    EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
    auto operator%(const CLASS &left_arg_name, const CLASS &right_arg_name) -> CLASS {                                  \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::arithmetic::modulo>(                             \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE<cerb::Arithmetic::modulo>(                             \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \
@@ -192,36 +192,36 @@
 
 #define CERBLIB_CLASS_ARITHMETIC_ON_SELF(CLASS, ATTRIBUTES, EXT_ATTRIBUTES,                                            \
                                                 right_arg_name, operator_name, CODE)                                   \
-    template<cerb::arithmetic operator_name>                                                                \
+    template<cerb::Arithmetic operator_name>                                                                \
     ATTRIBUTES auto CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL(const CLASS &right_arg_name) -> CLASS&                 \
         CODE                                                                                                           \
     CERBLIB_INLINE EXT_ATTRIBUTES                                                                                       \
     auto operator+=(const CLASS &right_arg_name) -> CLASS& {                                                           \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::arithmetic::addition>(                     \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::Arithmetic::addition>(                     \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     CERBLIB_INLINE EXT_ATTRIBUTES                                                                                       \
     auto operator-=(const CLASS &right_arg_name) -> CLASS& {                                                           \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::arithmetic::subtraction>(                  \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::Arithmetic::subtraction>(                  \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     CERBLIB_INLINE EXT_ATTRIBUTES                                                                                       \
     auto operator*=(const CLASS &right_arg_name) -> CLASS& {                                                           \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::arithmetic::multiplication>(               \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::Arithmetic::multiplication>(               \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     CERBLIB_INLINE EXT_ATTRIBUTES                                                                                       \
     auto operator/=(const CLASS &right_arg_name) -> CLASS& {                                                           \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::arithmetic::division>(                     \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::Arithmetic::division>(                     \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     CERBLIB_INLINE EXT_ATTRIBUTES                                                                                       \
     auto operator%=(const CLASS &right_arg_name) -> CLASS& {                                                           \
-        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::arithmetic::modulo>(                       \
+        return CERBLIB_PROTOTYPE_FOR_ARITHMETIC_BASE_EQUAL<cerb::Arithmetic::modulo>(                       \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }
@@ -328,49 +328,49 @@
 
 #define CERBLIB_CLASS_COMPARISON(CLASS, ATTRIBUTE, EXT_ATTRIBUTES,                                                     \
                                         left_arg_name, right_arg_name, operator_name, CODE)                            \
-    template<cerb::comparison operator_name>                                                                \
+    template<cerb::Comparison operator_name>                                                                \
     ATTRIBUTE                                                                                                    \
     auto CERBLIB_COMPARISON_RULE(const CLASS &left_arg_name, const CLASS &right_arg_name)                              \
         CODE                                                                                                           \
                                                                                                                        \
     EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
     auto operator>(const CLASS &left_arg_name, const CLASS &right_arg_name) -> bool {                                  \
-        return CERBLIB_COMPARISON_RULE<cerb::comparison::greater>(                                          \
+        return CERBLIB_COMPARISON_RULE<cerb::Comparison::greater>(                                          \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
     auto operator>=(const CLASS &left_arg_name, const CLASS &right_arg_name) -> bool {                                 \
-        return CERBLIB_COMPARISON_RULE<cerb::comparison::greater_equal>(                                    \
+        return CERBLIB_COMPARISON_RULE<cerb::Comparison::greater_equal>(                                    \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
     auto operator<(const CLASS &left_arg_name, const CLASS &right_arg_name) -> bool {                                  \
-        return CERBLIB_COMPARISON_RULE<cerb::comparison::less>(                                             \
+        return CERBLIB_COMPARISON_RULE<cerb::Comparison::less>(                                             \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
     auto operator<=(const CLASS &left_arg_name, const CLASS &right_arg_name) -> bool {                                 \
-        return CERBLIB_COMPARISON_RULE<cerb::comparison::less_equal>(                                       \
+        return CERBLIB_COMPARISON_RULE<cerb::Comparison::less_equal>(                                       \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
     auto operator==(const CLASS &left_arg_name, const CLASS &right_arg_name) -> bool {                                 \
-        return CERBLIB_COMPARISON_RULE<cerb::comparison::equal>(                                            \
+        return CERBLIB_COMPARISON_RULE<cerb::Comparison::equal>(                                            \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \
     }                                                                                                                  \
     EXT_ATTRIBUTES CERBLIB_INLINE                                                                                 \
     auto operator!=(const CLASS &left_arg_name, const CLASS &right_arg_name) -> bool {                                 \
-        return CERBLIB_COMPARISON_RULE<cerb::comparison::not_equal>(                                        \
+        return CERBLIB_COMPARISON_RULE<cerb::Comparison::not_equal>(                                        \
                 left_arg_name,                                                                                         \
                 right_arg_name                                                                                         \
         );                                                                                                             \

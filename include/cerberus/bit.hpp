@@ -13,7 +13,7 @@ namespace cerb {
     }
 
     /**
-     * @brief byte mask for different types.
+     * @brief byte m_mask for different types.
      *
      * @tparam T type of bit
      */
@@ -28,9 +28,7 @@ namespace cerb {
 
     public:
         constexpr auto &getAsIntegral() noexcept {
-            static_assert(
-                sizeof(T) < sizeof(u64) && cerb::isPowerOf2(sizeof(T))
-            );
+            static_assert(sizeof(T) < sizeof(u64) && cerb::isPowerOf2(sizeof(T)));
 
             if constexpr (sizeof(T) == sizeof(u8)) {
                 return mask_u8[0];
@@ -44,8 +42,8 @@ namespace cerb {
         }
 
     public:
-        explicit constexpr ByteMask(T _value)
-        : value(_value)
+        explicit constexpr ByteMask(T t_value)
+        : value(t_value)
         {}
     };
 
@@ -64,24 +62,24 @@ namespace cerb {
                 std::is_trivially_copyable_v<FROM> &&
                 std::is_trivially_copyable_v<TO>
         );
-    #if __cplusplus >= 202002L
-        return std::bit_cast<TO>(x);
-    #else
-        union { FROM current; TO target; } u = {x};
-        return u.target;
-    #endif /* C++20 */
+        #if __cplusplus >= 202002L
+            return std::bit_cast<TO>(x);
+        #else
+            union { FROM current; TO target; } u = {x};
+            return u.target;
+        #endif /* C++20 */
     }
 
     template<typename T>
     class CERBLIB_TRIVIAL BitPattern {
         static_assert(std::is_integral_v<T>);
 
-        T expected { 0 };
-        T mask { ~static_cast<T>(0) };
+        T m_expected {0 };
+        T m_mask {~static_cast<T>(0) };
 
     public:
         constexpr friend auto operator==(const BitPattern<T>& pattern, const T& value) -> bool {
-            return (value & pattern.mask) == pattern.expected;
+            return (value & pattern.m_mask) == pattern.m_expected;
         }
 
         constexpr friend auto operator==(const T& value, const BitPattern<T>& pattern) -> bool {
@@ -105,9 +103,9 @@ namespace cerb {
                 if (elem == '\0') {
                     return;
                 } else if (elem == '1') {
-                    expected |= cur_bit;
+                    m_expected |= cur_bit;
                 } else if (elem == 'x' || elem == 'X') {
-                    mask &= ~cur_bit;
+                    m_mask &= ~cur_bit;
                 }
                 cur_bit >>= 1;
             }

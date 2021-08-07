@@ -6,7 +6,7 @@
 #include <cerberus/types.h>
 #include <cerberus/allocator.hpp>
 
-namespace cerb {
+namespace cerb::old {
     template<typename T>
     struct Set {
         enum Color : bool {
@@ -157,6 +157,186 @@ namespace cerb {
             std::cout << root->data << "  ";
             inorderHelper(root->right);
         }
+    };
+}
+
+namespace cerb {
+    template<typename T>
+    class RBTree {
+        enum Color : bool {
+            RED = true,
+            BLACK = false
+        };
+
+        struct Node {
+            Node *left, *right, *parent;
+            T value;
+            Color color;
+
+        public:
+            constexpr auto isLeftChild() const noexcept -> bool {
+                return this == parent->left;
+            }
+
+            constexpr auto hasRedChild() const noexcept -> bool {
+                return  (left != nullptr && left->color == RED) ||
+                        (right != nullptr && right->color == RED);
+            }
+
+        public:
+            constexpr auto getUncle() noexcept -> Node * {
+                if (parent == nullptr || parent->parent == nullptr) {
+                    return nullptr;
+                }
+                else if (isLeftChild()) {
+                    return parent->right;
+                }
+                else {
+                    return parent->left;
+                }
+            }
+
+            constexpr auto getSibling() {
+                if (parent == nullptr) {
+                    return nullptr;
+                }
+
+                if (isLeftChild()) {
+                    return parent->right;
+                }
+                else {
+                    return parent->left;
+                }
+            }
+
+            constexpr auto moveDown(Node *nParent) noexcept -> void {
+                if (parent != nullptr) {
+                    if (isLeftChild()) {
+                        parent->left = nParent;
+                    }
+                    else {
+                        parent->right = nParent;
+                    }
+                }
+
+                nParent->parent = parent;
+                parent = nParent;
+            }
+
+        public:
+            explicit constexpr Node(const T &t_value)
+            : value(t_value), color(RED),
+              left(nullptr), right(nullptr), parent(nullptr)
+            {}
+        };
+
+    protected:
+        Node *root;
+
+    protected:
+        constexpr auto leftRotate(Node *x) -> void {
+            Node *nParent = x->right;
+
+            if (x == root) {
+                root = nParent;
+            }
+
+            x->moveDown(nParent);
+            x->right = nParent->left;
+
+            if (nParent->left != nullptr) {
+                nParent->left->parent = x;
+            }
+
+            nParent->left = x;
+        }
+
+        constexpr auto rightRotate(Node *x) -> void {
+            Node *nParent = x->left;
+
+            if (x == root) {
+                root = nParent;
+            }
+
+            x->moveDown(nParent);
+            x->left = nParent->right;
+
+            if (nParent->right != nullptr) {
+                nParent->right->parent = x;
+            }
+
+            nParent->right = x;
+        }
+
+        constexpr auto swapColors(Node *x1, Node *x2) -> void {
+            std::swap(x1->color, x2->color);
+        }
+
+        constexpr auto fixRedRed(Node *x) -> void {
+            if (x == root) {
+                x->color = BLACK;
+                return;
+            }
+
+            Node *uncle = x->getUncle();
+            Node *parent = x->parent, *grandparent = parent->parent;
+
+            if (parent->color == RED) {
+                if (uncle != nullptr && uncle->color == RED) {
+                    parent->color = uncle->color = BLACK;
+                    grandparent->color = RED;
+                    fixRedRed(grandparent);
+                }
+                else {
+                    if (parent->isLeftChild()) {
+                        if (x->isLeftChild()) {
+                            swapColors(parent, grandparent);
+                        }
+                        else {
+                            leftRotate(parent);
+                            swapColors(x, grandparent);
+                        }
+                        rightRotate(grandparent);
+                    }
+                    else {
+                        if (x->isLeftChild()) {
+                            rightRotate(parent);
+                            swapColors(x, grandparent);
+                        }
+                        else {
+                            swapColors(parent, grandparent);
+                        }
+                        leftRotate(grandparent);
+                    }
+                }
+            }
+        }
+
+        constexpr auto successor(Node *x) noexcept -> Node * {
+            Node *tmp = x;
+
+            while (tmp->left != nullptr) {
+                tmp = tmp->left;
+            }
+
+            return tmp;
+        }
+
+        constexpr auto BSTReplace(Node *x) noexcept {
+            if (x->left != nullptr && x->right != nullptr) {
+                return successor(x->right);
+            }
+            else if (x->left == nullptr && x->right == nullptr) {
+                return nullptr;
+            }
+            else if (x->left != nullptr) {
+                return x->left;
+            }
+            else {
+                return x->right;
+            }
+        }
+        // deleteNode
     };
 }
 

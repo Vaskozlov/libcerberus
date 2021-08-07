@@ -10,7 +10,7 @@
 #include <cerberus/map.hpp>
 
 consteval auto TEST() -> int {
-    cerb::ConstBitMap<u64, 128> a;
+    cerb::constBitMap<128> a;
     //a.set(0, 1);
     a.clear();
     a[0] = 1;
@@ -19,14 +19,14 @@ consteval auto TEST() -> int {
     a.isEmpty();
     a.find_if<1>();
 
-    cerb::ConstBitMap<u64, 128> b;
+    cerb::constBitMap<128> b;
     b = a;
     return 0;
 }
 
 auto TEST2() -> size_t {
     u64 buf[2] = {0};
-    cerb::Bitmap<u64, true> a(buf, 128);
+    cerb::bitmap<true> a(buf, 128);
     a.set<1>(0);
     a.clear();
     a[0] = 1;
@@ -37,7 +37,7 @@ auto TEST2() -> size_t {
 }
 
 constexpr auto TEST3() -> bool{
-    cerb::ConstDoubleBitmap<u64, 128> a;
+    cerb::constDoubleBitmap<128> a;
     a.clear();
     a.set<1>(0);
     a.set<1>(1);
@@ -46,7 +46,7 @@ constexpr auto TEST3() -> bool{
 }
 
 auto TEST4() -> int {
-    cerb::DoubleBitmap<u64> a(128);
+    cerb::DoubleBitmap a(128);
 
     a.clear();
     a.set<1>(0);
@@ -56,7 +56,7 @@ auto TEST4() -> int {
 }
 
 consteval auto TEST7() -> bool {
-    cerb::ConstBitMap<u64, 256> a;
+    cerb::constBitMap<256> a;
 
     for (int i = 0; i < 60; i++) {
         a.set<1>(i);
@@ -74,13 +74,58 @@ consteval auto TEST8() -> int {
 }
 
 #include <set>
+#include <cerberus/container.hpp>
 using namespace cerb::literals;
 
 auto main(int argc, char *argv[]) -> int {
-    cerb::ConstBitMap<u64, 256> a {};
-    a.set<1>(1, 100);
 
-    std::cout << a.is_value_set<1>(1, 100) << std::endl;
+    {
+        srand(0);
+        cerb::constBitMap<64> bitmap;
+
+        auto begin = std::chrono::high_resolution_clock::now();
+        size_t result = 0;
+
+        while (true) {
+            result = bitmap.find_if<0>(5);
+
+            if (result == std::numeric_limits<size_t>::max()) {
+                break;
+            }
+
+            std::cout << result << cerb::endl;
+
+            bitmap.set<1>(result, 5);
+        }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - begin;
+        printf("u16 %e\n", elapsed.count());
+    }
+    std::cout << cerb::endl << cerb::endl;
+    {
+        srand(0);
+        cerb::constBitMap<64> bitmap;
+
+        auto begin = std::chrono::high_resolution_clock::now();
+        size_t result;
+
+        while (true) {
+            result = bitmap.find_if<0>(5);
+
+            if (result == std::numeric_limits<size_t>::max()) {
+                break;
+            }
+
+            std::cout << result << cerb::endl;
+
+            bitmap.set<1>(result, 5);
+        }
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - begin;
+        printf("u64 %e\n", elapsed.count());
+    }
 
     return 0;
 }

@@ -2,7 +2,7 @@
 #define CERBERUS_DOUBLEBITMAPBASE_HPP
 
 #include <cerberus/types.h>
-#include <cerberus/pair.hpp>
+#include <cerberus/Pair.hpp>
 #include <cerberus/math.hpp>
 #include <cerberus/private/bitmapBase.hpp>
 
@@ -34,7 +34,7 @@ namespace cerb::PRIVATE {
         auto operator=(DoubleBitmapElem<T>&&) noexcept -> DoubleBitmapElem<T>& = default;
         auto operator=(const DoubleBitmapElem<T>&) noexcept -> DoubleBitmapElem<T>& = default;
 
-        constexpr auto operator=(const cerb::pair<u8, u8> &newValues) noexcept -> DoubleBitmapElem<T>& {
+        constexpr auto operator=(const cerb::Pair<u8, u8> &newValues) noexcept -> DoubleBitmapElem<T>& {
             first = newValues.first;
             second = newValues.second;
 

@@ -16,9 +16,9 @@ namespace cerb::literals {
     consteval auto operator "" _hash(const char *str, size_t len) -> u64 {
         switch (len) {
             case 1: return cerb::bit_cast<unsigned char>(str[0]);
-            case 2: return str2uint<u16>(str);
-            case 4: return str2uint<u32>(str);
-            case 8: return str2uint<u64>(str);
+            case 2: return str2Uint<u16>(str);
+            case 4: return str2Uint<u32>(str);
+            case 8: return str2Uint<u64>(str);
             default:
             {
                 u64 result = 0;

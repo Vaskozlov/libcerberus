@@ -1,14 +1,30 @@
-#ifndef bitmap_hpp
-#define bitmap_hpp
+#ifndef CERBERUS_BITMAP_HPP
+#define CERBERUS_BITMAP_HPP
 
 #include <cerberus/string.hpp>
 #include <cerberus/private/bitmapBase.hpp>
 
 namespace cerb {
 
-    template<typename T, size_t Size>
-    class ConstBitMap {
-        static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>);
+    template<size_t Size>
+    struct constBitMap {
+        using size_type             = size_t;
+        using value_type            = PRIVATE::bitmap_value_type;
+        using const_value_type      = const value_type;
+        using pointer               = value_type *;
+        using const_pointer         = const value_type *;
+
+    private:
+        constexpr static size_type array_size = Size / bitsizeof(value_type) + (Size % bitsizeof(value_type) > 0);
+
+    public:
+        using storage_t             = std::array<value_type, array_size>;
+        using ref_storage_t         = std::array<value_type, array_size>&;
+        using const_storage_t       = const std::array<value_type, array_size>;
+        using const_ref_storage_t   = const std::array<value_type, array_size>&;
+
+    public:
+        storage_t m_data = {0};
 
     public:
         [[nodiscard]] constexpr
@@ -18,61 +34,43 @@ namespace cerb {
 
         [[nodiscard]] static constexpr
         auto sizeOfArray() -> size_t {
-            return Size / bitsizeof(T) + (Size % bitsizeof(T) > 0);
+            return array_size;
         }
 
         [[nodiscard]] constexpr
         auto sizeOfData() const {
-            return sizeOfArray() * sizeof(T);
+            return sizeOfArray() * sizeof(value_type);
         }
 
         [[nodiscard]] constexpr
-        auto data() noexcept -> T * {
+        auto data() noexcept -> pointer {
             return m_data.data();
         }
 
     public:
-        using size_type             = size_t;
-        using value_type            = T;
-        using const_value_type      = const T;
-        using pointer               = T *;
-        using const_pointer         = const T *;
-
-        using storage_t             = std::array<T, sizeOfArray()>;
-        using ref_storage_t         = std::array<T, sizeOfArray()>&;
-        using const_storage_t       = const std::array<T, sizeOfArray()>;
-        using const_ref_storage_t   = const std::array<T, sizeOfArray()>&;
-
-    private:
-        storage_t m_data = {0};
-
-    public:
         constexpr auto clear() noexcept -> void {
-            CERBLIB_UNROLL_N(4)
-            for (auto &elem: m_data) {
-                elem = 0;
-            }
+            cerb::memset(m_data, 0, sizeOfArray());
         }
 
         template<u8 value>
         constexpr auto set(size_t index) noexcept -> void {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
+            auto elemIndex = index / bitsizeof(value_type);
+            auto bitIndex  = index % bitsizeof(value_type);
 
             if constexpr (value) {
-                m_data[elemIndex] |= (static_cast<T>(1) << bitIndex);
+                m_data[elemIndex] |= (static_cast<value_type>(1) << bitIndex);
             } else {
-                m_data[elemIndex] &= ~(static_cast<T>(1) << bitIndex);
+                m_data[elemIndex] &= ~(static_cast<value_type>(1) << bitIndex);
             }
         }
 
         template<u8 Value>
         constexpr auto set(size_t index, size_t times) noexcept -> void {
             if (std::is_constant_evaluated()) {
-                cerb::PRIVATE::bitmap_set<Value, ref_storage_t, T>(m_data, index, times);
+                cerb::PRIVATE::bitmap_set<Value, ref_storage_t>(m_data, index, times);
             }
             else {
-                cerb::PRIVATE::bitmap_set<Value, pointer, T>(m_data.data(), index, times);
+                cerb::PRIVATE::bitmap_set<Value, pointer>(m_data.data(), index, times);
             }
         }
 
@@ -88,117 +86,128 @@ namespace cerb {
     public:
         [[nodiscard]] constexpr
         auto at(size_t index) const noexcept -> u8 {
-            return PRIVATE::at(m_data, index);
+            if (std::is_constant_evaluated()) {
+                return PRIVATE::at<const_ref_storage_t>(m_data, index);
+            }
+            else {
+                return PRIVATE::at<const_pointer>(m_data.data(), index);
+            }
         }
 
         [[nodiscard]] constexpr
-        auto operator[](size_t index) noexcept -> cerb::PRIVATE::BitmapElem<T> {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
+        auto operator[](size_t index) noexcept -> cerb::PRIVATE::BitmapElem<value_type> {
+            auto elemIndex = index / bitsizeof(value_type);
+            auto bitIndex  = index % bitsizeof(value_type);
 
-            return cerb::PRIVATE::BitmapElem<T>(bitIndex, &m_data[elemIndex]);
+            return cerb::PRIVATE::BitmapElem<value_type>(bitIndex, &m_data[elemIndex]);
         }
 
         [[nodiscard]] constexpr
-        auto operator[](size_t index) const noexcept -> cerb::PRIVATE::BitmapElem<T> {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
+        auto operator[](size_t index) const noexcept -> cerb::PRIVATE::BitmapElem<value_type> {
+            auto elemIndex = index / bitsizeof(value_type);
+            auto bitIndex  = index % bitsizeof(value_type);
 
-            return cerb::PRIVATE::BitmapElem<T>(bitIndex, &m_data[elemIndex]);
+            return {bitIndex, &m_data[elemIndex]};
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if() const noexcept -> size_t {
-            return PRIVATE::bitmap_find_if<firstValue, const_ref_storage_t>(m_data, size());
+            if (std::is_constant_evaluated()) {
+                return PRIVATE::bitmap_find_if<firstValue, const_ref_storage_t>(m_data, size());
+            } else {
+                return PRIVATE::bitmap_find_if<firstValue, const_pointer>(m_data.data(), size());
+            }
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
         auto find_if(size_t times) const noexcept -> size_t {
-            return PRIVATE::bitmap_find_if<firstValue, const_ref_storage_t>(m_data, times, size());
+            if (std::is_constant_evaluated()) {
+                return PRIVATE::bitmap_find_if<firstValue, const_ref_storage_t>(m_data, times, size());
+            } else {
+                return PRIVATE::bitmap_find_if<firstValue, const_pointer>(m_data.data(), times, size());
+            }
         }
 
         template<u8 Value> [[nodiscard]] constexpr
         auto is_value_set(size_t index, size_t times) -> bool {
-            return PRIVATE::bitmap_is_set<Value, const_ref_storage_t, T>(m_data, index, times);
+            if (std::is_constant_evaluated()) {
+                return PRIVATE::bitmap_is_set<Value, const_ref_storage_t>(m_data, index, times);
+            } else {
+                return PRIVATE::bitmap_is_set<Value, const_pointer>(m_data.data(), index, times);
+            }
         }
 
     public:
-        auto operator=(ConstBitMap&& other) noexcept -> ConstBitMap& {
+        auto operator=(constBitMap&& other) noexcept -> constBitMap& {
             cerb::memcpy(m_data, other.m_data, m_data.size());
             return *this;
         }
 
-        constexpr auto operator=(const ConstBitMap& other) noexcept -> ConstBitMap& {
+        constexpr auto operator=(const constBitMap& other) noexcept -> constBitMap& {
             cerb::memcpy(m_data, other.m_data, m_data.size());
             return *this;
         }
 
     public:
-        constexpr ConstBitMap() noexcept = default;
-        CERBLIB20_CONSTEXPR ~ConstBitMap() noexcept = default;
+        constexpr constBitMap() noexcept = default;
+        constexpr ~constBitMap() noexcept = default;
 
-        constexpr ConstBitMap(ConstBitMap& other) noexcept {
-            copy(*this, other);
+        constexpr constBitMap(const constBitMap& other) noexcept {
+            cerb::memcpy(m_data, other.m_data, sizeOfArray());
         }
 
-        constexpr ConstBitMap(ConstBitMap&& other) noexcept {
-            copy(*this, other);
+        constexpr constBitMap(constBitMap&& other) noexcept {
+            cerb::memcpy(m_data, other.m_data, sizeOfArray());
         }
     };
 
-    template<typename T, bool Freestanding = false>
-    class Bitmap {
-        static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>);
-
-    public:
+    template<bool Freestanding = false>
+    struct bitmap {
         using size_type             = size_t;
-        using value_type            = T;
-        using const_value_type      = const T;
-        using pointer               = T *;
-        using const_pointer         = const T *;
+        using value_type            = PRIVATE::bitmap_value_type;
+        using const_value_type      = const value_type;
+        using pointer               = value_type *;
+        using const_pointer         = const value_type *;
 
     private:
         pointer m_data;
-        size_t m_size;
+        size_type m_size;
 
     public:
         [[nodiscard]] constexpr
-        auto size() const noexcept -> size_t {
+        auto size() const noexcept -> size_type {
             return m_size;
         }
 
         [[nodiscard]] constexpr
-        auto sizeOfArray() const noexcept -> size_t {
-            return m_size / bitsizeof(T) + (m_size % bitsizeof(T) > 0);
+        auto sizeOfArray() const noexcept -> size_type {
+            return m_size / bitsizeof(value_type) + (m_size % bitsizeof(value_type) > 0);
         }
 
         [[nodiscard]] constexpr
         auto sizeOfData() const noexcept {
-            return sizeOfArray() * sizeof(T);
+            return sizeOfArray() * sizeof(value_type);
         }
 
         [[nodiscard]] constexpr
-        auto data() noexcept -> T * {
+        auto data() noexcept -> pointer {
             return m_data;
         }
 
     public:
         constexpr auto clear() noexcept -> void {
-            CERBLIB_UNROLL_N(4)
-            for (size_t i = 0; i < sizeOfArray(); ++i) {
-                m_data[i] = 0;
-            }
+            cerb::memset(m_data, 0, sizeOfArray());
         }
 
         template<u8 value>
         constexpr auto set(size_t index) noexcept -> void {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
+            auto elemIndex = index / bitsizeof(value_type);
+            auto bitIndex  = index % bitsizeof(value_type);
 
             if constexpr (value) {
-                m_data[elemIndex] |= (value << static_cast<T>(bitIndex));
+                m_data[elemIndex] |= (value << static_cast<value_type>(bitIndex));
             } else {
-                m_data[elemIndex] &= ~(1 << static_cast<T>(bitIndex));
+                m_data[elemIndex] &= ~(1 << static_cast<value_type>(bitIndex));
             }
         }
 
@@ -208,19 +217,19 @@ namespace cerb {
         }
 
         constexpr auto resize(size_t size) -> void {
-        auto newArraySize = size / bitsizeof(T) + (size % bitsizeof(T)) != 0;
+            auto newArraySize = size / bitsizeof(value_type) + (size % bitsizeof(value_type)) != 0;
 
             if (sizeOfArray() < newArraySize) {
                 pointer newData;
 
                 if constexpr (!Freestanding) {
-                    newData = new T[newArraySize];
+                    newData = new value_type[newArraySize];
                     cerb::memcpy(newData, m_data, sizeOfArray());
                 } else {
                     newData = m_data;
                 }
 
-                cerb::memset<T>(newData + sizeOfArray(), 0, newArraySize - sizeOfArray());
+                cerb::memset<value_type>(newData + sizeOfArray(), 0, newArraySize - sizeOfArray());
             }
 
             m_size = size;
@@ -229,25 +238,25 @@ namespace cerb {
     public:
         [[nodiscard]] constexpr
         auto at(size_t index) const noexcept -> u8 {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
-            return (m_data[elemIndex] & (static_cast<T>(1) << bitIndex)) != 0;
+            auto elemIndex = index / bitsizeof(value_type);
+            auto bitIndex  = index % bitsizeof(value_type);
+            return (m_data[elemIndex] & (static_cast<value_type>(1) << bitIndex)) != 0;
         }
 
         [[nodiscard]] constexpr
-        auto operator[](size_t index) noexcept -> cerb::PRIVATE::BitmapElem<T> {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
+        auto operator[](size_t index) noexcept -> cerb::PRIVATE::BitmapElem<value_type> {
+            auto elemIndex = index / bitsizeof(value_type);
+            auto bitIndex  = index % bitsizeof(value_type);
 
-            return cerb::PRIVATE::BitmapElem<T>(bitIndex, &m_data[elemIndex]);
+            return {static_cast<u16>(bitIndex), &m_data[elemIndex]};
         }
 
         [[nodiscard]] constexpr
-        auto operator[](size_t index) const noexcept -> cerb::PRIVATE::BitmapElem<T> {
-            auto elemIndex = index / bitsizeof(T);
-            auto bitIndex  = index % bitsizeof(T);
+        auto operator[](size_t index) const noexcept -> cerb::PRIVATE::BitmapElem<value_type> {
+            auto elemIndex = index / bitsizeof(value_type);
+            auto bitIndex  = index % bitsizeof(value_type);
 
-            return cerb::PRIVATE::BitmapElem<T>(bitIndex, &m_data[elemIndex]);
+            return {static_cast<u16>(bitIndex), &m_data[elemIndex]};
         }
 
         template<u8 firstValue> [[nodiscard]] constexpr
@@ -256,12 +265,12 @@ namespace cerb {
         }
 
     public:
-        constexpr auto operator=(const Bitmap& other) noexcept -> Bitmap& {
+        constexpr auto operator=(const bitmap& other) noexcept -> bitmap& {
             static_assert(!Freestanding);
 
             if (sizeOfArray() < other.sizeOfArray()) {
                 delete[] m_data;
-                m_data = new T[other.sizeOfArray()];
+                m_data = new value_type[other.sizeOfArray()];
             }
 
             m_size = other.size();
@@ -269,7 +278,7 @@ namespace cerb {
             return *this;
         }
 
-        constexpr auto operator=(Bitmap&& other) noexcept -> Bitmap&
+        constexpr auto operator=(bitmap&& other) noexcept -> bitmap&
         {
             if constexpr (!Freestanding) {
                 delete[] m_data;
@@ -284,37 +293,37 @@ namespace cerb {
             return *this;
         }
 
-    public: // Bitmap do NOT work in constexpr context :/ but just in case everything is constexpr
+    public: // bitmap do NOT work in constexpr context :/ but just in case everything is constexpr
 
         CERBLIB_DISABLE_WARNING(constant-evaluated, constant-evaluated, 0)
-        constexpr Bitmap(Bitmap& other)
-        : m_data(new T[other.sizeOfArray()]), m_size(other.size())
+        constexpr bitmap(bitmap& other)
+        : m_data(new value_type[other.sizeOfArray()]), m_size(other.size())
         {
             static_assert(!Freestanding);
-            cerb::memcpy<T>(m_data, other.m_data, sizeOfArray());
+            cerb::memcpy<value_type>(m_data, other.m_data, sizeOfArray());
         }
         CERBLIB_ENABLE_WARNING(constant-evaluated, constant-evaluated, 0)
 
-        constexpr Bitmap(Bitmap&& other)
+        constexpr bitmap(bitmap&& other) noexcept
         : m_data(other.m_data), m_size(other.size())
         {
             other.m_size = 0;
             other.m_data = nullptr;
         }
 
-        explicit constexpr Bitmap(size_t size)
-        : m_data(new T[size / bitsizeof(T) + (size % bitsizeof(T)) != 0]), m_size(size)
+        explicit constexpr bitmap(size_t size)
+        : m_data(new value_type[size / bitsizeof(value_type) + (size % bitsizeof(value_type)) != 0]), m_size(size)
         {
             static_assert(!Freestanding);
         }
 
-        explicit constexpr Bitmap(T *data, size_t size)
+        explicit constexpr bitmap(value_type *data, size_t size)
         : m_data(data), m_size(size)
         {
             static_assert(Freestanding);
         }
 
-        CERBLIB20_CONSTEXPR ~Bitmap() noexcept(Freestanding)
+        constexpr ~bitmap() noexcept(Freestanding)
         {
             if constexpr (!Freestanding) {
                 delete[] m_data;
@@ -323,4 +332,4 @@ namespace cerb {
     };
 }
 
-#endif /* bitmap_hpp */
+#endif /* CERBERUS_BITMAP_HPP */
