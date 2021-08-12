@@ -279,37 +279,3 @@ namespace cerb::PRIVATE {
 } // namespace cerb::PRIVATE
 #pragma pack (pop)
 #endif /* cerberusBitmapAPI_hpp */
-
-/*
-    template<u8 FirstValue, typename T> [[nodiscard]] constexpr
-    auto bitmap_find_if2(T data, size_t times, size_t limit) -> size_t {
-        if (times >= bitmap_elem_size) UNLIKELY {
-            bitmap_find_if<FirstValue>(data, times, limit);
-        }
-
-        size_t i = 0;
-        size_t matches = 0;
-        auto m_mask = cerb::pow2<size_t>(times) - 1;
-
-        for (; i < limit / bitmap_elem_size; ++i) {
-            auto value = reverse_function<FirstValue>(data[i]);
-
-            if (value != 0) {
-
-                size_t j = 0;
-                for (; j < bitmap_elem_size - times; ++j) {
-                    if ((value & m_mask) == m_mask) {
-                        return i * bitmap_elem_size + j;
-                    }
-                    m_mask *= 2ULL;
-                }
-
-                m_mask = cerb::pow2<size_t>(times - cerb::findFreeBitReverse(value) - 1) - 1;
-                if ((reverse_function<FirstValue>(data[i + 1]) & m_mask) == m_mask) {
-                    return (i) * bitmap_elem_size + (bitmap_elem_size - cerb::findFreeBitReverse(value));
-                }
-            }
-        }
-        return std::numeric_limits<size_t>::max();
-    }
- */

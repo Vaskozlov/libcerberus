@@ -127,7 +127,7 @@ namespace cerb {
 
 #ifndef CERBLIB_UNROLL
 #  if defined(__clang__) || defined(__GNUC__) || defined(_MSC_VER)
-#    define CERBLIB_UNROLL _Pragma(#unroll)
+#    define CERBLIB_UNROLL _Pragma(CERBLIB_STR(unroll))
 #  else
 #    define CERBLIB_UNROLL
 #  endif
@@ -186,14 +186,20 @@ namespace cerb {
 
 namespace cerb {
 
-    struct EmptyType
-    {
+    struct EmptyType {
         u8 empty;
 
         EmptyType() = delete;
         ~EmptyType() = delete;
         EmptyType &operator=(EmptyType &&) = delete;
         EmptyType &operator=(const EmptyType &) = delete;
+    };
+
+    struct Throwable {
+        u8 empty;
+
+        Throwable &operator=(Throwable &&) = delete;
+        Throwable &operator=(const Throwable &) = delete;
     };
 
     template<typename T> [[nodiscard]] constexpr

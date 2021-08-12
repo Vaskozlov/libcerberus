@@ -3,317 +3,227 @@
 
 #include <memory>
 #include <iostream>
+#include <vector>
+#include <set>
+#include <functional>
 #include <cerberus/types.h>
 #include <cerberus/allocator.hpp>
+#include <cerberus/operators.hpp>
 
-namespace cerb::old {
-    template<typename T>
-    struct Set {
-        enum Color : bool {
-            red = true,
-            black = false
-        };
-
-        struct Node {
-            Color color;
-            T data;
-            Node *left, *right, *root;
-
-        public:
-            explicit Node(const T &value)
-            : data(value), color(red),
-            left(nullptr), right(nullptr), root(nullptr)
-            {}
-        };
-
-    public:
-        Node *root;
-
-    protected:
-        void rotateLeft(Node *&root_node , Node *&pt) {
-            Node *pt_right = pt->right;
-            pt->right = pt->right->left;
-
-            if (pt->right != nullptr) {
-                pt->right->root = pt;
-            }
-
-            if (pt->root == nullptr) {
-                root_node = pt_right;
-            } else if (pt == pt->root->left) {
-                pt->root->left = pt_right;
-            } else {
-                pt->root->right = pt_right;
-            }
-
-            pt_right->left = pt;
-            pt->root = pt_right;
-        }
-
-        void rotateRight(Node *&root_node, Node *&pt) {
-            Node *pt_left = pt->left;
-            pt->left = pt->left->right;
-
-            if (pt->left != nullptr) {
-                pt->left->root = pt;
-            }
-
-            pt_left->root = pt->root;
-
-            if (pt->root == nullptr) {
-                root_node = pt_left;
-            } else if (pt == pt->root->left) {
-                pt->root->left = pt_left;
-            } else {
-                pt->root->right = pt_left;
-            }
-
-            pt_left->right = pt;
-            pt->root = pt_left;
-        }
-
-        void fixViolation(Node *&root_node, Node *&pt) {
-            Node *parent_pt = nullptr, *grand_parent_pt = nullptr;
-
-            while (
-                (pt != root_node) &&
-                (pt->color != black) &&
-                (pt->root->color == red)
-            ) {
-                parent_pt = pt->root;
-                grand_parent_pt = parent_pt->root;
-
-                if (parent_pt == grand_parent_pt->left) {
-                    Node *uncle_pt = grand_parent_pt->right;
-
-                    if (uncle_pt != nullptr && uncle_pt->color == red) {
-                        grand_parent_pt->color = red;
-                        parent_pt->color = black;
-                        uncle_pt->color = black;
-                        pt = grand_parent_pt;
-                    } else {
-                        if (pt == parent_pt->right) {
-                            rotateLeft(root_node, parent_pt);
-                            pt = parent_pt;
-                            parent_pt = pt->root;
-                        }
-
-                        rotateRight(root_node, parent_pt);
-                        std::swap(parent_pt->color, grand_parent_pt->color);
-                        pt = parent_pt;
-                    }
-                }
-                else {
-                    Node *uncle_pt = grand_parent_pt->left;
-                    if ((uncle_pt != nullptr) && (uncle_pt->color == red)) {
-                        grand_parent_pt->color = red;
-                        parent_pt->color = black;
-                        uncle_pt->color = black;
-                        pt = grand_parent_pt;
-                    }
-                    else {
-                        if (pt == parent_pt->left) {
-                            rotateRight(root_node, parent_pt);
-                            pt = parent_pt;
-                            parent_pt = pt->root;
-                        }
-                        rotateLeft(root_node, grand_parent_pt);
-                        std::swap(parent_pt->color, grand_parent_pt->color);
-                        pt = parent_pt;
-                    }
-                }
-            }
-            root_node->color = black;
-        }
-
-    private:
-        static Node *RBTInsert(Node *root, Node *pt) {
-            if (root == nullptr) UNLIKELY {
-                return pt;
-            } else if (pt->data < root->data) {
-                root->left = RBTInsert(root->left, pt);
-                root->left->root = root;
-            } else if (pt->data > root->data) {
-                root->right = RBTInsert(root->right, pt);
-                root->right->root = root;
-            }
-
-            return root;
-        }
-
-    public:
-        void insert(const T& value) {
-            Node *pt = new Node(value);
-            root = RBTInsert(root, pt);
-            fixViolation(root, pt);
-        }
-
-        static void inorderHelper(Node *root)
-        {
-            if (root == NULL)
-                return;
-
-            inorderHelper(root->left);
-            std::cout << root->data << "  ";
-            inorderHelper(root->right);
-        }
+namespace cerb::PRIVATE {
+    enum Color : bool {
+        RED = false,
+        BLACK = true
     };
-}
 
-namespace cerb {
-    template<typename T>
-    class RBTree {
-        enum Color : bool {
-            RED = true,
-            BLACK = false
-        };
-
+    template<typename T, auto Compare = less<void>{}, typename Alloc = std::allocator<T>>
+    class BasicSet {
+    protected:
         struct Node {
             Node *left, *right, *parent;
             T value;
             Color color;
 
         public:
-            constexpr auto isLeftChild() const noexcept -> bool {
+            constexpr friend auto operator==(const Node &lhs, const Node &rhs) noexcept {
+                return lhs.value == rhs.value;
+            }
+
+            constexpr friend auto operator==(const Node &lhs, const T &rhs) noexcept {
+                return lhs.value == rhs;
+            }
+
+            constexpr friend auto operator==(const T &lhs, const Node &rhs) noexcept {
+                return lhs == rhs.value;
+            }
+
+            constexpr std::strong_ordering operator<=>(const Node &other) const {
+                return value <=> other.value;
+            }
+
+            constexpr std::strong_ordering operator<=>(const T &other) const {
+                return value <=> other;
+            }
+
+        public:
+            [[nodiscard]] constexpr
+            auto isLeftChild() const noexcept -> bool {
                 return this == parent->left;
             }
 
-            constexpr auto hasRedChild() const noexcept -> bool {
+            [[nodiscard]] constexpr
+            auto hasRedChild() const noexcept -> bool {
                 return  (left != nullptr && left->color == RED) ||
-                        (right != nullptr && right->color == RED);
+                (right != nullptr && right->color == RED);
             }
 
         public:
-            constexpr auto getUncle() noexcept -> Node * {
-                if (parent == nullptr || parent->parent == nullptr) {
+            [[nodiscard]] constexpr
+            auto getUncle() noexcept -> Node * {
+                if (parent == nullptr || parent->parent == nullptr) UNLIKELY {
                     return nullptr;
+                } else if (isLeftChild()) {
+                    return parent->parent->right;
+                } else {
+                    return parent->parent->left;
                 }
-                else if (isLeftChild()) {
+            }
+
+            [[nodiscard]] constexpr
+            auto getUncle() const noexcept -> Node * {
+                if (parent == nullptr || parent->parent == nullptr) UNLIKELY {
+                    return nullptr;
+                } else if (isLeftChild()) {
+                    return parent->parent->right;
+                } else {
+                    return parent->parent->left;
+                }
+            }
+
+            [[nodiscard]] constexpr
+            auto getSibling() noexcept -> Node * {
+                if (parent == nullptr) UNLIKELY {
+                    return nullptr;
+                } else if (isLeftChild()) {
                     return parent->right;
-                }
-                else {
+                } else {
                     return parent->left;
                 }
             }
 
-            constexpr auto getSibling() {
-                if (parent == nullptr) {
+            [[nodiscard]] constexpr
+            auto getSibling() const noexcept -> Node * {
+                if (parent == nullptr) UNLIKELY {
                     return nullptr;
-                }
-
-                if (isLeftChild()) {
+                } else if (isLeftChild()) {
                     return parent->right;
-                }
-                else {
+                } else {
                     return parent->left;
                 }
             }
 
-            constexpr auto moveDown(Node *nParent) noexcept -> void {
-                if (parent != nullptr) {
+            constexpr auto moveDown(Node *node) noexcept -> void {
+                if (parent != nullptr) LIKELY {
                     if (isLeftChild()) {
-                        parent->left = nParent;
-                    }
-                    else {
-                        parent->right = nParent;
+                        parent->left = node;
+                    } else {
+                        parent->right = node;
                     }
                 }
+                node->parent = parent;
+                parent = node;
+            }
 
-                nParent->parent = parent;
-                parent = nParent;
+            constexpr auto get() noexcept -> T& {
+                return value;
+            }
+
+            constexpr auto get() const noexcept -> T& {
+                return value;
             }
 
         public:
-            explicit constexpr Node(const T &t_value)
-            : value(t_value), color(RED),
-              left(nullptr), right(nullptr), parent(nullptr)
+            CERBLIB_DISABLE_WARNING(reorder-ctor, reorder-ctor, 0)
+
+            template<typename... Ts>
+            constexpr explicit Node(Ts&&... args)
+            : value(args...), color(RED),
+            left(nullptr), right(nullptr), parent(nullptr)
             {}
+
+            CERBLIB_ENABLE_WARNING(reorder-ctor, reorder-ctor, 0)
         };
 
-    protected:
-        Node *root;
+    public:
+        using NodePtr = Node *;
+        using const_Node = const Node;
+        using const_NodePtr = const Node*;
+
+        using NodeAllocator = typename std::allocator_traits<Alloc>::template rebind_alloc<Node>;
+        using NodeTraits = std::allocator_traits<NodeAllocator>;
 
     protected:
-        constexpr auto leftRotate(Node *x) -> void {
-            Node *nParent = x->right;
+        NodePtr root { nullptr };
+        NodeAllocator m_allocator {};
 
-            if (x == root) {
-                root = nParent;
+    private:
+        constexpr auto leftRotate(NodePtr node) noexcept -> void {
+            NodePtr newParent = node->right; // new parent of node
+
+            if (node == root) UNLIKELY {
+                root = newParent; // if node is root node we need to update root
             }
 
-            x->moveDown(nParent);
-            x->right = nParent->left;
+            node->moveDown(newParent);
+            node->right = newParent->left; // exchange node->right and newParent->left
 
-            if (nParent->left != nullptr) {
-                nParent->left->parent = x;
+            if (newParent->left != nullptr) LIKELY { // if there is node on the left side of the newParent
+                newParent->left->parent = node;
             }
 
-            nParent->left = x;
+            newParent->left = node; // complete the rotation
         }
 
-        constexpr auto rightRotate(Node *x) -> void {
-            Node *nParent = x->left;
+        constexpr auto rightRotate(NodePtr node) noexcept -> void {
+            NodePtr newParent = node->left; // new parent of node
 
-            if (x == root) {
-                root = nParent;
+            if (node == root) UNLIKELY {
+                root = newParent; // if node is root node we need to update root
             }
 
-            x->moveDown(nParent);
-            x->left = nParent->right;
+            node->moveDown(newParent);
+            node->left = newParent->right; // exchange node->left and newParent->right
 
-            if (nParent->right != nullptr) {
-                nParent->right->parent = x;
+            if (newParent->right != nullptr) LIKELY { // if there is node on the right side of the newParent
+                newParent->right->parent = node;
             }
 
-            nParent->right = x;
+            newParent->right = node; // complete the rotation
         }
 
-        constexpr auto swapColors(Node *x1, Node *x2) -> void {
-            std::swap(x1->color, x2->color);
+        constexpr static auto swapColors(NodePtr node1, NodePtr node2) noexcept -> void {
+            std::swap(node1->color, node2->color);
         }
 
-        constexpr auto fixRedRed(Node *x) -> void {
-            if (x == root) {
-                x->color = BLACK;
+        constexpr auto fixRedRed(NodePtr node) noexcept -> void {
+            if (node == root) UNLIKELY {
+                node->color = BLACK;
                 return;
             }
 
-            Node *uncle = x->getUncle();
-            Node *parent = x->parent, *grandparent = parent->parent;
+            NodePtr parent = node->parent;
+            NodePtr grandparent = parent->parent;
+            NodePtr uncle = node->getUncle();
 
             if (parent->color == RED) {
                 if (uncle != nullptr && uncle->color == RED) {
                     parent->color = uncle->color = BLACK;
                     grandparent->color = RED;
-                    fixRedRed(grandparent);
-                }
-                else {
+                    return fixRedRed(grandparent);
+                } else {
                     if (parent->isLeftChild()) {
-                        if (x->isLeftChild()) {
+                        if (node->isLeftChild()) {
                             swapColors(parent, grandparent);
-                        }
-                        else {
+                        } else {
                             leftRotate(parent);
-                            swapColors(x, grandparent);
+                            swapColors(node, grandparent);
                         }
-                        rightRotate(grandparent);
-                    }
-                    else {
-                        if (x->isLeftChild()) {
+                        return rightRotate(grandparent);
+                    } else {
+                        if (node->isLeftChild()) {
                             rightRotate(parent);
-                            swapColors(x, grandparent);
-                        }
-                        else {
+                            swapColors(node, grandparent);
+                        } else {
                             swapColors(parent, grandparent);
                         }
-                        leftRotate(grandparent);
+                        return leftRotate(grandparent);
                     }
                 }
             }
         }
 
-        constexpr auto successor(Node *x) noexcept -> Node * {
-            Node *tmp = x;
+        constexpr static auto successor(NodePtr node) noexcept -> NodePtr {
+            NodePtr tmp = node;
 
             while (tmp->left != nullptr) {
                 tmp = tmp->left;
@@ -322,21 +232,442 @@ namespace cerb {
             return tmp;
         }
 
-        constexpr auto BSTReplace(Node *x) noexcept {
-            if (x->left != nullptr && x->right != nullptr) {
-                return successor(x->right);
-            }
-            else if (x->left == nullptr && x->right == nullptr) {
+        constexpr static auto BSTReplace(NodePtr node) noexcept -> NodePtr {
+            if (node->left != nullptr && node->right != nullptr) {
+                return successor(node->right);
+            } else if (node->left != nullptr) {
+                return node->left;
+            } else if (node->right != nullptr) {
+                return node->right;
+            } else UNLIKELY {
                 return nullptr;
             }
-            else if (x->left != nullptr) {
-                return x->left;
+        }
+
+        constexpr auto fixDoubleBlack(NodePtr node) noexcept -> bool {
+            if (node == root) UNLIKELY {
+                return true;
             }
-            else {
-                return x->right;
+            NodePtr sibling = node->getSibling(), parent = node->parent;
+
+            if (sibling == nullptr) {
+                return fixDoubleBlack(parent);
+            } else {
+                if (sibling->color == RED) {
+                    parent->color  = RED;
+                    sibling->color = BLACK;
+
+                    if (sibling->isLeftChild()) {
+                        rightRotate(parent);
+                    } else {
+                        leftRotate(parent);
+                    }
+                    return fixDoubleBlack(node);
+                } else {
+                    if (sibling->hasRedChild()) {
+                        if (sibling->left != nullptr && sibling->left->color == RED) UNLIKELY {
+                            if (sibling->isLeftChild()) {
+                                sibling->left->color = sibling->color;
+                                sibling->color = parent->color;
+                                rightRotate(parent);
+                            } else {
+                                sibling->left->color = parent->color;
+                                rightRotate(sibling);
+                                leftRotate(parent);
+                            }
+                        } else {
+                            if (sibling->isLeftChild()) {
+                                sibling->right->color = parent->color;
+                                leftRotate(sibling);
+                                rightRotate(parent);
+                            } else {
+                                sibling->right->color = sibling->color;
+                                sibling->color = parent->color;
+                                leftRotate(parent);
+                            }
+                        }
+                        parent->color = BLACK;
+                    } else {
+                        sibling->color = RED;
+
+                        if (parent->color != RED) {
+                            return fixDoubleBlack(parent);
+                        } else {
+                            parent->color = BLACK;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+    protected:
+        constexpr auto deleteNode(NodePtr node) noexcept -> bool {
+            NodePtr u = BSTReplace(node);
+            NodePtr parent = node->parent;
+
+            if (u == nullptr) {
+                if (node == root) UNLIKELY {
+                    root = nullptr;
+                } else {
+                    if (node->color == BLACK) {
+                        fixDoubleBlack(node);
+                    } else if (node->getSibling() != nullptr) {
+                        node->getSibling()->color = RED;
+                    }
+
+                    if (node->isLeftChild()) {
+                        parent->left = nullptr;
+                    } else {
+                        parent->right = nullptr;
+                    }
+                }
+                NodeTraits::destroy(m_allocator, node);
+                NodeTraits::deallocate(m_allocator, node, 1);
+                return true;
+            }
+
+            if (node->left == nullptr || node->right == nullptr) {
+                if (node == root) UNLIKELY {
+                    node->value = std::move(u->value);
+                    node->left = node->right = nullptr;
+
+                    NodeTraits::destroy(m_allocator, u);
+                    NodeTraits::deallocate(m_allocator, u, 1);
+                } else {
+                    if (node->isLeftChild()) {
+                        parent->left = u;
+                    } else {
+                        parent->right = u;
+                    }
+                    NodeTraits::destroy(m_allocator, node);
+                    NodeTraits::deallocate(m_allocator, node, 1);
+
+                    u->parent = parent;
+
+                    if (u->color == BLACK && node->color == BLACK) {
+                        return fixDoubleBlack(u);
+                    } else {
+                        u->color = BLACK;
+                    }
+                }
+                return true;
+            }
+
+            std::swap(u->value, node->value);
+            return deleteNode(u);
+        }
+
+    protected:
+        template<typename U>
+        constexpr auto search(const U& key) noexcept -> NodePtr {
+            NodePtr tmp = root;
+
+            while (tmp != nullptr) {
+                if (Compare(key, tmp->value)) {
+                    if (tmp->left == nullptr) {
+                        return tmp;
+                    } else {
+                        tmp = tmp->left;
+                    }
+                } else if (key == tmp->value) {
+                    return tmp;
+                } else {
+                    if (tmp->right == nullptr) {
+                        return tmp;
+                    } else {
+                        tmp = tmp->right;
+                    }
+                }
+            }
+
+            return tmp;
+        }
+
+        template<typename U>
+        constexpr auto search(const U& key) const noexcept -> NodePtr {
+            NodePtr tmp = root;
+
+            while (tmp != nullptr) {
+                if (Compare(key, tmp->value)) {
+                    if (tmp->left == nullptr) {
+                        return tmp;
+                    } else {
+                        tmp = tmp->left;
+                    }
+                } else if (key == tmp->value) {
+                    return tmp;
+                } else {
+                    if (tmp->right == nullptr) {
+                        return tmp;
+                    } else {
+                        tmp = tmp->right;
+                    }
+                }
+            }
+
+            return tmp;
+        }
+
+    protected:
+        template<typename... Ts>
+        constexpr auto BSTEmplace(Ts&&... args) -> NodePtr {
+            if (root == nullptr) UNLIKELY {
+                NodePtr newNode = NodeTraits::allocate(m_allocator, 1);
+                NodeTraits::construct(m_allocator, newNode, args...);
+                newNode->color = BLACK;
+                root = newNode;
+                return newNode;
+            }
+
+            Node tmpNode = Node(args...);
+            NodePtr tmp = search(tmpNode.value);
+
+            if (tmp->value == tmpNode.value) UNLIKELY {
+                return tmp;
+            } else LIKELY {
+                NodePtr newNode = NodeTraits::allocate(m_allocator, 1);
+                NodeTraits::construct(m_allocator, newNode, args...);
+                newNode->parent = tmp;
+
+                if (Compare(tmpNode.value, tmp->value)) {
+                    tmp->left = newNode;
+                } else {
+                    tmp->right = newNode;
+                }
+
+                fixRedRed(newNode);
+                return tmp;
             }
         }
-        // deleteNode
+
+        template<typename U>
+        constexpr auto BSTErase(const U& key) {
+            if (root == nullptr) UNLIKELY {
+                return false;
+            }
+            NodePtr v = search(key);
+
+            if (v->value == key) LIKELY {
+                return deleteNode(v);
+            } else UNLIKELY {
+                return false;
+            }
+        }
+
+    private:
+        constexpr void self_delete(NodePtr x) {
+            if (x == nullptr)
+                return;
+
+            self_delete(x->left);
+            auto right = x->right;
+
+            NodeTraits::destroy(m_allocator, x);
+            NodeTraits::deallocate(m_allocator, x, 1);
+
+            self_delete(right);
+        }
+
+    public:
+        class iterator {
+            NodePtr m_node { nullptr };
+            bool isLeftChild;
+
+        public:
+            constexpr auto operator++() noexcept -> iterator& {
+                NodePtr parent = m_node->parent;
+
+                if (parent != nullptr) {
+                    if (isLeftChild) {
+                        m_node = parent->right;
+                        isLeftChild = false;
+                    } else {
+                        m_node = parent;
+
+                        if (m_node->parent != nullptr) {
+                            isLeftChild = m_node->isLeftChild();
+                        } else {
+                            isLeftChild = false;
+                        }
+                    }
+                } else {
+                    m_node = nullptr;
+                }
+                return *this;
+            }
+
+        public:
+            constexpr auto operator*() {
+                return m_node->value;
+            }
+
+        public:
+            constexpr iterator() noexcept = default;
+
+            constexpr iterator(NodePtr node) noexcept
+            : m_node(node)
+            {
+                if (node->parent != nullptr) {
+                    isLeftChild = node->isLeftChild();
+                } else {
+                    isLeftChild = false;
+                }
+            }
+
+            constexpr ~iterator() noexcept = default;
+        };
+
+        constexpr auto begin() noexcept -> iterator {
+            NodePtr tmp = root;
+
+            while (tmp != nullptr) {
+                if (tmp->left == nullptr) {
+                    return tmp;
+                }
+                tmp = tmp->left;
+            }
+
+            return tmp;
+        }
+
+        constexpr auto end() noexcept -> iterator {
+            return iterator(nullptr);
+        }
+
+    public:
+        constexpr BasicSet() noexcept = default;
+
+        constexpr ~BasicSet() {
+            self_delete(root);
+        }
+    };
+}
+
+namespace cerb {
+    template<typename T, auto OnThrowing = cerb::Throwable {}, auto Compare = less<void>{}, typename Alloc = std::allocator<T>>
+    class Set : public PRIVATE::BasicSet<T, Compare, Alloc> {
+        using PRIVATE::BasicSet<T, Compare, Alloc>::search;
+        using PRIVATE::BasicSet<T, Compare, Alloc>::BSTErase;
+        using PRIVATE::BasicSet<T, Compare, Alloc>::BSTEmplace;
+        using Node = typename PRIVATE::BasicSet<T, Compare, Alloc>::Node;
+
+    private:
+        constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
+
+    public:
+        constexpr auto count(const T& key) {
+            auto value = search(key);
+            return value != nullptr && value->value == key;
+        }
+
+        constexpr auto insert(const T& key) noexcept {
+            BSTEmplace(key);
+        }
+
+        constexpr auto erase(const T& key) noexcept(!MayThrow) {
+            if constexpr (MayThrow) {
+                if (!BSTErase(key)) UNLIKELY {
+                    throw std::out_of_range("Unable to erase elem from cerb::Set");
+                }
+                return true;
+            } else {
+                return BSTErase(key);
+            }
+        }
+    };
+
+    namespace PRIVATE {
+        template<typename T>
+        struct CERBLIB_TRIVIAL MultiSetNode {
+            T value;
+            size_t counter;
+
+        public:
+            [[nodiscard]] constexpr friend
+            auto operator==(const MultiSetNode &lhs, const MultiSetNode &rhs) {
+                return lhs.value == rhs.value;
+            }
+
+            [[nodiscard]] constexpr friend
+            auto operator==(const MultiSetNode &lhs, const T &rhs) {
+                return lhs.value == rhs;
+            }
+
+            [[nodiscard]] constexpr friend
+            auto operator==(const T &lhs, const MultiSetNode &rhs) {
+                return lhs == rhs.value;
+            }
+
+            [[nodiscard]] constexpr
+            auto operator<=>(const MultiSetNode &rhs) const {
+                return value <=> rhs.value;
+            }
+
+            [[nodiscard]] constexpr
+            auto operator<=>(const T &rhs) const {
+                return value <=> rhs;
+            }
+
+        public:
+            template<typename... Ts>
+            constexpr explicit MultiSetNode(Ts&&... args)
+            : value(args...), counter(0)
+            {}
+
+            constexpr ~MultiSetNode() = default;
+        };
+    }
+
+    template<typename T, auto OnThrowing = cerb::Throwable {}, auto Compare = less<void>{}, typename Alloc = std::allocator<T>>
+    class Multiset : public PRIVATE::BasicSet<PRIVATE::MultiSetNode<T>, Compare, Alloc> {
+        using PRIVATE::BasicSet<PRIVATE::MultiSetNode<T>, Compare, Alloc>::search;
+        using PRIVATE::BasicSet<PRIVATE::MultiSetNode<T>, Compare, Alloc>::BSTErase;
+        using PRIVATE::BasicSet<PRIVATE::MultiSetNode<T>, Compare, Alloc>::BSTEmplace;
+        using PRIVATE::BasicSet<PRIVATE::MultiSetNode<T>, Compare, Alloc>::deleteNode;
+        using Node = typename PRIVATE::BasicSet<PRIVATE::MultiSetNode<T>, Compare, Alloc>::Node;
+
+    private:
+        constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
+
+    public:
+        constexpr auto count(const T& key) const noexcept -> size_t {
+            auto value = search(key);
+
+            if (value == nullptr || value->value.value != key) {
+                return 0;
+            } else {
+                return value->value.counter;
+            }
+        }
+
+        constexpr auto insert(const T& key) noexcept {
+            BSTEmplace(key)->value.counter += 1;
+        }
+
+        constexpr auto erase(const T &key) noexcept(!MayThrow) {
+            auto value = search(key);
+
+            if constexpr (MayThrow) {
+                if (value != nullptr && value->value.value == key) LIKELY {
+                    value->value.counter -= 1;
+                } else UNLIKELY {
+                    throw std::out_of_range("Unable to erase elem from cerb::Multiset");
+                }
+            } else {
+                if (value != nullptr && value->value.value == key) LIKELY {
+                    value->value.counter -= 1;
+                } else UNLIKELY {
+                    return false;
+                }
+            }
+
+            if (value->value.counter == 0) {
+                return deleteNode(value);
+            }
+
+            return true;
+        }
     };
 }
 

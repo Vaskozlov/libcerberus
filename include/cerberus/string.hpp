@@ -30,7 +30,7 @@ namespace cerb {
         }
     }
 
-    template<typename T, size_t Size, typename V> constexpr
+    template<typename V, typename T, size_t Size> constexpr
     auto memset(std::array<T, Size> &t_array, V value, size_t times)
     {
         if (!std::is_constant_evaluated()) {
