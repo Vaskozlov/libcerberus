@@ -105,7 +105,8 @@ namespace cerb::PRIVATE {
     template<typename T> CERBLIB_INLINE
     auto memset(void *__restrict ptr, T value, size_t times) -> void {
         static_assert(
-            std::is_integral_v<T> &&
+            (std::is_pointer_v<T> ||
+            std::is_integral_v<T>) &&
             sizeof(T) <= sizeof(u64)
         );
 

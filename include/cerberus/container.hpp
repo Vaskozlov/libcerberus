@@ -8,7 +8,7 @@ namespace cerb::gl {
     template<typename T, size_t Size, bool CheckMemory = true>
     struct CERBLIB_TRIVIAL Container {
         using storage_t = std::array<T, Size>;
-        using tracker_t = cerb::constBitMap<Size>;
+        using tracker_t = cerb::ConstBitmap<1, Size>;
 
     private:
         storage_t m_data {};

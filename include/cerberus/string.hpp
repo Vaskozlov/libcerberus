@@ -53,8 +53,7 @@ namespace cerb {
             (std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_default_constructible_v<T>)
         ) {
             cerb::PRIVATE::memcpy(dest, src, times);
-        }
-        else {
+        } else {
             T *dest_copy = dest;
             const T *converted_src = src;
             T *converted_dest = dest;
@@ -72,9 +71,7 @@ namespace cerb {
     {
         if (!std::is_constant_evaluated()) {
             memcpy(dest.data(), src.data(), times);
-        }
-        else
-        {
+        } else {
             CERBLIB_UNROLL_N(4)
             for (size_t i = 0; i < Size; ++i) {
                 dest[i] = src[i];
