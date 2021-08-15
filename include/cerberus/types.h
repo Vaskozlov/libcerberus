@@ -241,9 +241,9 @@ namespace cerb {
      * 
      * @tparam T 
      * @param condition if true function returns lhs otherwise rhs is returned
-     * @param _on_true 
-     * @param _on_false 
-     * @return condition ? _on_true : _on_false
+     * @param on_true
+     * @param _on_false
+     * @return condition ?_on_true :_on_false
      */
     template<typename T> constexpr
     auto cmov(bool condition, const T &on_true, const T &on_false) -> const T& {
