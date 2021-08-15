@@ -10,6 +10,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs < rhs;
         }
+
+        static constexpr inline bool is_less = true;
     };
 
     template<typename T1, typename T2 = T1>
@@ -24,6 +26,7 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs > rhs;
         }
+        static constexpr inline bool is_less = false;
     };
 
     template<typename T1, typename T2 = T1>
@@ -53,6 +56,7 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs < rhs;
         }
+        static constexpr inline bool is_less = true;
     };
 
     template<>
@@ -69,6 +73,7 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs > rhs;
         }
+        static constexpr inline bool is_less = false;
     };
 
     template<>

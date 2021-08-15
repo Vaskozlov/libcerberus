@@ -1,7 +1,6 @@
 #ifndef cerberusMath_hpp
 #define cerberusMath_hpp
 
-#include <cerberus/map.hpp>
 #include <cerberus/types.h>
 #include <cerberus/bit.hpp>
 #include <cerberus/literals.hpp>

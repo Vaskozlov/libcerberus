@@ -6,9 +6,8 @@
 #include <memory>
 #include <initializer_list>
 #include <cerberus/types.h>
-#include <cerberus/Pair.hpp>
+#include <cerberus/pair.hpp>
 #include <cerberus/string.hpp>
-#include <cerberus/allocator.hpp>
 #include <cerberus/algorithms.hpp>
 
 namespace cerb::PRIVATE::gl {
@@ -284,7 +283,7 @@ namespace cerb::gl {
 }
 
 namespace cerb::cx {
-    template<typename T1, typename T2, typename Alloc = cerb::ConstAllocator<cerb::Pair<T1, T2>>>
+    template<typename T1, typename T2, typename Alloc = std::allocator<cerb::Pair<T1, T2>>>
     class Map {
         using key_type = T1;
         using value_type = T2;
