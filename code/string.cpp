@@ -1,7 +1,7 @@
 #include <cerberus/string.hpp>
 
 namespace cerb {
-    size_t strlen(const char *__restrict str) {
+    auto strlen(const char *__restrict str) -> size_t {
         size_t index;
         
 #if defined(__x86_64__)

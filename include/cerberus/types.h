@@ -269,6 +269,11 @@ namespace cerb {
     constexpr auto cmov(bool condition, const T &on_true, const T &on_false) -> const T & {
         return condition ? on_true : on_false;
     }
+
+    template<typename T>
+    CERBLIB_INLINE constexpr auto destroy(T &_value) -> void {
+        (&_value)->~T();
+    }
 }// namespace cerb
 
 #endif /* __cplusplus */

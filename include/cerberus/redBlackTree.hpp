@@ -189,7 +189,7 @@ namespace cerb::PRIVATE {
         }
 
         constexpr auto rightRotate(NodePtr node) noexcept -> void {
-            NodePtr new_parent = node->right;
+            NodePtr new_parent = node->left;
 
             if (node == m_root) [[unlikely]] {
                 m_root = new_parent;
@@ -439,7 +439,7 @@ namespace cerb::PRIVATE {
             return RBTreeSearch<U>(m_root, key);
         }
 
-        template<bool Construct = true, typename... Ts>
+        template<bool Construct = true, bool Update = false, typename... Ts>
         constexpr auto RBTreeEmplace(Ts &&...args) -> NodePtr {
             if (m_root == nullptr) [[unlikely]] {
                 ++m_size;
@@ -461,6 +461,11 @@ namespace cerb::PRIVATE {
             NodePtr tmp = search(value);
 
             if (tmp->value == value) [[unlikely]] {
+                if constexpr (Update) {
+                    destroy(tmp->value);
+                    std::construct_at(&tmp->value, std::move(value));
+                }
+
                 return tmp;
             }
 
@@ -678,6 +683,10 @@ namespace cerb::PRIVATE {
         };
 
         constexpr auto begin() noexcept -> iterator {
+            if (m_root == nullptr) [[unlikely]] {
+                return iterator(nullptr);
+            }
+
             return iterator(leftNode(m_root));
         }
 

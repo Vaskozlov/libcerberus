@@ -11,10 +11,12 @@ namespace cerb {
     template<typename T, auto OnThrowing = cerb::Throwable{}, typename Compare = less<void>, typename Alloc = std::allocator<T>>
     class Set : public PRIVATE::RBTree<T, Compare, Alloc>
     {
-        using PRIVATE::RBTree<T, Compare, Alloc>::search;
-        using PRIVATE::RBTree<T, Compare, Alloc>::RBTreeErase;
-        using PRIVATE::RBTree<T, Compare, Alloc>::RBTreeEmplace;
-        using Node = typename PRIVATE::RBTree<T, Compare, Alloc>::Node;
+        using BasicTree = PRIVATE::RBTree<T, Compare, Alloc>;
+        using Node      = typename BasicTree::Node;
+
+        using BasicTree::RBTreeEmplace;
+        using BasicTree::RBTreeErase;
+        using BasicTree::search;
 
     private:
         constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
@@ -25,8 +27,12 @@ namespace cerb {
             return value != nullptr && value->value == key;
         }
 
+        constexpr auto insert(T &&value) noexcept {
+            RBTreeEmplace(value);
+        }
+
         constexpr auto insert(const T &value) noexcept {
-            this->template RBTreeEmplace<true>(value);
+            RBTreeEmplace(value);
         }
 
         constexpr auto erase(const T &key) noexcept(!MayThrow) {
@@ -39,17 +45,30 @@ namespace cerb {
                 return RBTreeErase(key);
             }
         }
+
+    public:
+        constexpr Set() noexcept  = default;
+        constexpr ~Set() noexcept = default;
+
+        constexpr Set(const std::initializer_list<T> &values) noexcept {
+            CERBLIB_UNROLL_N(2)
+            for (auto &elem : values) {
+                insert(std::move(elem));
+            }
+        }
     };
 
     template<typename T, auto OnThrowing = cerb::Throwable{}, typename Compare = cerb::less<void>, typename Alloc = std::allocator<T>>
     class Multiset : public PRIVATE::RBTree<Pair<size_t, T, BY_SECOND_VALUE>, Compare, Alloc>
     {
         using value_type = Pair<size_t, T, BY_SECOND_VALUE>;
-        using PRIVATE::RBTree<value_type, Compare, Alloc>::search;
-        using PRIVATE::RBTree<value_type, Compare, Alloc>::RBTreeErase;
-        using PRIVATE::RBTree<value_type, Compare, Alloc>::RBTreeEmplace;
-        using PRIVATE::RBTree<value_type, Compare, Alloc>::deleteNode;
-        using Node = typename PRIVATE::RBTree<value_type, Compare, Alloc>::Node;
+        using BasicTree  = PRIVATE::RBTree<value_type, Compare, Alloc>;
+        using Node       = typename BasicTree::Node;
+
+        using BasicTree::deleteNode;
+        using BasicTree::RBTreeEmplace;
+        using BasicTree::RBTreeErase;
+        using BasicTree::search;
 
     private:
         constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
@@ -65,8 +84,12 @@ namespace cerb {
             return value->value.first;
         }
 
+        constexpr auto insert(T &&value) noexcept {
+            RBTreeEmplace(static_cast<size_t>(0), value)->value.first += 1;
+        }
+
         constexpr auto insert(const T &value) noexcept {
-            this->template RBTreeEmplace<true>(static_cast<size_t>(0), value)->value.first += 1;
+            RBTreeEmplace(static_cast<size_t>(0), value)->value.first += 1;
         }
 
         constexpr auto erase(const T &key) noexcept(!MayThrow) {
@@ -92,22 +115,43 @@ namespace cerb {
 
             return true;
         }
+
+    public:
+        constexpr Multiset() noexcept  = default;
+        constexpr ~Multiset() noexcept = default;
+
+        constexpr Multiset(const std::initializer_list<T> &values) noexcept {
+            CERBLIB_UNROLL_N(2)
+            for (auto &elem : values) {
+                insert(elem);
+            }
+        }
     };
 
     template<typename T1, typename T2, auto OnThrowing = cerb::Throwable{}, typename Compare = cerb::less<void>, typename Alloc = std::allocator<T1>>
-    class Map : public PRIVATE::RBTree<Pair<T1, T2, BY_FIRST_VALUE>, Compare, Alloc>
+    class Map : public PRIVATE::RBTree<Pair<const T1, T2, BY_FIRST_VALUE>, Compare, Alloc>
     {
-        using value_type = Pair<T1, T2, BY_FIRST_VALUE>;
-        using PRIVATE::RBTree<value_type, Compare, Alloc>::search;
-        using PRIVATE::RBTree<value_type, Compare, Alloc>::RBTreeErase;
-        using PRIVATE::RBTree<value_type, Compare, Alloc>::RBTreeEmplace;
-        using PRIVATE::RBTree<value_type, Compare, Alloc>::deleteNode;
-        using Node = typename PRIVATE::RBTree<value_type, Compare, Alloc>::Node;
+        using value_type = Pair<const T1, T2, BY_FIRST_VALUE>;
+        using BasicTree  = PRIVATE::RBTree<value_type, Compare, Alloc>;
+        using Node       = typename PRIVATE::RBTree<value_type, Compare, Alloc>::Node;
+
+        using BasicTree::deleteNode;
+        using BasicTree::RBTreeEmplace;
+        using BasicTree::RBTreeErase;
+        using BasicTree::search;
 
     private:
         constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
 
     public:
+        constexpr auto insert(value_type &&value) noexcept {
+            this->template RBTreeEmplace<true, true>(value);
+        }
+
+        constexpr auto insert(const value_type &value) noexcept {
+            this->template RBTreeEmplace<true, true>(value);
+        }
+
         constexpr auto count(const T1 &key) const noexcept -> size_t {
             auto value = search(key);
             return value != nullptr && value->value == key;
@@ -130,9 +174,19 @@ namespace cerb {
             if (value != nullptr && value->value.first == key) {
                 return value->value.second;
             } else {
-                auto elem = this->template RBTreeEmplace<false>(key);
-                std::construct_at(&elem->value.first, key);
+                auto elem = RBTreeEmplace(key);
                 return elem->value.second;
+            }
+        }
+
+    public:
+        constexpr Map() noexcept  = default;
+        constexpr ~Map() noexcept = default;
+
+        constexpr Map(const std::initializer_list<value_type> &values) noexcept {
+            CERBLIB_UNROLL_N(2)
+            for (auto &elem : values) {
+                insert(std::move(elem));
             }
         }
     };

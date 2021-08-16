@@ -7,7 +7,7 @@
 #include <cerberus/private/string.hpp>
 
 namespace cerb {
-    size_t strlen(const char * __restrict str);
+    auto strlen(const char * __restrict str) -> size_t;
 
     CERBLIB_DISABLE_WARNING("-Wconstant-evaluated","-Wconstant-evaluated",0)
 
@@ -83,7 +83,7 @@ namespace cerb {
 
     template<typename T>
     [[nodiscard]] consteval
-    auto str2Uint(std::string_view str) -> T {
+    auto str2Uint(const char *str) -> T {
         static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>);
 
         T result = 0;
