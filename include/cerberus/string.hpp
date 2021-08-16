@@ -9,7 +9,7 @@
 namespace cerb {
     size_t strlen(const char * __restrict str);
 
-    CERBLIB_DISABLE_WARNING(constant-evaluated,constant-evaluated,0)
+    CERBLIB_DISABLE_WARNING("-Wconstant-evaluated","-Wconstant-evaluated",0)
 
     template<typename T> constexpr
     auto memset(void *__restrict ptr, T value, size_t times) -> void {
@@ -79,7 +79,7 @@ namespace cerb {
         }
     }
 
-    CERBLIB_ENABLE_WARNING(constant-evaluated,constant-evaluated,0)
+    CERBLIB_ENABLE_WARNING("-Wconstant-evaluated","-Wconstant-evaluated",0)
 
     template<typename T>
     [[nodiscard]] consteval

@@ -6,7 +6,7 @@
 
 namespace cerb::hash::PRIVATE {
     inline std::atomic<size_t> uid{ 0 };
-} // namespace cerb::hash::PRIVATE
+}// namespace cerb::hash::PRIVATE
 
 namespace cerb::hash {
     /**
@@ -17,6 +17,6 @@ namespace cerb::hash {
     CERBLIB_INLINE auto uuid() noexcept -> size_t {
         return cerb::hash::PRIVATE::uid++;
     }
-} // namespace cerb::hash
+}// namespace cerb::hash
 
 #endif /* CERBERUS_HASH_HPP */

@@ -1,9 +1,10 @@
 #include <cerberus/string.hpp>
 
 namespace cerb {
-    size_t strlen(const char * __restrict str) {
+    size_t strlen(const char *__restrict str) {
         size_t index;
-    #if defined(__x86_64__)
+        
+#if defined(__x86_64__)
         index = 0;
 
         __asm__(
@@ -16,16 +17,15 @@ namespace cerb {
             " add %2, %0                        \n"
             : "=a"(index)
             : "d"(reinterpret_cast<size_t>(str)), "c"(reinterpret_cast<size_t>(str))
-            : "memory"
-        );
+            : "memory");
 
-    #else
+#else
         while (*str != '\0') {
             str++;
             index++;
         }
 
-    #endif /* ARCH */
+#endif /* ARCH */
         return index;
     }
-}
+}// namespace cerb

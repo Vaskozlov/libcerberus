@@ -6,20 +6,21 @@
 
 namespace cerb::gl {
     template<typename T, size_t Size, bool CheckMemory = true>
-    struct CERBLIB_TRIVIAL Container {
+    struct CERBLIB_TRIVIAL Container
+    {
         using storage_t = std::array<T, Size>;
         using tracker_t = cerb::ConstBitmap<1, Size>;
 
     private:
-        storage_t m_data {};
-        tracker_t m_tracker {};
+        storage_t m_data{};
+        tracker_t m_tracker{};
 
     public:
         constexpr auto size() const {
             return Size;
         }
 
-        constexpr auto tracker() const noexcept -> const tracker_t& {
+        constexpr auto tracker() const noexcept -> const tracker_t & {
             return m_tracker;
         }
 
@@ -33,44 +34,40 @@ namespace cerb::gl {
         }
 
     public:
-        constexpr auto at(size_t index) const noexcept(!CheckMemory) -> T &{
+        constexpr auto at(size_t index) const noexcept(!CheckMemory) -> T & {
             checkIndex(index);
             m_tracker.template set<1>(index);
             return m_data[index];
         }
 
-        constexpr auto operator[](size_t index) const noexcept(!CheckMemory) -> T &{
+        constexpr auto operator[](size_t index) const noexcept(!CheckMemory) -> T & {
             return at(index);
         }
 
-        constexpr auto operator[](size_t index) noexcept(!CheckMemory) -> T &{
+        constexpr auto operator[](size_t index) noexcept(!CheckMemory) -> T & {
             checkIndex(index);
             m_tracker.template set<1>(index);
             return m_data[index];
         }
 
     public:
-        [[nodiscard]] constexpr
-        auto find_free() const noexcept -> size_t {
+        [[nodiscard]] constexpr auto find_free() const noexcept -> size_t {
             return m_tracker.template find_if<0>();
         }
 
-        [[nodiscard]] constexpr
-        auto find_set() const noexcept -> size_t {
+        [[nodiscard]] constexpr auto find_set() const noexcept -> size_t {
             return m_tracker.template find_if<1>();
         }
 
-        [[nodiscard]] constexpr
-        auto put(const T &value) noexcept(!CheckMemory) -> T& {
+        [[nodiscard]] constexpr auto put(const T &value) noexcept(!CheckMemory) -> T & {
             auto index = find_free();
             checkIndex(index);
             T &elem = operator[](index);
-            elem = value;
+            elem    = value;
             return elem;
         }
 
-        [[nodiscard]] constexpr
-        auto put_i(const T &value) noexcept(!CheckMemory) -> size_t {
+        [[nodiscard]] constexpr auto put_i(const T &value) noexcept(!CheckMemory) -> size_t {
             auto index = find_free();
             checkIndex(index);
             operator[](index) = value;
@@ -80,21 +77,19 @@ namespace cerb::gl {
     public:
         constexpr Container() noexcept(std::is_nothrow_constructible_v<T>) = default;
 
-        constexpr Container(const Container& other) noexcept(std::is_nothrow_constructible_v<T>)
-        : m_tracker(other.m_tracker)
-        {
+        constexpr Container(const Container &other) noexcept(std::is_nothrow_constructible_v<T>)
+          : m_tracker(other.m_tracker) {
             cerb::memcpy(m_data, other.m_data, Size);
         }
 
-        constexpr Container(Container&& other) noexcept(std::is_nothrow_constructible_v<T>)
-        : m_tracker(std::move(other.m_tracker))
-        {
+        constexpr Container(Container &&other) noexcept(std::is_nothrow_constructible_v<T>)
+          : m_tracker(std::move(other.m_tracker)) {
             CERBLIB_UNROLL_N(4)
             for (size_t i = 0; i < Size; i++) {
                 m_data[i] = std::move(other.m_data[i]);
             }
         }
     };
-}
+}// namespace cerb::gl
 
 #endif /* CERBERUS_CONTAINER_HPP */

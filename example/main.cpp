@@ -16,7 +16,7 @@ auto main(int argc, char *argv[]) -> int {
     a[0] = "He";
     a[1] = "HellO";
 
-    for (auto &elem: a) {
+    for (auto &elem : a) {
         std::cout << elem.first << ' ' << elem.second << std::endl;
     }
 

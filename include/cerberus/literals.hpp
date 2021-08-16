@@ -5,51 +5,54 @@
 #include <cerberus/string.hpp>
 
 namespace cerb::literals {
-    consteval auto operator ""_z(unsigned long long x) -> size_t {
+    consteval auto operator""_z(unsigned long long x) -> size_t {
         return static_cast<size_t>(x);
     }
 
-    consteval auto operator ""_Z(unsigned long long x) -> size_t {
+    consteval auto operator""_Z(unsigned long long x) -> size_t {
         return static_cast<size_t>(x);
     }
 
-    consteval auto operator "" _hash(const char *str, size_t len) -> u64 {
+    consteval auto operator"" _hash(const char *str, size_t len) -> u64 {
         switch (len) {
-            case 1: return cerb::bit_cast<unsigned char>(str[0]);
-            case 2: return str2Uint<u16>(str);
-            case 4: return str2Uint<u32>(str);
-            case 8: return str2Uint<u64>(str);
-            default:
-            {
-                u64 result = 0;
-                for (size_t i = 0; i < len; ++i) {
-                    result = result * 31ul + cerb::bit_cast<unsigned char>(str[i]);
-                }
-                return result;
+        case 1:
+            return cerb::bit_cast<unsigned char>(str[0]);
+        case 2:
+            return str2Uint<u16>(str);
+        case 4:
+            return str2Uint<u32>(str);
+        case 8:
+            return str2Uint<u64>(str);
+        default: {
+            u64 result = 0;
+            for (size_t i = 0; i < len; ++i) {
+                result = result * 31ul + cerb::bit_cast<unsigned char>(str[i]);
             }
+            return result;
+        }
         }
     }
 
-    consteval auto operator "" _2val(const char *str, size_t len) {
-        uintmax_t result = 0;
+    consteval auto operator"" _2val(const char *str, size_t len) {
+        uintmax_t result   = 0;
         uintmax_t modifier = 10;
 
         switch (str[0]) {
-            case 'b':
-                modifier = 2;
-                break;
+        case 'b':
+            modifier = 2;
+            break;
 
-            case '0':
-                modifier = 8;
-                break;
+        case '0':
+            modifier = 8;
+            break;
 
-                case 'x':
-            case 'X':
-                modifier = 16;
-                break;
+        case 'x':
+        case 'X':
+            modifier = 16;
+            break;
 
-            default:
-                break;
+        default:
+            break;
         }
 
         if (modifier != 10) {
@@ -69,7 +72,7 @@ namespace cerb::literals {
         };
 
         for (size_t i = 0; i < len; i++) {
-            if (str[i] == ' ' ) {
+            if (str[i] == ' ') {
                 continue;
             }
 
@@ -78,6 +81,6 @@ namespace cerb::literals {
 
         return result;
     }
-} // namespace cerb::literals
+}// namespace cerb::literals
 
 #endif /* CERBERUS_LITERALS_HPP */

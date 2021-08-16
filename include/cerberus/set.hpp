@@ -8,8 +8,9 @@
 #include <cerberus/redBlackTree.hpp>
 
 namespace cerb {
-    template<typename T, auto OnThrowing = cerb::Throwable {}, typename Compare = less<void>, typename Alloc = std::allocator<T>>
-    class Set : public PRIVATE::RBTree<T, Compare, Alloc> {
+    template<typename T, auto OnThrowing = cerb::Throwable{}, typename Compare = less<void>, typename Alloc = std::allocator<T>>
+    class Set : public PRIVATE::RBTree<T, Compare, Alloc>
+    {
         using PRIVATE::RBTree<T, Compare, Alloc>::search;
         using PRIVATE::RBTree<T, Compare, Alloc>::RBTreeErase;
         using PRIVATE::RBTree<T, Compare, Alloc>::RBTreeEmplace;
@@ -19,18 +20,18 @@ namespace cerb {
         constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
 
     public:
-        constexpr auto count(const T& key) {
+        constexpr auto count(const T &key) {
             auto value = search(key);
             return value != nullptr && value->value == key;
         }
 
-        constexpr auto insert(const T& value) noexcept {
+        constexpr auto insert(const T &value) noexcept {
             this->template RBTreeEmplace<true>(value);
         }
 
-        constexpr auto erase(const T& key) noexcept(!MayThrow) {
+        constexpr auto erase(const T &key) noexcept(!MayThrow) {
             if constexpr (MayThrow) {
-                if (!RBTreeErase(key)) UNLIKELY {
+                if (!RBTreeErase(key)) [[unlikely]] {
                     throw std::out_of_range("Unable to erase elem from cerb::Set");
                 }
                 return true;
@@ -40,8 +41,9 @@ namespace cerb {
         }
     };
 
-    template<typename T, auto OnThrowing = cerb::Throwable {}, typename Compare = cerb::less<void>, typename Alloc = std::allocator<T>>
-    class Multiset : public PRIVATE::RBTree<Pair<size_t, T, BY_SECOND_VALUE>, Compare, Alloc> {
+    template<typename T, auto OnThrowing = cerb::Throwable{}, typename Compare = cerb::less<void>, typename Alloc = std::allocator<T>>
+    class Multiset : public PRIVATE::RBTree<Pair<size_t, T, BY_SECOND_VALUE>, Compare, Alloc>
+    {
         using value_type = Pair<size_t, T, BY_SECOND_VALUE>;
         using PRIVATE::RBTree<value_type, Compare, Alloc>::search;
         using PRIVATE::RBTree<value_type, Compare, Alloc>::RBTreeErase;
@@ -53,7 +55,7 @@ namespace cerb {
         constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
 
     public:
-        constexpr auto count(const T& key) const noexcept -> size_t {
+        constexpr auto count(const T &key) const noexcept -> size_t {
             auto value = search(key);
 
             if (value == nullptr || value->value.second != key) {
@@ -63,7 +65,7 @@ namespace cerb {
             }
         }
 
-        constexpr auto insert(const T& value) noexcept {
+        constexpr auto insert(const T &value) noexcept {
             this->template RBTreeEmplace<true>(static_cast<size_t>(0), value)->value.first += 1;
         }
 
@@ -71,15 +73,15 @@ namespace cerb {
             auto value = search(key);
 
             if constexpr (MayThrow) {
-                if (value != nullptr && value->value.second == key) LIKELY {
+                if (value != nullptr && value->value.second == key) [[likely]] {
                     value->value.first -= 1;
-                } else UNLIKELY {
+                } else [[unlikely]] {
                     throw std::out_of_range("Unable to erase elem from cerb::Multiset");
                 }
             } else {
-                if (value != nullptr && value->value.second == key) LIKELY {
+                if (value != nullptr && value->value.second == key) [[likely]] {
                     value->value.first -= 1;
-                } else UNLIKELY {
+                } else [[unlikely]] {
                     return false;
                 }
             }
@@ -92,8 +94,9 @@ namespace cerb {
         }
     };
 
-    template<typename T1, typename T2, auto OnThrowing = cerb::Throwable {}, typename Compare = cerb::less<void>, typename Alloc = std::allocator<T1>>
-    class Map : public PRIVATE::RBTree<Pair<T1, T2, BY_FIRST_VALUE>, Compare, Alloc> {
+    template<typename T1, typename T2, auto OnThrowing = cerb::Throwable{}, typename Compare = cerb::less<void>, typename Alloc = std::allocator<T1>>
+    class Map : public PRIVATE::RBTree<Pair<T1, T2, BY_FIRST_VALUE>, Compare, Alloc>
+    {
         using value_type = Pair<T1, T2, BY_FIRST_VALUE>;
         using PRIVATE::RBTree<value_type, Compare, Alloc>::search;
         using PRIVATE::RBTree<value_type, Compare, Alloc>::RBTreeErase;
@@ -105,14 +108,14 @@ namespace cerb {
         constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
 
     public:
-        constexpr auto count(const T1& key) const noexcept -> size_t {
+        constexpr auto count(const T1 &key) const noexcept -> size_t {
             auto value = search(key);
             return value != nullptr && value->value == key;
         }
 
-        constexpr auto erase(const T1& key) noexcept(!MayThrow) {
+        constexpr auto erase(const T1 &key) noexcept(!MayThrow) {
             if constexpr (MayThrow) {
-                if (!RBTreeErase(key)) UNLIKELY {
+                if (!RBTreeErase(key)) [[unlikely]] {
                     throw std::out_of_range("Unable to erase elem from cerb::Set");
                 }
                 return true;
@@ -121,7 +124,7 @@ namespace cerb {
             }
         }
 
-        constexpr auto operator[](const T1 &key) noexcept(!MayThrow) -> T2&{
+        constexpr auto operator[](const T1 &key) noexcept(!MayThrow) -> T2 & {
             auto value = search(key);
 
             if (value != nullptr && value->value.first == key) {
@@ -133,6 +136,6 @@ namespace cerb {
             }
         }
     };
-}
+}// namespace cerb
 
 #endif /* CERBERUS_SET_HPP */
