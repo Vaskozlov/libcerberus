@@ -11,12 +11,12 @@ namespace cerb {
         using no  = std::false_type;
 
         template<typename U> static constexpr
-        auto test(typename U::iterator*) -> bool {
+        auto test(typename U::iterator* /*unused*/) -> bool {
             return true;
         }
 
-        template<typename U> static constexpr
-        auto test(...) -> bool {
+        template<typename... Us> static constexpr
+        auto test(Us... /*unused*/) -> bool {
             return false;
         }
 

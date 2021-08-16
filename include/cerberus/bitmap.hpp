@@ -51,7 +51,7 @@ namespace cerb::PRIVATE {
 
         forEach(
             [&](auto i) {
-                result = (result << 1) + static_cast<u8>(i);
+                result = (result << 1U) + static_cast<u8>(i);
             },
             Values...);
 
@@ -117,8 +117,7 @@ namespace cerb::PRIVATE {
 
     template<typename T, size_t AxisCount>
     [[nodiscard]] constexpr auto isEmpty(T data, size_t limit) noexcept -> bool {
-        for (size_t i = 0; i < AxisCount && isEmpty(data[i], limit); ++i)
-            ;
+        for (size_t i = 0; i < AxisCount && isEmpty(data[i], limit); ++i) {}
         return true;
     }
 
@@ -183,7 +182,8 @@ namespace cerb::PRIVATE {
     template<BitMapRule... Values, typename T>
     [[nodiscard]] constexpr auto long_find_if(size_t limit, size_t times, T iterator) noexcept -> size_t {
         long last_match = 0;
-        size_t i = 0, matches = 0;
+        size_t i        = 0;
+        size_t matches  = 0;
 
         for (; i < limit / bitsizeof(value_type); ++i) {
             auto value = reverse<Values..., T>(i, iterator);
@@ -232,7 +232,7 @@ namespace cerb::PRIVATE {
                     if ((value & mask) == mask) {
                         return i * bitsizeof(value_type) + j;
                     }
-                    mask <<= 1;// mask *= 2;
+                    mask <<= 1U;
                 }
 
                 if ((value & mask) == value) {
@@ -257,11 +257,12 @@ namespace cerb::PRIVATE {
             if (value >= mask) {
                 size_t j = 0;
 
+                CERBLIB_UNROLL_N(2)
                 for (; j != bitsizeof(value_type) && j + times < limit % bitsizeof(value_type); ++j) {
                     if ((value & mask) == mask) {
                         return i * bitsizeof(value_type) + j;
                     }
-                    mask <<= 1;// mask *= 2;
+                    mask <<= 1U;
                 }
             }
         }
@@ -287,6 +288,7 @@ namespace cerb::PRIVATE {
             }
         }
 
+        CERBLIB_UNROLL_N(2)
         for (; times >= bitsizeof(value_type); times -= bitsizeof(value_type)) {
             if (reverse<Values..., T>(index++, iterator) != std::numeric_limits<value_type>::max()) {
                 return false;
@@ -295,10 +297,10 @@ namespace cerb::PRIVATE {
 
         if (times == 0) {
             return true;
-        } else {
-            size_t after_alignment = pow2<size_t>(times) - 1;
-            return (reverse<Values..., T>(index, iterator) & after_alignment) == after_alignment;
         }
+
+        size_t after_alignment = pow2<size_t>(times) - 1;
+        return (reverse<Values..., T>(index, iterator) & after_alignment) == after_alignment;
     }
 
     template<typename T>
@@ -326,7 +328,7 @@ namespace cerb {
 
     private:
         constexpr static size_type array_size = Size / bitsizeof(value_type) +
-                                                ((Size % bitsizeof(value_type)) != 0);
+                                                static_cast<unsigned long>((Size % bitsizeof(value_type)) != 0);
 
     public:
         using storage_elem_t           = std::array<value_type, Size>;
@@ -345,6 +347,7 @@ namespace cerb {
     private:
         constexpr auto copyFrom(ref_storage_t src) noexcept {
             if (std::is_constant_evaluated()) {
+                CERBLIB_UNROLL_N(1)
                 for (size_t i = 0; i < axis(); ++i) {
                     memcpy<value_type>(m_data[i], src[i], lengthOfAxisArray());
                 }
@@ -484,12 +487,12 @@ namespace cerb {
         }
 
     public:
-        constexpr ConstBitmap &operator=(const ConstBitmap &other) noexcept {
+        constexpr auto operator=(const ConstBitmap &other) noexcept -> ConstBitmap & {
             copyFrom(other.m_data);
             return *this;
         }
 
-        constexpr ConstBitmap &operator=(ConstBitmap &&other) noexcept {
+        constexpr auto operator=(ConstBitmap &&other) noexcept -> ConstBitmap & {
             copyFrom(other.m_data);
             return *this;
         }
@@ -532,6 +535,7 @@ namespace cerb {
         constexpr auto copyFrom(ref_storage_t src) noexcept {
             if (std::is_constant_evaluated()) {
                 for (size_t i = 0; i < axis(); ++i) {
+                    CERBLIB_UNROLL_N(2)
                     for (size_t j = 0; j < lengthOfAxisArray(); ++j) {
                         m_data[i][j] = src[i][j];
                     }
@@ -552,8 +556,7 @@ namespace cerb {
 
         [[nodiscard]] constexpr auto lengthOfAxisArray() const noexcept -> size_type {
             return m_size / bitsizeof(value_type) +
-                   ((m_size % bitsizeof(value_type)) != 0);
-            ;
+                   static_cast<unsigned long>((m_size % bitsizeof(value_type)) != 0);
         }
 
         [[nodiscard]] constexpr auto sizeOfAxisArray() const noexcept -> size_type {
@@ -679,10 +682,12 @@ namespace cerb {
             static_assert(!Freestanding);
 
             if (other.lengthOfAxisArray() > lengthOfAxisArray()) [[unlikely]] {
-                m_size         = other.m_size;
-                auto newBuffer = new value_type[other.lengthOfAxisArray() * axis()]();
+                m_size                = other.m_size;
+                value_type *newBuffer = new value_type[other.lengthOfAxisArray() * axis()]();
+
                 delete[] m_data[0];
 
+                CERBLIB_UNROLL_N(1)
                 for (size_t i = 0; i < axis(); ++i) {
                     m_data[i] = newBuffer;
                     memcpy<value_type>(m_data[i], other.m_data[i], lengthOfAxisArray());
@@ -692,10 +697,11 @@ namespace cerb {
                 m_size = other.m_size;
                 memcpy<value_type>(m_data[0], other.m_data[0], lengthOfAxisArray() * axis());
             }
+
             return *this;
         }
 
-        constexpr Bitmap &operator=(Bitmap &&other) noexcept {
+        constexpr auto operator=(Bitmap &&other) noexcept -> Bitmap & {
             memcpy(m_data, other.m_data, axis());
             memset<pointer>(other.m_data, nullptr, axis());
             m_size       = other.m_size;
@@ -710,11 +716,12 @@ namespace cerb {
             other.m_size = 0;
         }
 
-        constexpr Bitmap(const Bitmap &other) noexcept
+        constexpr Bitmap(const Bitmap &other)
           : m_size(other.m_size) {
             static_assert(!Freestanding);
-            auto newBuffer = new value_type[other.lengthOfAxisArray() * axis()]();
+            auto *newBuffer = new value_type[other.lengthOfAxisArray() * axis()]();
 
+            CERBLIB_UNROLL_N(1)
             for (size_t i = 0; i < axis(); ++i) {
                 m_data[i] = newBuffer;
                 memcpy<value_type>(m_data[i], other.m_data[i], lengthOfAxisArray());
@@ -725,8 +732,9 @@ namespace cerb {
         constexpr explicit Bitmap(size_t size) noexcept
           : m_size(size) {
             static_assert(!Freestanding);
-            auto memory = new value_type[lengthOfAxisArray() * axis()]();
+            auto *memory = new value_type[lengthOfAxisArray() * axis()]();
 
+            CERBLIB_UNROLL_N(1)
             for (size_t i = 0; i < axis(); ++i) {
                 m_data[i] = memory;
                 memory += lengthOfAxisArray();
@@ -736,10 +744,13 @@ namespace cerb {
         constexpr explicit Bitmap(pointer ptr, size_t size) noexcept
           : m_size(size) {
             static_assert(Freestanding);
+
+            CERBLIB_UNROLL_N(1)
             for (size_t i = 0; i < axis(); ++i) {
                 m_data[i] = ptr;
                 ptr += lengthOfAxisArray();
             }
+            
             memset<value_type>(m_data[0], 0, lengthOfAxisArray() * axis());
         }
 

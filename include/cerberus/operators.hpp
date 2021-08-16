@@ -5,6 +5,21 @@
 #include <cerberus/private/classOperators.hpp>
 
 namespace cerb {
+
+    enum struct OperatorSignature : u8 {
+        LESS,
+        LESS_EQUAL,
+        GREATER,
+        GREATER_EQUAL,
+        EQUAL,
+        NOT_EQUAL,
+        ADDITION,
+        SUBTRACTION,
+        MULTIPLICATION,
+        DIVISION,
+        MODULO
+    };
+
     template<typename T1, typename T2 = T1>
     struct less
     {
@@ -12,7 +27,7 @@ namespace cerb {
             return lhs < rhs;
         }
 
-        static constexpr inline bool is_less = true;
+        static constexpr inline OperatorSignature is_less = OperatorSignature::LESS;
     };
 
     template<typename T1, typename T2 = T1>
@@ -21,6 +36,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs <= rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::LESS_EQUAL;
     };
 
     template<typename T1, typename T2 = T1>
@@ -29,7 +46,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs > rhs;
         }
-        static constexpr inline bool is_less = false;
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::GREATER;
     };
 
     template<typename T1, typename T2 = T1>
@@ -38,6 +56,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs >= rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::GREATER_EQUAL;
     };
 
     template<typename T1, typename T2 = T1>
@@ -46,6 +66,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs == rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::EQUAL;
     };
 
     template<typename T1, typename T2 = T1>
@@ -54,6 +76,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs == rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::NOT_EQUAL;
     };
 
     template<>
@@ -63,7 +87,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs < rhs;
         }
-        static constexpr inline bool is_less = true;
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::LESS;
     };
 
     template<>
@@ -73,6 +98,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs <= rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::LESS_EQUAL;
     };
 
     template<>
@@ -82,7 +109,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs > rhs;
         }
-        static constexpr inline bool is_less = false;
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::GREATER;
     };
 
     template<>
@@ -92,6 +120,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs >= rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::GREATER_EQUAL;
     };
 
     template<>
@@ -101,6 +131,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs == rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::EQUAL;
     };
 
     template<>
@@ -110,6 +142,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs != rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::NOT_EQUAL;
     };
 
     template<typename T1, typename T2 = T1>
@@ -118,6 +152,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs + rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::ADDITION;
     };
 
     template<typename T1, typename T2 = T1>
@@ -126,6 +162,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs - rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::SUBTRACTION;
     };
 
     template<typename T1, typename T2 = T1>
@@ -134,6 +172,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs * rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::MULTIPLICATION;
     };
 
     template<typename T1, typename T2 = T1>
@@ -142,6 +182,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs / rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::DIVISION;
     };
 
     template<typename T1, typename T2 = T1>
@@ -150,6 +192,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs % rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::MODULO;
     };
 
     template<>
@@ -159,6 +203,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs + rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::ADDITION;
     };
 
     template<>
@@ -168,6 +214,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs - rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::SUBTRACTION;
     };
 
     template<>
@@ -177,6 +225,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs * rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::MULTIPLICATION;
     };
 
     template<>
@@ -186,6 +236,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs / rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::DIVISION;
     };
 
     template<>
@@ -195,6 +247,8 @@ namespace cerb {
         constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
             return lhs % rhs;
         }
+
+        static constexpr inline OperatorSignature is_less = OperatorSignature::MODULO;
     };
 }// namespace cerb
 #endif /*  CERBERUS_OPERATORS_HPP */

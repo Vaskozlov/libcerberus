@@ -60,9 +60,9 @@ namespace cerb {
 
             if (value == nullptr || value->value.second != key) {
                 return 0;
-            } else {
-                return value->value.first;
             }
+
+            return value->value.first;
         }
 
         constexpr auto insert(const T &value) noexcept {

@@ -6,6 +6,7 @@
 namespace cerb {
     template<typename Iterator, typename T>
     constexpr auto find(Iterator first, Iterator last, const T &value) -> Iterator {
+        CERBLIB_UNROLL_N(2)
         for (; first != last; ++first) {
             if (*first == value) {
                 return first;
@@ -16,6 +17,7 @@ namespace cerb {
 
     template<typename Iterator, class UnaryPredicate>
     constexpr Iterator find_if(Iterator first, Iterator last, UnaryPredicate p) {
+        CERBLIB_UNROLL_N(2)
         for (; first != last; ++first) {
             if (p(*first)) {
                 return first;

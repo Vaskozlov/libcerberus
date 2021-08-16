@@ -83,12 +83,14 @@ namespace cerb {
 
     template<typename T>
     [[nodiscard]] consteval
-    auto str2Uint(const char *str) -> T {
+    auto str2Uint(std::string_view str) -> T {
         static_assert(std::is_integral_v<T> && std::is_unsigned_v<T>);
 
         T result = 0;
+
+        CERBLIB_UNROLL_N(4)
         for (size_t i = 0; i < sizeof(T); i++) {
-            result |= static_cast<T>(cerb::bit_cast<unsigned char>(str[i])) << (i * 8);
+            result |= static_cast<T>(cerb::bit_cast<unsigned char>(str[i])) << (i * bitsizeof(char));
         }
 
         return result;

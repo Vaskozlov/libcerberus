@@ -101,15 +101,17 @@ namespace cerb {
         consteval explicit BitPattern(const char (&input)[SIZE]) {
             T cur_bit = (1 << (SIZE - 2));
 
+            CERBLIB_UNROLL_N(2)
             for (const auto elem : input) {
                 if (elem == '\0') {
                     return;
-                } else if (elem == '1') {
+                }
+                if (elem == '1') {
                     m_expected |= cur_bit;
                 } else if (elem == 'x' || elem == 'X') {
                     m_mask &= ~cur_bit;
                 }
-                cur_bit >>= 1;
+                cur_bit >>= 1U;
             }
         }
     };

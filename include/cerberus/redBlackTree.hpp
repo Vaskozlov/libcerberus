@@ -31,11 +31,11 @@ namespace cerb::PRIVATE {
                 return value == other;
             }
 
-            [[nodiscard]] constexpr std::strong_ordering operator<=>(const RBTreeNode &other) const noexcept {
+            [[nodiscard]] constexpr auto operator<=>(const RBTreeNode &other) const noexcept -> std::strong_ordering {
                 return value <=> other.value;
             }
 
-            [[nodiscard]] constexpr std::strong_ordering operator<=>(const T &other) const noexcept {
+            [[nodiscard]] constexpr auto operator<=>(const T &other) const noexcept -> std::strong_ordering {
                 return value <=> other.value;
             }
 
@@ -91,7 +91,7 @@ namespace cerb::PRIVATE {
                 if (parent != nullptr) [[likely]] {
                     if (isLeftChild()) {
                         parent->left = node;
-                    } else {
+                    } else [[unlikely]] {
                         parent->right = node;
                     }
                 }
@@ -104,6 +104,23 @@ namespace cerb::PRIVATE {
             constexpr static auto init(RBTreeNode *node) noexcept -> void {
                 node->color = RED;
                 node->left = node->right = node->parent = nullptr;
+            }
+
+        public:
+            constexpr auto operator=(const RBTreeNode &other) noexcept {
+                value  = other.value;
+                left   = other.left;
+                right  = other.right;
+                parent = other.parent;
+                color  = other.color;
+            }
+
+            constexpr auto operator=(RBTreeNode &&other) noexcept {
+                value  = std::move(other.value);
+                left   = other.left;
+                right  = other.right;
+                parent = other.parent;
+                color  = other.color;
             }
 
         public:
@@ -131,6 +148,8 @@ namespace cerb::PRIVATE {
                 left(other.left), right(other.right), parent(other.parent) {}
 
             CERBLIB_ENABLE_WARNING("-Wreorder-ctor", "-Wreorder-ctor", 0)
+
+            constexpr ~RBTreeNode() noexcept = default;
         };
 
     protected:
@@ -141,7 +160,7 @@ namespace cerb::PRIVATE {
         using NodeAllocator = typename std::allocator_traits<Alloc>::template rebind_alloc<Node>;
         using NodeTraits    = std::allocator_traits<NodeAllocator>;
 
-    protected:
+    private:
         NodePtr m_root{ nullptr };
         size_t m_size{ 0 };
         NodeAllocator m_allocator{};
@@ -192,69 +211,79 @@ namespace cerb::PRIVATE {
                 return;
             }
 
-            NodePtr parent = node->parent, grandparent = parent->parent, uncle = node->uncle();
+            NodePtr parent      = node->parent;
+            NodePtr grandparent = parent->parent;
+            NodePtr uncle       = node->uncle();
 
             if (parent->color == RED) {
                 if (uncle != nullptr && uncle->color == RED) {
                     parent->color = uncle->color = BLACK;
                     grandparent->color           = RED;
                     return fixRedRed(grandparent);
-                } else {
-                    if (parent->isLeftChild()) {
-                        if (node->isLeftChild()) {
-                            parent->swapColor(grandparent);
-                        } else {
-                            leftRotate(parent);
-                            node->swapColor(grandparent);
-                        }
-                        return rightRotate(grandparent);
-                    } else {
-                        if (node->isLeftChild()) {
-                            rightRotate(parent);
-                            node->swapColor(grandparent);
-                        } else {
-                            parent->swapColor(grandparent);
-                        }
-                        return leftRotate(grandparent);
-                    }
                 }
+
+                if (parent->isLeftChild()) {
+                    if (node->isLeftChild()) {
+                        parent->swapColor(grandparent);
+                    } else {
+                        leftRotate(parent);
+                        node->swapColor(grandparent);
+                    }
+                    return rightRotate(grandparent);
+                }
+
+                if (node->isLeftChild()) {
+                    rightRotate(parent);
+                    node->swapColor(grandparent);
+                } else {
+                    parent->swapColor(grandparent);
+                }
+                return leftRotate(grandparent);
             }
         }
 
         [[nodiscard]] constexpr static auto leftNode(NodePtr node) noexcept -> NodePtr {
-            while (node->left != nullptr) {
+            CERBLIB_UNROLL_N(2)
+            while (true) {
+                if (node->left == nullptr) {
+                    return node;
+                }
                 node = node->left;
             }
-            return node;
         }
 
         [[nodiscard]] constexpr static auto rightNode(NodePtr node) noexcept -> NodePtr {
-            while (node->right != nullptr) {
+            CERBLIB_UNROLL_N(2)
+            while (true) {
+                if (node->right == nullptr) {
+                    return node;
+                }
                 node = node->right;
             }
-            return node;
         }
 
         [[nodiscard]] constexpr static auto RBTreeReplace(NodePtr node) noexcept -> NodePtr {
             if (node->left != nullptr && node->right != nullptr) {
                 return leftNode(node->right);
-            } else if (node->left != nullptr) {
-                return node->left;
-            } else if (node->right != nullptr) {
-                return node->right;
-            } else [[unlikely]] {
-                return nullptr;
             }
+            if (node->left != nullptr) {
+                return node->left;
+            }
+            if (node->right != nullptr) {
+                return node->right;
+            }
+            return nullptr;
         }
 
         constexpr auto fixDoubleBlack(NodePtr node) noexcept -> bool {
-            NodePtr sibling = node->sibling(), parent = node->parent;
+            NodePtr parent  = node->parent;
+            NodePtr sibling = node->sibling();
 
+            CERBLIB_UNROLL_N(1)
             while (true) {
                 if (node == m_root) [[unlikely]] {
                     return true;
                 }
-
                 if (sibling == nullptr) {
                     node    = parent;
                     sibling = node->sibling();
@@ -274,42 +303,40 @@ namespace cerb::PRIVATE {
                     leftRotate(parent);
                 }
                 return fixDoubleBlack(node);
-            } else {
-                if (sibling->left != nullptr && sibling->left->color == RED) {
-                    if (sibling->isLeftChild()) {
-                        sibling->left->color = sibling->color;
-                        sibling->color       = parent->color;
-                        rightRotate(parent);
-                    } else {
-                        sibling->left->color = parent->color;
-                        rightRotate(sibling);
-                        leftRotate(parent);
-                    }
-
-                    parent->color = BLACK;
-                } else if (sibling->right != nullptr && sibling->right->color == RED) {
-                    if (sibling->isLeftChild()) {
-                        sibling->right->color = parent->color;
-                        leftRotate(sibling);
-                        rightRotate(parent);
-                    } else {
-                        sibling->right->color = sibling->color;
-                        sibling->color        = parent->color;
-                        leftRotate(parent);
-                    }
-
-                    parent->color = BLACK;
-                } else {
-                    sibling->color = RED;
-
-                    if (parent->color != RED) {
-                        return fixDoubleBlack(parent);
-                    } else {
-                        parent->color = BLACK;
-                    }
-                }
             }
 
+            if (sibling->left != nullptr && sibling->left->color == RED) {
+                if (sibling->isLeftChild()) {
+                    sibling->left->color = sibling->color;
+                    sibling->color       = parent->color;
+                    rightRotate(parent);
+                } else {
+                    sibling->left->color = parent->color;
+                    rightRotate(sibling);
+                    leftRotate(parent);
+                }
+
+                parent->color = BLACK;
+            } else if (sibling->right != nullptr && sibling->right->color == RED) {
+                if (sibling->isLeftChild()) {
+                    sibling->right->color = parent->color;
+                    leftRotate(sibling);
+                    rightRotate(parent);
+                } else {
+                    sibling->right->color = sibling->color;
+                    sibling->color        = parent->color;
+                    leftRotate(parent);
+                }
+
+                parent->color = BLACK;
+            } else {
+                sibling->color = RED;
+
+                if (parent->color != RED) {
+                    return fixDoubleBlack(parent);
+                }
+                parent->color = BLACK;
+            }
             return true;
         }
 
@@ -366,9 +393,9 @@ namespace cerb::PRIVATE {
 
                     if (u->color == BLACK && color_of_node) {
                         return fixDoubleBlack(u);
-                    } else {
-                        u->color = BLACK;
                     }
+
+                    u->color = BLACK;
                 }
                 return true;
             }
@@ -384,35 +411,17 @@ namespace cerb::PRIVATE {
 
             while (tmp != nullptr) {
                 if (Compare{}(key, tmp->value)) {
-                    if constexpr (Compare::is_less) {
-                        if (tmp->left == nullptr) {
-                            return tmp;
-                        } else {
-                            tmp = tmp->left;
-                        }
-                    } else {
-                        if (tmp->right == nullptr) {
-                            return tmp;
-                        } else {
-                            tmp = tmp->right;
-                        }
+                    if (tmp->left == nullptr) {
+                        return tmp;
                     }
+                    tmp = tmp->left;
                 } else if (key == tmp->value) {
                     return tmp;
                 } else {
-                    if constexpr (Compare::is_less) {
-                        if (tmp->right == nullptr) {
-                            return tmp;
-                        } else {
-                            tmp = tmp->right;
-                        }
-                    } else {
-                        if (tmp->left == nullptr) {
-                            return tmp;
-                        } else {
-                            tmp = tmp->left;
-                        }
+                    if (tmp->right == nullptr) {
+                        return tmp;
                     }
+                    tmp = tmp->right;
                 }
             }
 
@@ -453,27 +462,27 @@ namespace cerb::PRIVATE {
 
             if (tmp->value == value) [[unlikely]] {
                 return tmp;
-            } else [[likely]] {
-                NodePtr new_node = NodeTraits::allocate(m_allocator, 1);
-
-                if (Compare{}(value, tmp->value) && Compare::is_less) {
-                    tmp->left = new_node;
-                } else {
-                    tmp->right = new_node;
-                }
-
-                ++m_size;
-
-                if constexpr (Construct) {
-                    NodeTraits::construct(m_allocator, new_node, std::move(value));
-                } else {
-                    Node::init(new_node);
-                }
-
-                new_node->parent = tmp;
-                fixRedRed(new_node);
-                return new_node;
             }
+
+            NodePtr new_node = NodeTraits::allocate(m_allocator, 1);
+
+            if (Compare{}(value, tmp->value)) {
+                tmp->left = new_node;
+            } else {
+                tmp->right = new_node;
+            }
+
+            ++m_size;
+
+            if constexpr (Construct) {
+                NodeTraits::construct(m_allocator, new_node, std::move(value));
+            } else {
+                Node::init(new_node);
+            }
+
+            new_node->parent = tmp;
+            fixRedRed(new_node);
+            return new_node;
         }
 
         template<typename U>
@@ -486,9 +495,9 @@ namespace cerb::PRIVATE {
 
             if (v->value == key) [[likely]] {
                 return deleteNode(v);
-            } else [[unlikely]] {
-                return false;
             }
+
+            return false;
         }
 
     private:
@@ -496,20 +505,20 @@ namespace cerb::PRIVATE {
             if (m_node->left != nullptr) {
                 m_node = m_node->left;
                 return rightNode(m_node);
-            } else {
-                auto ptr = m_node->parent;
+            }
 
-                while (m_node == ptr->left) {
-                    m_node = ptr;
-                    ptr    = ptr->parent;
+            auto ptr = m_node->parent;
 
-                    if (ptr == nullptr) [[unlikely]] {
-                        return nullptr;
-                    }
+            while (m_node == ptr->left) {
+                m_node = ptr;
+                ptr    = ptr->parent;
+
+                if (ptr == nullptr) [[unlikely]] {
+                    return nullptr;
                 }
-                if (m_node->left != ptr) {
-                    return ptr;
-                }
+            }
+            if (m_node->left != ptr) {
+                return ptr;
             }
 
             return m_node;
@@ -519,24 +528,24 @@ namespace cerb::PRIVATE {
             if (m_node->right != nullptr) {
                 m_node = m_node->right;
                 return leftNode(m_node);
-            } else {
-                auto ptr = m_node->parent;
+            }
+
+            auto ptr = m_node->parent;
+
+            if (ptr == nullptr) [[unlikely]] {
+                return nullptr;
+            }
+
+            while (m_node == ptr->right) {
+                m_node = ptr;
+                ptr    = ptr->parent;
 
                 if (ptr == nullptr) [[unlikely]] {
                     return nullptr;
                 }
-
-                while (m_node == ptr->right) {
-                    m_node = ptr;
-                    ptr    = ptr->parent;
-
-                    if (ptr == nullptr) [[unlikely]] {
-                        return nullptr;
-                    }
-                }
-                if (m_node->right != ptr) {
-                    m_node = ptr;
-                }
+            }
+            if (m_node->right != ptr) {
+                m_node = ptr;
             }
 
             return m_node;
@@ -548,12 +557,12 @@ namespace cerb::PRIVATE {
             NodePtr m_node;
 
         public:
-            typedef T value_type;
-            typedef T &reference;
-            typedef T *pointer;
+            using value_type = T;
+            using reference  = T &;
+            using pointer    = T *;
 
-            typedef std::bidirectional_iterator_tag iterator_category;
-            typedef ptrdiff_t difference_type;
+            using iterator_category = std::bidirectional_iterator_tag;
+            using difference_type   = ptrdiff_t;
 
         public:
             constexpr auto operator++() noexcept -> iterator & {
@@ -593,8 +602,8 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            constexpr iterator &operator=(iterator &&) noexcept = default;
-            constexpr iterator &operator=(const iterator &) noexcept = default;
+            constexpr auto operator=(iterator &&) noexcept -> iterator & = default;
+            constexpr auto operator=(const iterator &) noexcept -> iterator & = default;
 
         public:
             constexpr iterator(iterator &&) noexcept      = default;
@@ -602,6 +611,8 @@ namespace cerb::PRIVATE {
 
             constexpr explicit iterator(NodePtr node) noexcept
               : m_node(node) {}
+
+            constexpr ~iterator() noexcept = default;
         };
 
         struct reverse_iterator
@@ -653,8 +664,8 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            constexpr reverse_iterator &operator=(reverse_iterator &&) noexcept = default;
-            constexpr reverse_iterator &operator=(const reverse_iterator &) noexcept = default;
+            constexpr auto operator=(reverse_iterator &&) noexcept -> reverse_iterator & = default;
+            constexpr auto operator=(const reverse_iterator &) noexcept -> reverse_iterator & = default;
 
         public:
             constexpr reverse_iterator(reverse_iterator &&) noexcept      = default;
@@ -662,6 +673,8 @@ namespace cerb::PRIVATE {
 
             constexpr explicit reverse_iterator(NodePtr node) noexcept
               : m_node(node) {}
+
+            constexpr ~reverse_iterator() noexcept = default;
         };
 
         constexpr auto begin() noexcept -> iterator {
@@ -682,8 +695,9 @@ namespace cerb::PRIVATE {
 
     private:
         constexpr void self_delete(NodePtr x) {
-            if (x == nullptr)
+            if (x == nullptr) {
                 return;
+            }
 
             self_delete(x->left);
             auto right = x->right;
@@ -730,13 +744,13 @@ namespace cerb::PRIVATE {
         }
 
     public:
-        constexpr MultiSetNode &operator=(const MultiSetNode &other) noexcept {
+        constexpr auto operator=(const MultiSetNode &other) noexcept -> MultiSetNode & {
             value   = other.value;
             counter = other.counter;
             return *this;
         }
 
-        constexpr MultiSetNode &operator=(MultiSetNode &&other) noexcept {
+        constexpr auto operator=(MultiSetNode &&other) noexcept -> MultiSetNode & {
             value   = std::move(other.value);
             counter = other.counter;
             return *this;

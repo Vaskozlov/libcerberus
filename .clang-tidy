@@ -1,0 +1,5 @@
+---
+Checks:          '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-llvm*,-misc-non-private-member-variables-in-classes,-readability-redundant-access-specifiers'
+WarningsAsErrors: '*'
+HeaderFilterRegex: ''
+FormatStyle:     none

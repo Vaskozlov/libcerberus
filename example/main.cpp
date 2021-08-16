@@ -10,12 +10,13 @@ using namespace cerb::literals;
 #include <cerberus/set.hpp>
 #include <cerberus/redBlackTree.hpp>
 
-auto main(int argc, char *argv[]) -> int {
+auto main(int  /*argc*/, char * /*argv*/[]) -> int {
 
-    cerb::Map<int, std::string, cerb::Throwable{}, cerb::greater<void>> a;
+    cerb::Map<int, std::string, cerb::Throwable{}, cerb::less<void>> a;
     a[0] = "He";
     a[1] = "HellO";
 
+    CERBLIB_UNROLL_N(2)
     for (auto &elem : a) {
         std::cout << elem.first << ' ' << elem.second << std::endl;
     }

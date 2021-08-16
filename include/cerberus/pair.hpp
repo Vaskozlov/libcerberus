@@ -47,9 +47,9 @@ namespace cerb {
         constexpr auto operator<=>(const Pair<T1, T2, DEFAULT> &other) const {
             if (first == other.first) {
                 return second <=> other.second;
-            } else {
-                return first <=> other.first;
             }
+
+            return first <=> other.first;
         }
 
         template<typename U>
@@ -69,18 +69,6 @@ namespace cerb {
 
         constexpr auto operator<=>(const Pair<T1, T2, BY_SECOND_VALUE> &other) const {
             return second <=> other.second;
-        }
-
-    public:
-        template<PairCompare Compare2>
-        [[nodiscard]] constexpr explicit operator Pair<T1, T2, Compare2>() noexcept {
-            if constexpr (Compare == Compare2) {
-                return *this;
-            } else if (std::is_constant_evaluated()) {
-                return Pair<T1, T2, Compare2>(std::move(first), std::move(second));
-            } else {
-                return *reinterpret_cast<Pair<T1, T2, Compare2> *>(this);
-            }
         }
 
     public:

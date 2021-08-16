@@ -117,6 +117,7 @@ namespace cerb::PRIVATE::gl {
         }
 
         constexpr basic_set(const std::initializer_list<const_value_type> &args) noexcept {
+            CERBLIB_UNROLL_N(2)
             for (const auto &elem : args) {
                 m_data[m_size++] = std::move(elem);
             }
@@ -187,8 +188,8 @@ namespace cerb::gl {
         }
 
     public:
-        constexpr set &operator=(set &&other) noexcept = default;
-        constexpr set &operator=(const set &other) noexcept = default;
+        constexpr auto operator=(set &&other) noexcept -> set & = default;
+        constexpr auto operator=(const set &other) noexcept -> set & = default;
 
     public:
         constexpr set(const set &other) noexcept
@@ -256,7 +257,7 @@ namespace cerb::gl {
         }
 
     public:
-        constexpr map &operator=(map &&other) noexcept = default;
+        constexpr auto operator=(map &&other) noexcept -> map & = default;
         constexpr map &operator=(const map &other) noexcept = default;
 
     public:
@@ -403,7 +404,7 @@ namespace cerb::cx {
         }
 
     public:
-        constexpr Map &operator=(const Map &other) noexcept {
+        constexpr auto operator=(const Map &other) noexcept -> Map & {
             if (this == &other) {
                 return *this;
             }
@@ -457,6 +458,7 @@ namespace cerb::cx {
 
         constexpr Map(const std::initializer_list<const map_elem> &args) noexcept
           : m_data(m_allocator.allocate(args.end() - args.begin())), m_capacity(args.end() - args.begin()) {
+            CERBLIB_UNROLL_N(2)
             for (const auto &elem : args) {
                 push(elem);
             }
@@ -468,7 +470,7 @@ namespace cerb::cx {
             cerb::forEach<false>([&](const auto &elem) {
                 push(elem);
             },
-                                 args...);
+            args...);
         }
 
         constexpr ~Map() noexcept {

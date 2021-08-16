@@ -25,8 +25,10 @@ namespace cerb::literals {
             return str2Uint<u64>(str);
         default: {
             u64 result = 0;
+
+            CERBLIB_UNROLL_N(2)
             for (size_t i = 0; i < len; ++i) {
-                result = result * 31ul + cerb::bit_cast<unsigned char>(str[i]);
+                result = result * 31UL + cerb::bit_cast<unsigned char>(str[i]);
             }
             return result;
         }

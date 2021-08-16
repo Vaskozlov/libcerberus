@@ -48,9 +48,13 @@ namespace cerb {
 typedef u8 byte;
 #endif /* _cplusplus */
 
-#if !defined(bitsizeof)
+#ifndef bitsizeof
 #    define bitsizeof(x) (sizeof(x) * 8)
 #endif /* bitsizeof */
+
+#ifndef CERBLIB_BYTE_SIZE
+#    define CERBLIB_BYTE_SIZE 8
+#endif /* CERBLIB_BYTE_SIZE */
 
 #define CERBLIB_STRX(x) #x
 #define CERBLIB_STR(x) CERBLIB_STRX(x)
@@ -194,22 +198,32 @@ namespace cerb {
     {
         u8 empty;
 
-        EmptyType()        = delete;
-        ~EmptyType()       = delete;
-        EmptyType &operator=(EmptyType &&) = delete;
-        EmptyType &operator=(const EmptyType &) = delete;
+        EmptyType()  = delete;
+        ~EmptyType() = delete;
+
+        EmptyType(const EmptyType &) = delete;
+        EmptyType(EmptyType &&)      = delete;
+
+        auto operator=(EmptyType &&) -> EmptyType & = delete;
+        auto operator=(const EmptyType &) -> EmptyType & = delete;
     };
 
     struct Throwable
     {
         u8 empty;
 
-        Throwable &operator=(Throwable &&) = delete;
-        Throwable &operator=(const Throwable &) = delete;
+        constexpr Throwable()  = default;
+        constexpr ~Throwable() = default;
+
+        constexpr Throwable(Throwable &&) noexcept      = default;
+        constexpr Throwable(const Throwable &) noexcept = default;
+
+        auto operator=(Throwable &&) -> Throwable & = delete;
+        auto operator=(const Throwable &) -> Throwable & = delete;
     };
 
     template<typename T>
-    [[nodiscard]] constexpr auto getLimits(const T &) -> std::numeric_limits<T> {
+    [[nodiscard]] constexpr auto getLimits(const T & /*unused*/) -> std::numeric_limits<T> {
         return std::numeric_limits<T>();
     }
 

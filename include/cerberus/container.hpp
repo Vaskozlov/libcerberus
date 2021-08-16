@@ -75,6 +75,19 @@ namespace cerb::gl {
         }
 
     public:
+        constexpr auto operator=(Container&& other) noexcept -> Container & {
+            m_tracker = std::move(other.m_tracker);
+            memcpy(m_data, other.m_data, size());
+            return *this;
+        }
+
+        constexpr auto operator=(const Container &other) noexcept -> Container & {
+            m_tracker = other.m_tracker;
+            memcpy(m_data, other.m_data, size());
+            return *this;
+        }
+
+    public:
         constexpr Container() noexcept(std::is_nothrow_constructible_v<T>) = default;
 
         constexpr Container(const Container &other) noexcept(std::is_nothrow_constructible_v<T>)
@@ -89,6 +102,8 @@ namespace cerb::gl {
                 m_data[i] = std::move(other.m_data[i]);
             }
         }
+
+        constexpr ~Container() noexcept = default;
     };
 }// namespace cerb::gl
 
