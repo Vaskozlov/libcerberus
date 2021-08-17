@@ -8,12 +8,12 @@
 namespace cerb {
 
     /**
-     * @brief universal class to store m_pointer
+     * @brief universal class to store pointers
      *
      */
     class CERBLIB_TRIVIAL Address
     {
-        cerb::byte *m_address;
+        cerb::byte *m_address{ nullptr };
 
     public:
         enum ALIGN2 : u32
@@ -38,20 +38,60 @@ namespace cerb {
         }
 
     public:
-        CERBLIB_CLASS_ARITHMETIC_ON_SELF(Address, constexpr, constexpr, other, OP, {
-            this->m_address = reinterpret_cast<cerb::byte *>(
-                cerb::operators::count<OP>(value(), other.value()));
-            return *this;
-        })
+        CERBLIB_INLINE friend auto operator+(const Address &lhs, const Address &rhs)
+            -> Address {
+            return Address(lhs.m_address + rhs.value());
+        }
+
+        CERBLIB_INLINE friend auto operator-(const Address &lhs, const Address &rhs)
+            -> Address {
+            return Address(lhs.m_address - rhs.value());
+        }
+
+        CERBLIB_INLINE friend auto operator*(const Address &lhs, const Address &rhs)
+            -> Address {
+            return Address(lhs.value() * rhs.value());
+        }
+
+        CERBLIB_INLINE friend auto operator/(const Address &lhs, const Address &rhs)
+            -> Address {
+            return Address(lhs.value() / rhs.value());
+        }
+
+        CERBLIB_INLINE friend auto operator%(const Address &lhs, const Address &rhs)
+            -> Address {
+            return Address(lhs.value() % rhs.value());
+        }
 
     public:
-        CERBLIB_CLASS_ARITHMETIC_INCREMENT(Address, constexpr, {
-            this->m_address++;
-        })
+        CERBLIB_INLINE auto operator+=(const Address &other) -> Address & {
+            m_address += other.value();
+            return *this;
+        }
 
-        CERBLIB_CLASS_ARITHMETIC_DECREMENT(Address, constexpr, {
-            this->m_address--;
-        })
+        CERBLIB_INLINE auto operator-=(const Address &other) -> Address & {
+            m_address -= other.value();
+            return *this;
+        }
+
+        CERBLIB_INLINE auto operator*=(const Address &other) -> Address & {
+            m_address = reinterpret_cast<cerb::byte *>(value() * other.value());
+            return *this;
+        }
+
+        CERBLIB_INLINE auto operator/=(const Address &other) -> Address & {
+            m_address = reinterpret_cast<cerb::byte *>(value() / other.value());
+            return *this;
+        }
+
+        CERBLIB_INLINE auto operator%=(const Address &other) -> Address & {
+            m_address = reinterpret_cast<cerb::byte *>(value() % other.value());
+            return *this;
+        }
+
+    public:
+        constexpr auto operator==(const Address &) const -> bool = default;
+        constexpr auto operator<=>(const Address &) const        = default;
 
     public:
         template<u32 ALIGN_VALUE = ALIGN2::Page4KB, auto MODE = AlignMode::ALIGN>
@@ -61,31 +101,28 @@ namespace cerb {
         }
 
     public:
-        auto operator=(const Address &) -> Address & = default;
-        auto operator=(Address &&) noexcept -> Address & = default;
+        constexpr auto operator=(const Address &) -> Address & = default;
+        constexpr auto operator=(Address &&) noexcept -> Address & = default;
 
     public:
-        ~Address() = default;
-        constexpr Address() noexcept : m_address(nullptr) {}
+        constexpr Address() noexcept  = default;
+        constexpr ~Address() noexcept = default;
 
-        Address(Address &)           = default;
-        Address(Address &&) noexcept = default;
+        constexpr Address(Address &)           = default;
+        constexpr Address(Address &&) noexcept = default;
 
-        template<typename T>
-        explicit constexpr CERBLIB_INLINE Address(T *addr) noexcept
+        constexpr Address(void *addr) noexcept
           : m_address(static_cast<cerb::byte *>(addr)) {}
 
-        explicit constexpr CERBLIB_INLINE Address(size_t addr) noexcept
-          : m_address(cerb::bit_cast<cerb::byte *>(addr)) {}
+        CERBLIB_INLINE Address(size_t addr) noexcept
+          : m_address(reinterpret_cast<cerb::byte *>(addr)) {}
     };
 
-    CERBLIB_CLASS_ARITHMETIC(Address, constexpr, constexpr, lhs, rhs, OP, {
-        return Address(cerb::operators::count<OP>(lhs.value(), rhs.value()));
-    })
-
-    CERBLIB_CLASS_COMPARISON(Address, constexpr, constexpr, lhs, rhs, OP, {
-        return cerb::operators::compare<OP>(lhs.raw(), rhs.raw());
-    })
+    namespace literals {
+        CERBLIB_INLINE auto operator"" _addr(unsigned long long address) {
+            return Address(address);
+        }
+    }// namespace literals
 }// namespace cerb
 
 #endif /* cerberusAddress_hpp */
