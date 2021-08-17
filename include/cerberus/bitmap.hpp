@@ -117,6 +117,7 @@ namespace cerb::PRIVATE {
 
     template<typename T, size_t AxisCount>
     [[nodiscard]] constexpr auto isEmpty(T data, size_t limit) noexcept -> bool {
+        CERBLIB_UNROLL_N(2)
         for (size_t i = 0; i < AxisCount && isEmpty(data[i], limit); ++i) {}
         return true;
     }
@@ -192,6 +193,7 @@ namespace cerb::PRIVATE {
                 last_match = -1;
             }
 
+            CERBLIB_UNROLL_N(1)
             while (value > 0) {
                 long new_match = findSetBitForward(value);
 
@@ -206,7 +208,7 @@ namespace cerb::PRIVATE {
                 }
 
                 last_match = new_match;
-                value &= ~(static_cast<value_type>(1) << last_match);
+                value &= ~(static_cast<value_type>(1U) << last_match);
             }
         }
 
@@ -228,6 +230,7 @@ namespace cerb::PRIVATE {
             if (value >= mask) {
                 size_t j = 0;
 
+                CERBLIB_UNROLL_N(1)
                 for (; j != bitsizeof(value_type); ++j) {
                     if ((value & mask) == mask) {
                         return i * bitsizeof(value_type) + j;
@@ -678,7 +681,7 @@ namespace cerb {
 
     public:
         template<size_type OAxis, bool OFreestanding>
-        constexpr Bitmap &operator=(const Bitmap<OAxis, OFreestanding> &other) noexcept(Freestanding) {
+        constexpr auto operator=(const Bitmap<OAxis, OFreestanding> &other) noexcept(Freestanding) -> Bitmap & {
             static_assert(!Freestanding);
 
             if (other.lengthOfAxisArray() > lengthOfAxisArray()) [[unlikely]] {
@@ -750,7 +753,7 @@ namespace cerb {
                 m_data[i] = ptr;
                 ptr += lengthOfAxisArray();
             }
-            
+
             memset<value_type>(m_data[0], 0, lengthOfAxisArray() * axis());
         }
 

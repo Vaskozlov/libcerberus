@@ -124,7 +124,7 @@ namespace cerb {
     /**
      * @brief returns absolute value of argument
      *
-     * @tparam ResultType if it is set function converts result to this type
+     * @tparam ResultType if it is Set function converts result to this type
      * @tparam T
      * @param value
      * @return T or ResultType

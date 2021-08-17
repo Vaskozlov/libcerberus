@@ -75,13 +75,17 @@ namespace cerb::gl {
         }
 
     public:
-        constexpr auto operator=(Container&& other) noexcept -> Container & {
+        constexpr auto operator=(Container &&other) noexcept -> Container & {
             m_tracker = std::move(other.m_tracker);
             memcpy(m_data, other.m_data, size());
             return *this;
         }
 
         constexpr auto operator=(const Container &other) noexcept -> Container & {
+            if (this == &other) {
+                return *this;
+            }
+
             m_tracker = other.m_tracker;
             memcpy(m_data, other.m_data, size());
             return *this;

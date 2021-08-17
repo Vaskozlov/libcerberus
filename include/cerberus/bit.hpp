@@ -99,7 +99,7 @@ namespace cerb {
     public:
         template<int SIZE>
         consteval explicit BitPattern(const char (&input)[SIZE]) {
-            T cur_bit = (1 << (SIZE - 2));
+            T cur_bit = (static_cast<T>(1) << (SIZE - 2));
 
             CERBLIB_UNROLL_N(2)
             for (const auto elem : input) {
