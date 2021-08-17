@@ -36,11 +36,13 @@ namespace cerb {
             return first == other.first && second == other.second;
         }
 
-        constexpr auto operator==(const Pair<T1, T2, BY_FIRST_VALUE> &other) const -> bool {
+        constexpr auto operator==(const Pair<T1, T2, BY_FIRST_VALUE> &other) const
+            -> bool {
             return first == other.first;
         }
 
-        constexpr auto operator==(const Pair<T1, T2, BY_SECOND_VALUE> &other) const -> bool {
+        constexpr auto operator==(const Pair<T1, T2, BY_SECOND_VALUE> &other) const
+            -> bool {
             return second == other.second;
         }
 
@@ -67,7 +69,8 @@ namespace cerb {
             return first <=> other.first;
         }
 
-        constexpr auto operator<=>(const Pair<T1, T2, BY_SECOND_VALUE> &other) const {
+        constexpr auto
+            operator<=>(const Pair<T1, T2, BY_SECOND_VALUE> &other) const {
             return second <=> other.second;
         }
 
@@ -81,8 +84,7 @@ namespace cerb {
         constexpr Pair(Pair &&) noexcept      = default;
         constexpr Pair(const Pair &) noexcept = default;
 
-        constexpr explicit Pair(T1 &&t_first) noexcept
-          : first(t_first), second() {}
+        constexpr explicit Pair(T1 &&t_first) noexcept : first(t_first), second() {}
 
         constexpr explicit Pair(const T1 &t_first) noexcept
           : first(t_first), second() {}
@@ -95,7 +97,8 @@ namespace cerb {
     };
 
     template<typename T1, typename T2, PairCompare Compare = DEFAULT>
-    constexpr auto make_pair(const T1 &first, const T2 &second) -> cerb::Pair<T1, T2, Compare> {
+    constexpr auto make_pair(const T1 &first, const T2 &second)
+        -> cerb::Pair<T1, T2, Compare> {
         return cerb::Pair<T1, T2, Compare>(first, second);
     }
 }// namespace cerb

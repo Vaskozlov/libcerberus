@@ -1,484 +1,160 @@
 #ifndef CERBERUS_MAP_HPP
 #define CERBERUS_MAP_HPP
 
-#include <stdexcept>
-#include <functional>
 #include <memory>
+#include <functional>
 #include <initializer_list>
 #include <cerberus/types.h>
 #include <cerberus/pair.hpp>
 #include <cerberus/string.hpp>
 #include <cerberus/algorithms.hpp>
+#include <cerberus/redBlackTree.hpp>
 
-namespace cerb::PRIVATE::gl {
-    template<typename T, size_t Size>
-    struct BasicSet
-    {
-        using value_type       = T;
-        using const_value_type = const T;
-        using storage_t        = std::array<value_type, Size>;
+namespace cerb {
+    namespace gl {
+        template<typename T1, typename T2, size_t Size>
+        class Map : public cerb::PRIVATE::gl::BasicSet<cerb::Pair<T1, T2>, Size>
+        {
+            using key_type         = T1;
+            using value_type       = T2;
+            using const_key_type   = const T1;
+            using const_value_type = const T2;
+            using map_elem         = cerb::Pair<key_type, value_type>;
+            using const_map_elem   = const cerb::Pair<key_type, value_type>;
+            using parent_class =
+                cerb::PRIVATE::gl::BasicSet<cerb::Pair<T1, T2>, Size>;
 
-        using iterator       = typename storage_t::iterator;
-        using const_iterator = typename storage_t::const_iterator;
+            using parent_class::begin;
+            using parent_class::end;
+            using parent_class::m_data;
+            using parent_class::m_size;
+            using parent_class::self;
 
-        using reverse_iterator       = typename storage_t::reverse_iterator;
-        using const_reverse_iterator = typename storage_t::const_reverse_iterator;
-
-    protected:
-        size_t m_size{ 0 };
-        storage_t m_data{};
-
-    public:
-        constexpr auto begin() noexcept -> iterator {
-            return m_data.begin();
-        }
-
-        constexpr auto end() noexcept -> iterator {
-            return m_data.begin() + m_size;
-        }
-
-        constexpr auto begin() const noexcept -> const_iterator {
-            return m_data.begin();
-        }
-
-        constexpr auto end() const noexcept -> const_iterator {
-            return m_data.begin() + m_size;
-        }
-
-        constexpr auto rbegin() noexcept -> reverse_iterator {
-            return reverse_iterator(begin());
-        }
-
-        constexpr auto rend() noexcept -> reverse_iterator {
-            return reverse_iterator(end());
-        }
-
-        constexpr auto rbegin() const noexcept -> const_reverse_iterator {
-            return const_reverse_iterator(begin());
-        }
-
-        constexpr auto rend() const noexcept -> const_reverse_iterator {
-            return const_reverse_iterator(end());
-        }
-
-        constexpr auto cbegin() noexcept -> const_iterator {
-            return m_data.cbegin();
-        }
-
-        constexpr auto cend() noexcept -> const_iterator {
-            return m_data.cbegin() + m_size;
-        }
-
-        constexpr auto crbegin() noexcept -> const_reverse_iterator {
-            return const_reverse_iterator(cbegin());
-        }
-
-        constexpr auto crend() noexcept -> const_reverse_iterator {
-            return const_reverse_iterator(cend());
-        }
-
-    public:
-        constexpr auto self() noexcept -> BasicSet & {
-            return *this;
-        }
-
-        constexpr auto self() const noexcept -> const BasicSet & {
-            return *this;
-        }
-
-    public:
-        constexpr auto operator=(const BasicSet &other) noexcept -> BasicSet & {
-            if (this == &other) {
-                return *this;
+        private:
+            constexpr auto search(const_key_type &key) noexcept {
+                return cerb::find_if(begin(), end(), [&key](const auto &i) {
+                    return i.first == key;
+                });
             }
 
-            m_size = other.m_size;
-            cerb::memcpy(m_data, other.m_data, m_size);
-            return *this;
-        }
-
-        constexpr auto operator=(BasicSet &&other) noexcept -> BasicSet & {
-            m_size = other.m_size;
-            cerb::memcpy(m_data, other.m_data, m_size);
-            return *this;
-        }
-
-    public:
-        constexpr BasicSet() noexcept = default;
-
-        constexpr BasicSet(const BasicSet &other) noexcept
-          : m_size(other.m_size) {
-            cerb::memcpy(m_data, other.m_data, m_size);
-        }
-
-        constexpr BasicSet(BasicSet &&other) noexcept
-          : m_size(other.m_size) {
-            cerb::memcpy(m_data, other.m_data, m_size);
-        }
-
-        constexpr BasicSet(const std::initializer_list<const_value_type> &args) noexcept {
-            CERBLIB_UNROLL_N(2)
-            for (const auto &elem : args) {
-                m_data[m_size++] = std::move(elem);
+            constexpr auto search(const_key_type &key) const noexcept {
+                return cerb::find_if(begin(), end(), [&key](const auto &i) {
+                    return i.first == key;
+                });
             }
-        }
 
-        template<typename... Ts>
-        explicit constexpr BasicSet(Ts &&...args) noexcept {
-            cerb::forEach<false>(
-                [&](const auto &elem) {
-                    m_data[m_size++] = std::move(elem);
-                },
-                args...);
-        }
-
-        constexpr ~BasicSet() noexcept = default;
-    };
-}// namespace cerb::PRIVATE::gl
-
-namespace cerb::gl {
-    template<typename T, size_t Size>
-    class Set : public cerb::PRIVATE::gl::BasicSet<T, Size>
-    {
-        using value_type       = T;
-        using const_value_type = const T;
-        using base_class       = cerb::PRIVATE::gl::BasicSet<T, Size>;
-
-        using base_class::begin;
-        using base_class::end;
-        using base_class::m_data;
-        using base_class::m_size;
-        using base_class::self;
-
-    private:
-        constexpr auto search(const_value_type &key) noexcept {
-            return cerb::find_if(begin(), end(), [&key](const auto &i) {
-                return i == key;
-            });
-        }
-
-        constexpr auto search(const_value_type &key) const noexcept {
-            return cerb::find_if(begin(), end(), [&key](const auto &i) {
-                return i == key;
-            });
-        }
-
-    public:
-        constexpr auto insert(const_value_type &new_elem) noexcept {
-            auto elem = search(new_elem);
-
-            if (elem == end()) {
-                m_data[m_size++] = new_elem;
+        public:
+            constexpr auto at(const_key_type &key) const noexcept
+                -> const_value_type & {
+                const auto elem = search(key);
+                return elem->second;
             }
-        }
 
-        constexpr auto erase(const_value_type &value2erase) {
-            auto elem = search(value2erase);
+            constexpr auto operator[](const_key_type &key) const noexcept
+                -> const_value_type & {
+                return at(key);
+            }
 
-            if (elem != end()) {
-                --m_size;
+            constexpr auto operator[](const_key_type &key) noexcept -> value_type & {
+                auto elem = static_cast<size_t>(search(key) - begin());
 
-                CERBLIB_UNROLL_N(2)
-                for (const auto back = end(); elem != back; ++elem) {
-                    *elem = *(elem + 1);
+                if (elem == m_size) {
+                    m_data[m_size++] = map_elem{ key };
                 }
+
+                return m_data[elem].second;
             }
-        }
 
-        constexpr auto contains(const_value_type &value) const noexcept -> bool {
-            return search(value) != end();
-        }
+        public:
+            constexpr auto operator=(Map &&other) noexcept -> Map & = default;
+            constexpr auto operator=(const Map &other) noexcept -> Map & = default;
 
-    public:
-        constexpr auto operator=(Set &&other) noexcept -> Set & = default;
-        constexpr auto operator=(const Set &other) noexcept -> Set & = default;
+        public:
+            constexpr Map(const Map &other) noexcept : parent_class(other.self()) {}
 
-    public:
-        constexpr Set(const Set &other) noexcept
-          : base_class(other.self()) {}
+            constexpr Map(Map &&other) noexcept
+              : parent_class(std::move(other.self())) {}
 
-        constexpr Set(Set &&other) noexcept
-          : base_class(std::move(other.self())) {}
+            constexpr Map(const std::initializer_list<const_map_elem> &args) noexcept
+              : parent_class(args) {}
 
-        constexpr Set(const std::initializer_list<const_value_type> &args) noexcept
-          : base_class(args) {}
+            template<typename... Ts>
+            explicit constexpr Map(Ts &&...args) noexcept : parent_class(args...) {}
+        };
+    }// namespace gl
 
-        template<typename... Ts>
-        explicit constexpr Set(Ts &&...args) noexcept
-          : base_class(args...) {}
-    };
-
-    template<typename T1, typename T2, size_t Size>
-    class Map : public cerb::PRIVATE::gl::BasicSet<cerb::Pair<T1, T2>, Size>
+    template<typename T1, typename T2, auto OnThrowing = cerb::Throwable{},
+             typename Compare = cerb::less<void>,
+             typename Alloc   = std::allocator<T1>>
+    class CERBLIB_TRIVIAL Map
+      : public PRIVATE::RBTree<Pair<const T1, T2, BY_FIRST_VALUE>, Compare, Alloc>
     {
-        using key_type         = T1;
-        using value_type       = T2;
-        using const_key_type   = const T1;
-        using const_value_type = const T2;
-        using map_elem         = cerb::Pair<key_type, value_type>;
-        using const_map_elem   = const cerb::Pair<key_type, value_type>;
-        using parent_class     = cerb::PRIVATE::gl::BasicSet<cerb::Pair<T1, T2>, Size>;
+        using value_type = Pair<const T1, T2, BY_FIRST_VALUE>;
+        using BasicTree  = PRIVATE::RBTree<value_type, Compare, Alloc>;
+        using Node = typename PRIVATE::RBTree<value_type, Compare, Alloc>::Node;
 
-        using parent_class::begin;
-        using parent_class::end;
-        using parent_class::m_data;
-        using parent_class::m_size;
-        using parent_class::self;
+        using BasicTree::deleteNode;
+        using BasicTree::RBTreeEmplace;
+        using BasicTree::RBTreeErase;
+        using BasicTree::search;
 
     private:
-        constexpr auto search(const_key_type &key) noexcept {
-            return cerb::find_if(begin(), end(), [&key](const auto &i) {
-                return i.first == key;
-            });
-        }
-
-        constexpr auto search(const_key_type &key) const noexcept {
-            return cerb::find_if(begin(), end(), [&key](const auto &i) {
-                return i.first == key;
-            });
-        }
+        constexpr static auto MayThrow =
+            std::is_same_v<Throwable, decltype(OnThrowing)>;
 
     public:
-        constexpr auto at(const_key_type &key) const noexcept -> const_value_type & {
-            const auto elem = search(key);
-            return elem->second;
+        constexpr auto insert(value_type &&value) noexcept {
+            this->template RBTreeEmplace<true, true>(value);
         }
 
-        constexpr auto operator[](const_key_type &key) const noexcept -> const_value_type & {
-            return at(key);
+        constexpr auto insert(const value_type &value) noexcept {
+            this->template RBTreeEmplace<true, true>(value);
         }
 
-        constexpr auto operator[](const_key_type &key) noexcept -> value_type & {
-            auto elem = static_cast<size_t>(search(key) - begin());
+        constexpr auto count(const T1 &key) const noexcept -> size_t {
+            auto value = search(key);
+            return value != nullptr && value->value == key;
+        }
 
-            if (elem == m_size) {
-                m_data[m_size++] = map_elem{ key };
+        constexpr auto erase(const T1 &key) noexcept(!MayThrow) {
+            if constexpr (MayThrow) {
+                if (!RBTreeErase(key)) [[unlikely]] {
+                    throw std::out_of_range("Unable to erase elem from cerb::Set");
+                }
+                return true;
+            } else {
+                return RBTreeErase(key);
             }
-
-            return m_data[elem].second;
         }
 
-    public:
-        constexpr auto operator=(Map &&other) noexcept -> Map & = default;
-        constexpr auto operator=(const Map &other) noexcept -> Map & = default;
+        constexpr auto operator[](const T1 &key) noexcept(!MayThrow) -> T2 & {
+            auto value = search(key);
 
-    public:
-        constexpr Map(const Map &other) noexcept
-          : parent_class(other.self()) {}
-
-        constexpr Map(Map &&other) noexcept
-          : parent_class(std::move(other.self())) {}
-
-        constexpr Map(const std::initializer_list<const_map_elem> &args) noexcept
-          : parent_class(args) {}
-
-        template<typename... Ts>
-        explicit constexpr Map(Ts &&...args) noexcept
-          : parent_class(args...) {}
-    };
-}// namespace cerb::gl
-
-namespace cerb::cx {
-    template<typename T1, typename T2, typename Alloc = std::allocator<cerb::Pair<T1, T2>>>
-    class Map
-    {
-        using key_type               = T1;
-        using value_type             = T2;
-        using const_key_type         = const T1;
-        using const_value_type       = const T2;
-        using map_elem               = cerb::Pair<key_type, value_type>;
-        using difference_type        = ptrdiff_t;
-        using iterator               = map_elem *;
-        using const_iterator         = const map_elem *;
-        using reverse_iterator       = std::reverse_iterator<iterator>;
-        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-    private:
-        map_elem *m_data;
-        size_t m_size{ 0 };
-        size_t m_capacity{ 0 };
-        Alloc m_allocator{};
-
-    public:
-        constexpr auto begin() noexcept -> iterator {
-            return m_data;
-        }
-
-        constexpr auto end() noexcept -> iterator {
-            return m_data + m_size;
-        }
-
-        constexpr auto begin() const noexcept -> const_iterator {
-            return m_data;
-        }
-
-        constexpr auto end() const noexcept -> const_iterator {
-            return m_data + m_size;
-        }
-
-        constexpr auto rbegin() noexcept -> reverse_iterator {
-            return reverse_iterator(begin());
-        }
-
-        constexpr auto rend() noexcept -> reverse_iterator {
-            return reverse_iterator(end());
-        }
-
-        constexpr auto rbegin() const noexcept -> const_reverse_iterator {
-            return const_reverse_iterator(begin());
-        }
-
-        constexpr auto rend() const noexcept -> const_reverse_iterator {
-            return const_reverse_iterator(end());
-        }
-
-        constexpr auto cbegin() noexcept -> const_iterator {
-            return m_data;
-        }
-
-        constexpr auto cend() noexcept -> const_iterator {
-            return m_data + m_size;
-        }
-
-        constexpr auto crbegin() noexcept -> const_reverse_iterator {
-            return const_reverse_iterator(cbegin());
-        }
-
-        constexpr auto crend() noexcept -> const_reverse_iterator {
-            return const_reverse_iterator(cend());
-        }
-
-    private:
-        constexpr auto realloc(size_t new_size) noexcept -> void {
-            m_capacity    = new_size;
-            auto new_data = m_allocator.allocate(m_capacity);
-            cerb::memcpy(new_data, m_data, m_size);
-            delete[] m_data;
-            m_data = new_data;
-        }
-
-        constexpr auto search(const_key_type &key) noexcept {
-            return cerb::find_if(begin(), end(), [&key](const auto &i) {
-                return i.first == key;
-            });
-        }
-
-        constexpr auto search(const_key_type &key) const noexcept {
-            return cerb::find_if(begin(), end(), [&key](const auto &i) {
-                return i.first == key;
-            });
-        }
-
-        constexpr auto push(const map_elem &new_elem) {
-            const auto elem = search(new_elem.first);
-
-            if (m_size == m_capacity) {
-                realloc(m_capacity * 2U);
-            }
-
-            if (elem == end()) {
-                m_data[m_size++] = new_elem;
+            if (value != nullptr && value->value.first == key) {
+                return value->value.second;
+            } else {
+                auto elem = RBTreeEmplace(key);
+                return elem->value.second;
             }
         }
 
     public:
-        constexpr auto at(const_key_type &key) const noexcept -> const_value_type & {
-            const auto elem = search(key);
-            return elem->second;
-        }
-
-        constexpr auto operator[](const_key_type &key) const noexcept -> const_value_type & {
-            return at(key);
-        }
-
-        constexpr auto operator[](const_key_type &key) noexcept -> value_type & {
-            auto elem = static_cast<size_t>(search(key) - begin());
-
-            if (m_size == m_capacity) {
-                realloc(m_capacity * 2U);
-            }
-
-            if (elem == m_size) {
-                m_data[m_size++] = map_elem{ key };
-            }
-
-            return m_data[elem].second;
-        }
+        constexpr auto operator=(const Map &) -> Map & = default;
+        constexpr auto operator=(Map &&) noexcept -> Map & = default;
 
     public:
-        constexpr auto operator=(const Map &other) noexcept -> Map & {
-            if (this == &other) {
-                return *this;
-            }
+        constexpr Map() noexcept  = default;
+        constexpr ~Map() noexcept = default;
 
-            m_allocator = other.m_allocator;
+        constexpr Map(const Map &)     = default;
+        constexpr Map(Map &&) noexcept = default;
 
-            if (m_capacity < other.m_capacity) {
-                realloc(other.m_capacity);
-            }
-
-            m_size     = other.m_size;
-            m_capacity = other.m_capacity;
-
-            cerb::memcpy(m_data, other.m_data);
-            return *this;
-        }
-
-        constexpr auto operator=(Map &&other) noexcept -> Map & {
-            if (this == &other) {
-                return *this;
-            }
-
-            m_allocator = std::move(other.m_allocator);
-
-            if (m_capacity < other.m_capacity) {
-                realloc(other.m_capacity);
-            }
-
-            m_data       = other.m_data;
-            m_size       = other.m_size;
-            m_capacity   = other.m_capacity;
-            other.m_data = nullptr;
-
-            return *this;
-        }
-
-    public:
-        constexpr Map() noexcept = default;
-
-        constexpr Map(const Map &other) noexcept
-          : m_size(other.m_size), m_capacity(other.m_capacity), m_allocator(other.m_allocator) {
-            m_data = m_allocator.allocate(m_capacity);
-            cerb::memcpy(m_data, other.m_data, m_size);
-        }
-
-        constexpr Map(Map &&other) noexcept
-          : m_size(other.m_size), m_capacity(other.m_capacity),
-            m_allocator(std::move(other.m_allocator)), m_data(other.m_data) {
-            other.m_data = nullptr;
-        }
-
-        constexpr Map(const std::initializer_list<const map_elem> &args) noexcept
-          : m_data(m_allocator.allocate(args.end() - args.begin())), m_capacity(args.end() - args.begin()) {
+        constexpr Map(const std::initializer_list<value_type> &values) noexcept {
             CERBLIB_UNROLL_N(2)
-            for (const auto &elem : args) {
-                push(elem);
+            for (const auto &elem : values) {
+                insert(elem);
             }
         }
-
-        template<typename... Ts>
-        constexpr explicit Map(Ts... args) noexcept
-          : m_data(m_allocator.allocate(sizeof...(args))), m_capacity(sizeof...(args)) {
-            cerb::forEach<false>(
-                [&](const auto &elem) {
-                    push(elem);
-                },
-                args...);
-        }
-
-        constexpr ~Map() noexcept {
-            delete[] m_data;
-        }
     };
-}// namespace cerb::cx
+}// namespace cerb
 #endif /* CERBERUS_MAP_HPP */

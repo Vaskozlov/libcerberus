@@ -13,8 +13,7 @@ namespace cerb {
 
     template<typename T>
     constexpr auto memset(void *__restrict ptr, T value, size_t times) -> void {
-        if (cerb::x86_64 &&
-            !std::is_constant_evaluated() &&
+        if (cerb::x86_64 && !std::is_constant_evaluated() &&
             (std::is_integral_v<T> || std::is_floating_point_v<T>)) {
             return cerb::PRIVATE::memset<T>(ptr, value, times);
         }
@@ -41,11 +40,12 @@ namespace cerb {
     }
 
     template<typename T>
-    constexpr auto memcpy(T *__restrict dest, const T *__restrict src, size_t times) -> void {
-        if (cerb::x86_64 &&
-            sizeof(T) <= sizeof(uintmax_t) &&
+    constexpr auto memcpy(T *__restrict dest, const T *__restrict src, size_t times)
+        -> void {
+        if (cerb::x86_64 && sizeof(T) <= sizeof(uintmax_t) &&
             !std::is_constant_evaluated() &&
-            (std::is_integral_v<T> || std::is_floating_point_v<T> || std::is_default_constructible_v<T>)) {
+            (std::is_integral_v<T> || std::is_floating_point_v<T> ||
+             std::is_default_constructible_v<T>)) {
             cerb::PRIVATE::memcpy(dest, src, times);
         } else {
             T *dest_copy           = dest;
@@ -62,7 +62,9 @@ namespace cerb {
     }
 
     template<typename T, size_t Size>
-    constexpr auto memcpy(std::array<T, Size> &dest, const std::array<T, Size> &src, size_t times) {
+    constexpr auto memcpy(std::array<T, Size> &dest,
+                          const std::array<T, Size> &src,
+                          size_t times) {
         if (!std::is_constant_evaluated()) {
             memcpy(dest.data(), src.data(), times);
         } else {
@@ -83,7 +85,8 @@ namespace cerb {
 
         CERBLIB_UNROLL_N(4)
         for (size_t i = 0; i < sizeof(T); i++) {
-            result |= static_cast<T>(cerb::bit_cast<unsigned char>(str[i])) << (i * bitsizeof(char));
+            result |= static_cast<T>(cerb::bit_cast<unsigned char>(str[i]))
+                      << (i * bitsizeof(char));
         }
 
         return result;

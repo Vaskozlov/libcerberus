@@ -46,7 +46,7 @@ namespace cerb {
 }// namespace cerb
 #else
 typedef u8 byte;
-#endif /* _cplusplus */
+#endif /* __cplusplus */
 
 #ifndef bitsizeof
 #    define bitsizeof(x) (sizeof(x) * 8)
@@ -98,7 +98,8 @@ typedef u8 byte;
 #ifndef CERBLIB_DEPRECATED
 #    if defined(__DEPRECATED)
 #        define CERBLIB_DEPRECATED [[deprecated]]
-#        define CERBLIB_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
+#        define CERBLIB_DEPRECATED_SUGGEST(ALT)                                     \
+            [[deprecated("use '" ALT "' instead")]]
 #    else
 #        define CERBLIB_DEPRECATED
 #        define CERBLIB_DEPRECATED_SUGGEST(ALT)
@@ -108,7 +109,8 @@ typedef u8 byte;
 #ifndef CERBLIB20_DEPRECATED
 #    if defined(__DEPRECATED) && (__cplusplus >= 202002L)
 #        define CERBLIB20_DEPRECATED [[deprecated]]
-#        define CERBLIB20_DEPRECATED_SUGGEST(ALT) [[deprecated("use '" ALT "' instead")]]
+#        define CERBLIB20_DEPRECATED_SUGGEST(ALT)                                   \
+            [[deprecated("use '" ALT "' instead")]]
 #    else
 #        define CERBLIB20_DEPRECATED
 #        define CERBLIB20_DEPRECATED_SUGGEST(ALT)
@@ -158,29 +160,28 @@ typedef u8 byte;
 #        define CERBLIB_PRAGMA(compiler, x) CERBLIB_DO_PRAGMA(compiler diagnostic x)
 #    endif
 #    if defined(__clang__)
-#        define CERBLIB_DISABLE_WARNING(gcc_unused, clang_option, msvc_unused) \
-            CERBLIB_PRAGMA(clang, push)                                        \
+#        define CERBLIB_DISABLE_WARNING(gcc_unused, clang_option, msvc_unused)      \
+            CERBLIB_PRAGMA(clang, push)                                             \
             CERBLIB_PRAGMA(clang, ignored clang_option)
-#        define CERBLIB_ENABLE_WARNING(gcc_unused, clang_option, msvc_unused) \
+#        define CERBLIB_ENABLE_WARNING(gcc_unused, clang_option, msvc_unused)       \
             CERBLIB_PRAGMA(clang, pop)
 #    elif defined(_MSC_VER)
-#        define CERBLIB_DISABLE_WARNING(gcc_unused, clang_unused, msvc_errorcode) \
-            CERBLIB_PRAGMA(msvc, push)                                            \
-            CERBLIB_DO_PRAGMA(warning(disable                                     \
-                                      :##msvc_errorcode))
-#        define CERBLIB_ENABLE_WARNING(gcc_unused, clang_unused, msvc_errorcode) \
+#        define CERBLIB_DISABLE_WARNING(gcc_unused, clang_unused, msvc_errorcode)   \
+            CERBLIB_PRAGMA(msvc, push)                                              \
+            CERBLIB_DO_PRAGMA(warning(disable :##msvc_errorcode))
+#        define CERBLIB_ENABLE_WARNING(gcc_unused, clang_unused, msvc_errorcode)    \
             CERBLIB_PRAGMA(msvc, pop)
 #    elif defined(__GNUC__)
 #        if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
-#            define CERBLIB_DISABLE_WARNING(gcc_option, clang_unused, msvc_unused) \
-                CERBLIB_PRAGMA(GCC, push)                                          \
+#            define CERBLIB_DISABLE_WARNING(gcc_option, clang_unused, msvc_unused)  \
+                CERBLIB_PRAGMA(GCC, push)                                           \
                 CERBLIB_PRAGMA(GCC, ignored gcc_option)
-#            define CERBLIB_ENABLE_WARNING(gcc_option, clang_unused, msvc_unused) \
+#            define CERBLIB_ENABLE_WARNING(gcc_option, clang_unused, msvc_unused)   \
                 CERBLIB_PRAGMA(GCC, pop)
 #        else
-#            define CERBLIB_DISABLE_WARNING(gcc_option, clang_unused, msvc_unused) \
+#            define CERBLIB_DISABLE_WARNING(gcc_option, clang_unused, msvc_unused)  \
                 CERBLIB_PRAGMA(GCC, ignored gcc_option)
-#            define CERBLIB_ENABLE_WARNING(gcc_option, clang_option, msvc_unused) \
+#            define CERBLIB_ENABLE_WARNING(gcc_option, clang_option, msvc_unused)   \
                 CERBLIB_PRAGMA(GCC, warning gcc_option)
 #        endif
 #    endif
@@ -215,15 +216,16 @@ namespace cerb {
         constexpr Throwable()  = default;
         constexpr ~Throwable() = default;
 
-        constexpr Throwable(Throwable &&) noexcept      = default;
-        constexpr Throwable(const Throwable &) noexcept = default;
+        Throwable(Throwable &&)      = delete;
+        Throwable(const Throwable &) = delete;
 
         auto operator=(Throwable &&) -> Throwable & = delete;
         auto operator=(const Throwable &) -> Throwable & = delete;
     };
 
     template<typename T>
-    [[nodiscard]] constexpr auto getLimits(const T & /*unused*/) -> std::numeric_limits<T> {
+    [[nodiscard]] constexpr auto getLimits(const T & /*unused*/)
+        -> std::numeric_limits<T> {
         return std::numeric_limits<T>();
     }
 
@@ -266,13 +268,9 @@ namespace cerb {
      * @return condition ?_on_true :_on_false
      */
     template<typename T>
-    constexpr auto cmov(bool condition, const T &on_true, const T &on_false) -> const T & {
+    constexpr auto cmov(bool condition, const T &on_true, const T &on_false)
+        -> const T & {
         return condition ? on_true : on_false;
-    }
-
-    template<typename T>
-    CERBLIB_INLINE constexpr auto destroy(T &_value) -> void {
-        (&_value)->~T();
     }
 }// namespace cerb
 

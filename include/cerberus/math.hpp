@@ -95,7 +95,8 @@ namespace cerb {
      * @brief 2^power for floating point and integral numbers
      *
      * @tparam T
-     * @param power 2 will be raised in power of "power" (power must be unsigned integral)
+     * @param power 2 will be raised in power of "power" (power must be unsigned
+     * integral)
      * @return T(2)^power
      */
     template<typename T>
@@ -163,9 +164,8 @@ namespace cerb {
         } else if constexpr (mode == AlignMode::CEIL) {
             return value + (pow2<T>(powerOf2) - value % pow2<T>(powerOf2));
         } else {
-            return cmov(
-                value % pow2<T>(powerOf2) == 0,
-                value, align<powerOf2, AlignMode::CEIL>(value));
+            return cmov(value % pow2<T>(powerOf2) == 0, value,
+                        align<powerOf2, AlignMode::CEIL>(value));
         }
     }
 
@@ -244,7 +244,8 @@ namespace cerb {
             if constexpr (sizeof(T) == sizeof(u32)) {
                 return ((mask.getAsIntegral() & "xFF80 0000"_2val) >> 23) - 0x7fu;
             } else {
-                return ((mask.getAsIntegral() & "xFFF0 0000 0000 0000"_2val) >> 52) - 0x3ffu;
+                return ((mask.getAsIntegral() & "xFFF0 0000 0000 0000"_2val) >> 52) -
+                       0x3ffu;
             }
         }
     }

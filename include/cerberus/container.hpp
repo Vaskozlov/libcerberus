@@ -16,9 +16,7 @@ namespace cerb::gl {
         tracker_t m_tracker{};
 
     public:
-        constexpr auto size() const {
-            return Size;
-        }
+        constexpr auto size() const { return Size; }
 
         constexpr auto tracker() const noexcept -> const tracker_t & {
             return m_tracker;
@@ -28,7 +26,8 @@ namespace cerb::gl {
         constexpr auto checkIndex(size_t index) noexcept(!CheckMemory) {
             if constexpr (CheckMemory) {
                 if (index >= Size) {
-                    throw std::out_of_range("cerb::Container is out of free elems or index is out of bounce");
+                    throw std::out_of_range("cerb::Container is out of free elems "
+                                            "or index is out of bounce");
                 }
             }
         }
@@ -59,7 +58,8 @@ namespace cerb::gl {
             return m_tracker.template find_if<1>();
         }
 
-        [[nodiscard]] constexpr auto put(const T &value) noexcept(!CheckMemory) -> T & {
+        [[nodiscard]] constexpr auto put(const T &value) noexcept(!CheckMemory)
+            -> T & {
             auto index = find_free();
             checkIndex(index);
             T &elem = operator[](index);
@@ -67,7 +67,8 @@ namespace cerb::gl {
             return elem;
         }
 
-        [[nodiscard]] constexpr auto put_i(const T &value) noexcept(!CheckMemory) -> size_t {
+        [[nodiscard]] constexpr auto put_i(const T &value) noexcept(!CheckMemory)
+            -> size_t {
             auto index = find_free();
             checkIndex(index);
             operator[](index) = value;
@@ -94,12 +95,14 @@ namespace cerb::gl {
     public:
         constexpr Container() noexcept(std::is_nothrow_constructible_v<T>) = default;
 
-        constexpr Container(const Container &other) noexcept(std::is_nothrow_constructible_v<T>)
+        constexpr Container(const Container &other) noexcept(
+            std::is_nothrow_constructible_v<T>)
           : m_tracker(other.m_tracker) {
             cerb::memcpy(m_data, other.m_data, Size);
         }
 
-        constexpr Container(Container &&other) noexcept(std::is_nothrow_constructible_v<T>)
+        constexpr Container(Container &&other) noexcept(
+            std::is_nothrow_constructible_v<T>)
           : m_tracker(std::move(other.m_tracker)) {
             CERBLIB_UNROLL_N(4)
             for (size_t i = 0; i < Size; i++) {

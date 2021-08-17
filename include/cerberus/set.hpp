@@ -8,8 +8,79 @@
 #include <cerberus/redBlackTree.hpp>
 
 namespace cerb {
-    template<typename T, auto OnThrowing = cerb::Throwable{}, typename Compare = less<void>, typename Alloc = std::allocator<T>>
-    class Set : public PRIVATE::RBTree<T, Compare, Alloc>
+    namespace gl {
+        template<typename T, size_t Size>
+        class Set : public cerb::PRIVATE::gl::BasicSet<T, Size>
+        {
+            using value_type       = T;
+            using const_value_type = const T;
+            using base_class       = cerb::PRIVATE::gl::BasicSet<T, Size>;
+
+            using base_class::begin;
+            using base_class::end;
+            using base_class::m_data;
+            using base_class::m_size;
+            using base_class::self;
+
+        private:
+            constexpr auto search(const_value_type &key) noexcept {
+                return cerb::find_if(begin(), end(),
+                                     [&key](const auto &i) { return i == key; });
+            }
+
+            constexpr auto search(const_value_type &key) const noexcept {
+                return cerb::find_if(begin(), end(),
+                                     [&key](const auto &i) { return i == key; });
+            }
+
+        public:
+            constexpr auto insert(const_value_type &new_elem) noexcept {
+                auto elem = search(new_elem);
+
+                if (elem == end()) {
+                    m_data[m_size++] = new_elem;
+                }
+            }
+
+            constexpr auto erase(const_value_type &value2erase) {
+                auto elem = search(value2erase);
+
+                if (elem != end()) {
+                    --m_size;
+
+                    CERBLIB_UNROLL_N(2)
+                    for (const auto back = end(); elem != back; ++elem) {
+                        *elem = *(elem + 1);
+                    }
+                }
+            }
+
+            constexpr auto contains(const_value_type &value) const noexcept -> bool {
+                return search(value) != end();
+            }
+
+        public:
+            constexpr auto operator=(Set &&other) noexcept -> Set & = default;
+            constexpr auto operator=(const Set &other) noexcept -> Set & = default;
+
+        public:
+            constexpr Set(const Set &other) noexcept : base_class(other.self()) {}
+
+            constexpr Set(Set &&other) noexcept
+              : base_class(std::move(other.self())) {}
+
+            constexpr Set(
+                const std::initializer_list<const_value_type> &args) noexcept
+              : base_class(args) {}
+
+            template<typename... Ts>
+            explicit constexpr Set(Ts &&...args) noexcept : base_class(args...) {}
+        };
+    }// namespace gl
+
+    template<typename T, auto OnThrowing = cerb::Throwable{},
+             typename Compare = less<void>, typename Alloc = std::allocator<T>>
+    class CERBLIB_TRIVIAL Set : public PRIVATE::RBTree<T, Compare, Alloc>
     {
         using BasicTree = PRIVATE::RBTree<T, Compare, Alloc>;
         using Node      = typename BasicTree::Node;
@@ -19,7 +90,8 @@ namespace cerb {
         using BasicTree::search;
 
     private:
-        constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
+        constexpr static auto MayThrow =
+            std::is_same_v<Throwable, decltype(OnThrowing)>;
 
     public:
         constexpr auto count(const T &key) {
@@ -27,13 +99,9 @@ namespace cerb {
             return value != nullptr && value->value == key;
         }
 
-        constexpr auto insert(T &&value) noexcept {
-            RBTreeEmplace(value);
-        }
+        constexpr auto insert(T &&value) noexcept { RBTreeEmplace(value); }
 
-        constexpr auto insert(const T &value) noexcept {
-            RBTreeEmplace(value);
-        }
+        constexpr auto insert(const T &value) noexcept { RBTreeEmplace(value); }
 
         constexpr auto erase(const T &key) noexcept(!MayThrow) {
             if constexpr (MayThrow) {
@@ -47,19 +115,28 @@ namespace cerb {
         }
 
     public:
+        constexpr auto operator=(const Set &) -> Set & = default;
+        constexpr auto operator=(Set &&) noexcept -> Set & = default;
+
+    public:
         constexpr Set() noexcept  = default;
         constexpr ~Set() noexcept = default;
 
+        constexpr Set(const Set &)     = default;
+        constexpr Set(Set &&) noexcept = default;
+
         constexpr Set(const std::initializer_list<T> &values) noexcept {
             CERBLIB_UNROLL_N(2)
-            for (auto &elem : values) {
-                insert(std::move(elem));
+            for (const auto &elem : values) {
+                insert(elem);
             }
         }
     };
 
-    template<typename T, auto OnThrowing = cerb::Throwable{}, typename Compare = cerb::less<void>, typename Alloc = std::allocator<T>>
-    class Multiset : public PRIVATE::RBTree<Pair<size_t, T, BY_SECOND_VALUE>, Compare, Alloc>
+    template<typename T, auto OnThrowing = cerb::Throwable{},
+             typename Compare = cerb::less<void>, typename Alloc = std::allocator<T>>
+    class CERBLIB_TRIVIAL Multiset
+      : public PRIVATE::RBTree<Pair<size_t, T, BY_SECOND_VALUE>, Compare, Alloc>
     {
         using value_type = Pair<size_t, T, BY_SECOND_VALUE>;
         using BasicTree  = PRIVATE::RBTree<value_type, Compare, Alloc>;
@@ -71,7 +148,8 @@ namespace cerb {
         using BasicTree::search;
 
     private:
-        constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
+        constexpr static auto MayThrow =
+            std::is_same_v<Throwable, decltype(OnThrowing)>;
 
     public:
         constexpr auto count(const T &key) const noexcept -> size_t {
@@ -99,7 +177,8 @@ namespace cerb {
                 if (value != nullptr && value->value.second == key) [[likely]] {
                     value->value.first -= 1;
                 } else [[unlikely]] {
-                    throw std::out_of_range("Unable to erase elem from cerb::Multiset");
+                    throw std::out_of_range(
+                        "Unable to erase elem from cerb::Multiset");
                 }
             } else {
                 if (value != nullptr && value->value.second == key) [[likely]] {
@@ -117,76 +196,20 @@ namespace cerb {
         }
 
     public:
+        constexpr auto operator=(const Multiset &) -> Multiset & = default;
+        constexpr auto operator=(Multiset &&) noexcept -> Multiset & = default;
+
+    public:
         constexpr Multiset() noexcept  = default;
         constexpr ~Multiset() noexcept = default;
 
+        constexpr Multiset(const Multiset &)     = default;
+        constexpr Multiset(Multiset &&) noexcept = default;
+
         constexpr Multiset(const std::initializer_list<T> &values) noexcept {
             CERBLIB_UNROLL_N(2)
-            for (auto &elem : values) {
+            for (const auto &elem : values) {
                 insert(elem);
-            }
-        }
-    };
-
-    template<typename T1, typename T2, auto OnThrowing = cerb::Throwable{}, typename Compare = cerb::less<void>, typename Alloc = std::allocator<T1>>
-    class Map : public PRIVATE::RBTree<Pair<const T1, T2, BY_FIRST_VALUE>, Compare, Alloc>
-    {
-        using value_type = Pair<const T1, T2, BY_FIRST_VALUE>;
-        using BasicTree  = PRIVATE::RBTree<value_type, Compare, Alloc>;
-        using Node       = typename PRIVATE::RBTree<value_type, Compare, Alloc>::Node;
-
-        using BasicTree::deleteNode;
-        using BasicTree::RBTreeEmplace;
-        using BasicTree::RBTreeErase;
-        using BasicTree::search;
-
-    private:
-        constexpr static auto MayThrow = std::is_same_v<Throwable, decltype(OnThrowing)>;
-
-    public:
-        constexpr auto insert(value_type &&value) noexcept {
-            this->template RBTreeEmplace<true, true>(value);
-        }
-
-        constexpr auto insert(const value_type &value) noexcept {
-            this->template RBTreeEmplace<true, true>(value);
-        }
-
-        constexpr auto count(const T1 &key) const noexcept -> size_t {
-            auto value = search(key);
-            return value != nullptr && value->value == key;
-        }
-
-        constexpr auto erase(const T1 &key) noexcept(!MayThrow) {
-            if constexpr (MayThrow) {
-                if (!RBTreeErase(key)) [[unlikely]] {
-                    throw std::out_of_range("Unable to erase elem from cerb::Set");
-                }
-                return true;
-            } else {
-                return RBTreeErase(key);
-            }
-        }
-
-        constexpr auto operator[](const T1 &key) noexcept(!MayThrow) -> T2 & {
-            auto value = search(key);
-
-            if (value != nullptr && value->value.first == key) {
-                return value->value.second;
-            } else {
-                auto elem = RBTreeEmplace(key);
-                return elem->value.second;
-            }
-        }
-
-    public:
-        constexpr Map() noexcept  = default;
-        constexpr ~Map() noexcept = default;
-
-        constexpr Map(const std::initializer_list<value_type> &values) noexcept {
-            CERBLIB_UNROLL_N(2)
-            for (auto &elem : values) {
-                insert(std::move(elem));
             }
         }
     };

@@ -6,17 +6,18 @@
 
 namespace cerb {
     template<typename T>
-    class is_iterative {
+    class is_iterative
+    {
         using yes = std::true_type;
         using no  = std::false_type;
 
-        template<typename U> static constexpr
-        auto test(typename U::iterator* /*unused*/) -> bool {
+        template<typename U>
+        static constexpr auto test(typename U::iterator * /*unused*/) -> bool {
             return true;
         }
 
-        template<typename... Us> static constexpr
-        auto test(Us... /*unused*/) -> bool {
+        template<typename... Us>
+        static constexpr auto test(Us... /*unused*/) -> bool {
             return false;
         }
 
@@ -28,15 +29,12 @@ namespace cerb {
     inline constexpr auto is_iterative_v = is_iterative<T>::value;
 
     template<typename F, typename... Ts>
-    [[nodiscard]] constexpr CERBLIB_INLINE
-    auto forEach(F &&func, Ts&&... values) {
-        auto _ = {
-            ([&](auto &i) -> int{
-                func(i);
-                return 0;
-            })(values)...
-        };
+    [[nodiscard]] constexpr CERBLIB_INLINE auto forEach(F &&func, Ts &&...values) {
+        auto _ = { ([&](auto &i) -> int {
+            func(i);
+            return 0;
+        })(values)... };
     }
-} // namespace cerb
+}// namespace cerb
 
 #endif /* CERBERUS_TYPE_TRAITS_HPP */

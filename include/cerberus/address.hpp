@@ -33,33 +33,25 @@ namespace cerb {
         }
 
         template<typename T>
-        [[nodiscard]] explicit constexpr
-            operator T *() const noexcept {
+        [[nodiscard]] explicit constexpr operator T *() const noexcept {
             return static_cast<T *>(this->raw());
         }
 
     public:
-        CERBLIB_CLASS_ARITHMETIC_ON_SELF(
-            Address,
-            constexpr,
-            constexpr,
-            other, OP,
-            {
-                this->m_address = reinterpret_cast<cerb::byte *>(
-                    cerb::operators::count<OP>(value(), other.value()));
-                return *this;
-            })
+        CERBLIB_CLASS_ARITHMETIC_ON_SELF(Address, constexpr, constexpr, other, OP, {
+            this->m_address = reinterpret_cast<cerb::byte *>(
+                cerb::operators::count<OP>(value(), other.value()));
+            return *this;
+        })
 
     public:
-        CERBLIB_CLASS_ARITHMETIC_INCREMENT(
-            Address,
-            constexpr,
-            { this->m_address++; })
+        CERBLIB_CLASS_ARITHMETIC_INCREMENT(Address, constexpr, {
+            this->m_address++;
+        })
 
-        CERBLIB_CLASS_ARITHMETIC_DECREMENT(
-            Address,
-            constexpr,
-            { this->m_address--; })
+        CERBLIB_CLASS_ARITHMETIC_DECREMENT(Address, constexpr, {
+            this->m_address--;
+        })
 
     public:
         template<u32 ALIGN_VALUE = ALIGN2::Page4KB, auto MODE = AlignMode::ALIGN>
@@ -87,23 +79,13 @@ namespace cerb {
           : m_address(cerb::bit_cast<cerb::byte *>(addr)) {}
     };
 
-    CERBLIB_CLASS_ARITHMETIC(
-        Address,
-        constexpr,
-        constexpr,
-        lhs, rhs, OP,
-        {
-            return Address(cerb::operators::count<OP>(lhs.value(), rhs.value()));
-        })
+    CERBLIB_CLASS_ARITHMETIC(Address, constexpr, constexpr, lhs, rhs, OP, {
+        return Address(cerb::operators::count<OP>(lhs.value(), rhs.value()));
+    })
 
-    CERBLIB_CLASS_COMPARISON(
-        Address,
-        constexpr,
-        constexpr,
-        lhs, rhs, OP,
-        {
-            return cerb::operators::compare<OP>(lhs.raw(), rhs.raw());
-        })
+    CERBLIB_CLASS_COMPARISON(Address, constexpr, constexpr, lhs, rhs, OP, {
+        return cerb::operators::compare<OP>(lhs.raw(), rhs.raw());
+    })
 }// namespace cerb
 
 #endif /* cerberusAddress_hpp */

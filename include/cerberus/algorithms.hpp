@@ -4,6 +4,11 @@
 #include <cerberus/types.h>
 
 namespace cerb {
+    template<typename T>
+    constexpr auto destroy(T &_value) -> void {
+        (&_value)->~T();
+    }
+
     template<typename Iterator, typename T>
     constexpr auto find(Iterator first, Iterator last, const T &value) -> Iterator {
         CERBLIB_UNROLL_N(2)
@@ -16,7 +21,8 @@ namespace cerb {
     }
 
     template<typename Iterator, class UnaryPredicate>
-    constexpr auto find_if(Iterator first, Iterator last, UnaryPredicate p) -> Iterator {
+    constexpr auto find_if(Iterator first, Iterator last, UnaryPredicate p)
+        -> Iterator {
         CERBLIB_UNROLL_N(2)
         for (; first != last; ++first) {
             if (p(*first)) {
@@ -27,7 +33,8 @@ namespace cerb {
     }
 
     template<typename Iterator, class UnaryPredicate>
-    constexpr auto find_if_not(Iterator first, Iterator last, UnaryPredicate p) -> Iterator {
+    constexpr auto find_if_not(Iterator first, Iterator last, UnaryPredicate p)
+        -> Iterator {
         CERBLIB_UNROLL_N(2)
         for (; first != last; ++first) {
             if (!p(*first)) {
@@ -51,7 +58,8 @@ namespace cerb {
     }
 
     template<typename Iterator, class UnaryPredicate>
-    constexpr auto count_if(Iterator first, Iterator last, UnaryPredicate p) -> size_t {
+    constexpr auto count_if(Iterator first, Iterator last, UnaryPredicate p)
+        -> size_t {
         size_t result = 0;
 
         CERBLIB_UNROLL_N(2)
@@ -64,7 +72,8 @@ namespace cerb {
     }
 
     template<typename Iterator, class UnaryPredicate>
-    constexpr inline auto all_of(Iterator first, Iterator last, UnaryPredicate p) -> bool {
+    constexpr inline auto all_of(Iterator first, Iterator last, UnaryPredicate p)
+        -> bool {
         CERBLIB_UNROLL_N(2)
         for (; first != last; ++first) {
             if (!p(*first)) {
@@ -75,7 +84,8 @@ namespace cerb {
     }
 
     template<typename Iterator, class UnaryPredicate>
-    constexpr inline auto any_of(Iterator first, Iterator last, UnaryPredicate p) -> bool {
+    constexpr inline auto any_of(Iterator first, Iterator last, UnaryPredicate p)
+        -> bool {
         CERBLIB_UNROLL_N(2)
         for (; first != last; ++first) {
             if (p(*first)) {
@@ -86,7 +96,8 @@ namespace cerb {
     }
 
     template<typename Iterator, class UnaryPredicate>
-    constexpr inline auto none_of(Iterator first, Iterator last, UnaryPredicate p) -> bool {
+    constexpr inline auto none_of(Iterator first, Iterator last, UnaryPredicate p)
+        -> bool {
         CERBLIB_UNROLL_N(2)
         for (; first != last; ++first) {
             if (p(*first)) {
@@ -97,7 +108,8 @@ namespace cerb {
     }
 
     template<typename Iterator1, typename Iterator2>
-    constexpr inline auto mismatch(Iterator1 first1, Iterator1 last1, Iterator2 first2) -> Pair<Iterator1, Iterator2> {
+    constexpr inline auto mismatch(Iterator1 first1, Iterator1 last1,
+                                   Iterator2 first2) -> Pair<Iterator1, Iterator2> {
         CERBLIB_UNROLL_N(2)
         for (; first1 != last1; ++first1, ++first2) {
             if (*first1 != *first2) {
@@ -108,7 +120,9 @@ namespace cerb {
     }
 
     template<typename Iterator1, typename Iterator2>
-    constexpr inline auto mismatch(Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2) -> Pair<Iterator1, Iterator2> {
+    constexpr inline auto mismatch(Iterator1 first1, Iterator1 last1,
+                                   Iterator2 first2, Iterator2 last2)
+        -> Pair<Iterator1, Iterator2> {
         CERBLIB_UNROLL_N(2)
         for (; first1 != last1 && first2 != last2; ++first1, ++first2) {
             if (*first1 != *first2) {

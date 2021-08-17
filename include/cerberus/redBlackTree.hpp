@@ -5,9 +5,132 @@
 #include <functional>
 #include <cerberus/pair.hpp>
 #include <cerberus/operators.hpp>
+#include <cerberus/algorithms.hpp>
 
 namespace cerb::PRIVATE {
-    template<typename T, typename Compare = less<T>, typename Alloc = std::allocator<T>>
+    namespace gl {
+        template<typename T, size_t Size>
+        struct BasicSet
+        {
+            using value_type       = T;
+            using const_value_type = const T;
+            using storage_t        = std::array<value_type, Size>;
+
+            using iterator       = typename storage_t::iterator;
+            using const_iterator = typename storage_t::const_iterator;
+
+            using reverse_iterator = typename storage_t::reverse_iterator;
+            using const_reverse_iterator =
+                typename storage_t::const_reverse_iterator;
+
+        protected:
+            size_t m_size{ 0 };
+            storage_t m_data{};
+
+        public:
+            constexpr auto begin() noexcept -> iterator { return m_data.begin(); }
+
+            constexpr auto end() noexcept -> iterator {
+                return m_data.begin() + m_size;
+            }
+
+            constexpr auto begin() const noexcept -> const_iterator {
+                return m_data.begin();
+            }
+
+            constexpr auto end() const noexcept -> const_iterator {
+                return m_data.begin() + m_size;
+            }
+
+            constexpr auto rbegin() noexcept -> reverse_iterator {
+                return reverse_iterator(begin());
+            }
+
+            constexpr auto rend() noexcept -> reverse_iterator {
+                return reverse_iterator(end());
+            }
+
+            constexpr auto rbegin() const noexcept -> const_reverse_iterator {
+                return const_reverse_iterator(begin());
+            }
+
+            constexpr auto rend() const noexcept -> const_reverse_iterator {
+                return const_reverse_iterator(end());
+            }
+
+            constexpr auto cbegin() noexcept -> const_iterator {
+                return m_data.cbegin();
+            }
+
+            constexpr auto cend() noexcept -> const_iterator {
+                return m_data.cbegin() + m_size;
+            }
+
+            constexpr auto crbegin() noexcept -> const_reverse_iterator {
+                return const_reverse_iterator(cbegin());
+            }
+
+            constexpr auto crend() noexcept -> const_reverse_iterator {
+                return const_reverse_iterator(cend());
+            }
+
+        public:
+            constexpr auto self() noexcept -> BasicSet & { return *this; }
+
+            constexpr auto self() const noexcept -> const BasicSet & {
+                return *this;
+            }
+
+        public:
+            constexpr auto operator=(const BasicSet &other) noexcept -> BasicSet & {
+                if (this == &other) {
+                    return *this;
+                }
+
+                m_size = other.m_size;
+                cerb::memcpy(m_data, other.m_data, m_size);
+                return *this;
+            }
+
+            constexpr auto operator=(BasicSet &&other) noexcept -> BasicSet & {
+                m_size = other.m_size;
+                cerb::memcpy(m_data, other.m_data, m_size);
+                return *this;
+            }
+
+        public:
+            constexpr BasicSet() noexcept = default;
+
+            constexpr BasicSet(const BasicSet &other) noexcept
+              : m_size(other.m_size) {
+                cerb::memcpy(m_data, other.m_data, m_size);
+            }
+
+            constexpr BasicSet(BasicSet &&other) noexcept : m_size(other.m_size) {
+                cerb::memcpy(m_data, other.m_data, m_size);
+            }
+
+            constexpr BasicSet(
+                const std::initializer_list<const_value_type> &args) noexcept {
+                CERBLIB_UNROLL_N(2)
+                for (const auto &elem : args) {
+                    m_data[m_size++] = std::move(elem);
+                }
+            }
+
+            template<typename... Ts>
+            explicit constexpr BasicSet(Ts &&...args) noexcept {
+                cerb::forEach<false>(
+                    [&](const auto &elem) { m_data[m_size++] = std::move(elem); },
+                    args...);
+            }
+
+            constexpr ~BasicSet() noexcept = default;
+        };
+    }// namespace gl
+
+    template<typename T, typename Compare = less<T>,
+             typename Alloc = std::allocator<T>>
     class RBTree
     {
         enum RBTreeNodeColor : bool
@@ -23,19 +146,24 @@ namespace cerb::PRIVATE {
             RBTreeNodeColor color;
 
         public:
-            [[nodiscard]] constexpr auto operator==(const RBTreeNode &other) const noexcept -> bool {
+            [[nodiscard]] constexpr auto
+                operator==(const RBTreeNode &other) const noexcept -> bool {
                 return value == other.value;
             }
 
-            [[nodiscard]] constexpr auto operator==(const T &other) const noexcept -> bool {
+            [[nodiscard]] constexpr auto operator==(const T &other) const noexcept
+                -> bool {
                 return value == other;
             }
 
-            [[nodiscard]] constexpr auto operator<=>(const RBTreeNode &other) const noexcept -> std::strong_ordering {
+            [[nodiscard]] constexpr auto
+                operator<=>(const RBTreeNode &other) const noexcept
+                -> std::strong_ordering {
                 return value <=> other.value;
             }
 
-            [[nodiscard]] constexpr auto operator<=>(const T &other) const noexcept -> std::strong_ordering {
+            [[nodiscard]] constexpr auto operator<=>(const T &other) const noexcept
+                -> std::strong_ordering {
                 return value <=> other.value;
             }
 
@@ -128,24 +256,27 @@ namespace cerb::PRIVATE {
 
             template<typename... Ts>
             constexpr explicit RBTreeNode(Ts &&...args) noexcept
-              : value(args...), color(RED),
-                left(nullptr), right(nullptr), parent(nullptr) {}
+              : value(args...), color(RED), left(nullptr), right(nullptr),
+                parent(nullptr) {}
 
             constexpr explicit RBTreeNode(const T &t_value) noexcept
-              : value(t_value), color(RED),
-                left(nullptr), right(nullptr), parent(nullptr) {}
+              : value(t_value), color(RED), left(nullptr), right(nullptr),
+                parent(nullptr) {}
 
-            constexpr explicit RBTreeNode(const T &&t_value) noexcept(std::is_nothrow_move_constructible_v<T>)
-              : value(t_value), color(RED),
-                left(nullptr), right(nullptr), parent(nullptr) {}
+            constexpr explicit RBTreeNode(const T &&t_value) noexcept(
+                std::is_nothrow_move_constructible_v<T>)
+              : value(t_value), color(RED), left(nullptr), right(nullptr),
+                parent(nullptr) {}
 
-            constexpr RBTreeNode(RBTreeNode &&other) noexcept(std::is_nothrow_move_constructible_v<T>)
-              : value(std::move(other.value)), color(other.color),
-                left(other.left), right(other.right), parent(other.parent) {}
+            constexpr RBTreeNode(RBTreeNode &&other) noexcept(
+                std::is_nothrow_move_constructible_v<T>)
+              : value(std::move(other.value)), color(other.color), left(other.left),
+                right(other.right), parent(other.parent) {}
 
-            constexpr RBTreeNode(const RBTreeNode &other) noexcept(std::is_nothrow_copy_constructible_v<T>)
-              : value(other.value), color(other.color),
-                left(other.left), right(other.right), parent(other.parent) {}
+            constexpr RBTreeNode(const RBTreeNode &other) noexcept(
+                std::is_nothrow_copy_constructible_v<T>)
+              : value(other.value), color(other.color), left(other.left),
+                right(other.right), parent(other.parent) {}
 
             CERBLIB_ENABLE_WARNING("-Wreorder-ctor", "-Wreorder-ctor", 0)
 
@@ -157,8 +288,9 @@ namespace cerb::PRIVATE {
         using NodePtr      = RBTreeNode *;
         using ConstNodePtr = const RBTreeNode *;
 
-        using NodeAllocator = typename std::allocator_traits<Alloc>::template rebind_alloc<Node>;
-        using NodeTraits    = std::allocator_traits<NodeAllocator>;
+        using NodeAllocator =
+            typename std::allocator_traits<Alloc>::template rebind_alloc<Node>;
+        using NodeTraits = std::allocator_traits<NodeAllocator>;
 
     private:
         NodePtr m_root{ nullptr };
@@ -166,9 +298,7 @@ namespace cerb::PRIVATE {
         NodeAllocator m_allocator{};
 
     public:
-        [[nodiscard]] constexpr auto size() const noexcept {
-            return m_size;
-        }
+        [[nodiscard]] constexpr auto size() const noexcept { return m_size; }
 
     private:
         constexpr auto leftRotate(NodePtr node) noexcept -> void {
@@ -242,7 +372,8 @@ namespace cerb::PRIVATE {
             }
         }
 
-        [[nodiscard]] constexpr static auto leftNode(NodePtr node) noexcept -> NodePtr {
+        [[nodiscard]] constexpr static auto leftNode(NodePtr node) noexcept
+            -> NodePtr {
             CERBLIB_UNROLL_N(2)
             while (true) {
                 if (node->left == nullptr) {
@@ -252,7 +383,8 @@ namespace cerb::PRIVATE {
             }
         }
 
-        [[nodiscard]] constexpr static auto rightNode(NodePtr node) noexcept -> NodePtr {
+        [[nodiscard]] constexpr static auto rightNode(NodePtr node) noexcept
+            -> NodePtr {
             CERBLIB_UNROLL_N(2)
             while (true) {
                 if (node->right == nullptr) {
@@ -262,7 +394,8 @@ namespace cerb::PRIVATE {
             }
         }
 
-        [[nodiscard]] constexpr static auto RBTreeReplace(NodePtr node) noexcept -> NodePtr {
+        [[nodiscard]] constexpr static auto RBTreeReplace(NodePtr node) noexcept
+            -> NodePtr {
             if (node->left != nullptr && node->right != nullptr) {
                 return leftNode(node->right);
             }
@@ -368,14 +501,14 @@ namespace cerb::PRIVATE {
                 return true;
             }
 
-            if (!node->hasChild()) {
+            if (node->left == nullptr || node->right == nullptr) {
                 if (node == m_root) [[unlikely]] {
-                    node->value = std::move(u->value);
-                    node->left = node->right = nullptr;
+                    m_root  = u;
+                    u->left = u->right = nullptr;
 
                     --m_size;
-                    NodeTraits::destroy(m_allocator, u);
-                    NodeTraits::deallocate(m_allocator, u, 1);
+                    NodeTraits::destroy(m_allocator, node);
+                    NodeTraits::deallocate(m_allocator, node, 1);
                 } else [[likely]] {
                     if (node->isLeftChild()) {
                         parent->left = u;
@@ -406,7 +539,8 @@ namespace cerb::PRIVATE {
 
     private:
         template<typename U>
-        [[nodiscard]] static constexpr CERBLIB_INLINE auto RBTreeSearch(NodePtr root, const U &key) noexcept -> NodePtr {
+        [[nodiscard]] static constexpr CERBLIB_INLINE auto
+            RBTreeSearch(NodePtr root, const U &key) noexcept -> NodePtr {
             NodePtr tmp = root;
 
             while (tmp != nullptr) {
@@ -514,6 +648,7 @@ namespace cerb::PRIVATE {
 
             auto ptr = m_node->parent;
 
+            CERBLIB_UNROLL_N(1)
             while (m_node == ptr->left) {
                 m_node = ptr;
                 ptr    = ptr->parent;
@@ -598,24 +733,26 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            constexpr friend auto operator==(const iterator &lhs, const iterator &rhs) noexcept -> bool {
+            constexpr friend auto operator==(const iterator &lhs,
+                                             const iterator &rhs) noexcept -> bool {
                 return lhs.m_node == rhs.m_node;
             }
 
-            constexpr friend auto operator<=>(const iterator &lhs, const iterator &rhs) noexcept {
+            constexpr friend auto operator<=>(const iterator &lhs,
+                                              const iterator &rhs) noexcept {
                 return lhs.m_node <=> rhs.m_node;
             }
 
         public:
             constexpr auto operator=(iterator &&) noexcept -> iterator & = default;
-            constexpr auto operator=(const iterator &) noexcept -> iterator & = default;
+            constexpr auto operator=(const iterator &) noexcept
+                -> iterator      & = default;
 
         public:
             constexpr iterator(iterator &&) noexcept      = default;
             constexpr iterator(const iterator &) noexcept = default;
 
-            constexpr explicit iterator(NodePtr node) noexcept
-              : m_node(node) {}
+            constexpr explicit iterator(NodePtr node) noexcept : m_node(node) {}
 
             constexpr ~iterator() noexcept = default;
         };
@@ -660,17 +797,23 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            [[nodiscard]] constexpr friend auto operator==(const reverse_iterator &lhs, const reverse_iterator &rhs) noexcept -> bool {
+            [[nodiscard]] constexpr friend auto
+                operator==(const reverse_iterator &lhs,
+                           const reverse_iterator &rhs) noexcept -> bool {
                 return lhs.m_node == rhs.m_node;
             }
 
-            [[nodiscard]] constexpr friend auto operator<=>(const reverse_iterator &lhs, const reverse_iterator &rhs) noexcept {
+            [[nodiscard]] constexpr friend auto
+                operator<=>(const reverse_iterator &lhs,
+                            const reverse_iterator &rhs) noexcept {
                 return lhs.m_node <=> rhs.m_node;
             }
 
         public:
-            constexpr auto operator=(reverse_iterator &&) noexcept -> reverse_iterator & = default;
-            constexpr auto operator=(const reverse_iterator &) noexcept -> reverse_iterator & = default;
+            constexpr auto operator   =(reverse_iterator &&) noexcept
+                -> reverse_iterator & = default;
+            constexpr auto operator   =(const reverse_iterator &) noexcept
+                -> reverse_iterator & = default;
 
         public:
             constexpr reverse_iterator(reverse_iterator &&) noexcept      = default;
@@ -690,9 +833,7 @@ namespace cerb::PRIVATE {
             return iterator(leftNode(m_root));
         }
 
-        constexpr auto end() noexcept -> iterator {
-            return iterator(nullptr);
-        }
+        constexpr auto end() noexcept -> iterator { return iterator(nullptr); }
 
         constexpr auto rbegin() noexcept -> reverse_iterator {
             return reverse_iterator(rightNode(m_root));
@@ -703,25 +844,118 @@ namespace cerb::PRIVATE {
         }
 
     private:
-        constexpr void self_delete(NodePtr x) {
+        constexpr auto selfDelete(NodePtr x) -> void {
             if (x == nullptr) {
                 return;
             }
 
-            self_delete(x->left);
+            selfDelete(x->left);
             auto right = x->right;
 
             NodeTraits::destroy(m_allocator, x);
             NodeTraits::deallocate(m_allocator, x, 1);
 
-            self_delete(right);
+            selfDelete(right);
+        }
+
+        constexpr auto copyElem(RBTreeNode *root, const RBTreeNode *src) -> void {
+            if (src->left != nullptr) {
+                root->left = NodeTraits::allocate(m_allocator, 1);
+                NodeTraits::construct(m_allocator, root->left,
+                                      static_cast<const T &>(src->left->value));
+                root->left->parent = root;
+                copyElem(root->left, src->left);
+            }
+            if (src->right != nullptr) {
+                root->right = NodeTraits::allocate(m_allocator, 1);
+                NodeTraits::construct(m_allocator, root->right,
+                                      static_cast<const T &>(src->right->value));
+                root->right->parent = root;
+                return copyElem(root->right, src->right);
+            }
+        }
+
+        constexpr auto copyFrom(const RBTree &other) -> void {
+            if (other.m_root != nullptr) {
+                m_root = NodeTraits::allocate(m_allocator, 1);
+                NodeTraits::construct(m_allocator, m_root,
+                                      static_cast<const T &>(other.m_root->value));
+
+                copyElem(m_root, other.m_root);
+            } else {
+                m_root = nullptr;
+            }
+        }
+
+        constexpr auto saveCopyElem(RBTreeNode *root, const RBTreeNode *src)
+            -> void {
+            if (src->left != nullptr) {
+                if (root->left == nullptr) {
+                    root->left = NodeTraits::allocate(m_allocator, 1);
+                } else {
+                    destroy(root->left->value);
+                }
+                NodeTraits::construct(m_allocator, root->left,
+                                      static_cast<const T &>(src->left->value));
+                root->left->parent = root;
+                copyElem(root->left, src->left);
+            }
+            if (src->right != nullptr) {
+                if (root->right == nullptr) {
+                    root->right = NodeTraits::allocate(m_allocator, 1);
+                } else {
+                    destroy(root->right->value);
+                }
+                NodeTraits::construct(m_allocator, root->right,
+                                      static_cast<const T &>(src->right->value));
+                root->right->parent = root;
+                return copyElem(root->right, src->right);
+            }
+        }
+
+        constexpr auto saveCopyFrom(const RBTree &other) -> void {
+            if (other.m_root != nullptr) {
+                if (m_root == nullptr) {
+                    m_root = NodeTraits::allocate(m_allocator, 1);
+                } else {
+                    destroy(m_root->value);
+                }
+                NodeTraits::construct(m_allocator, m_root,
+                                      static_cast<const T &>(other.m_root->value));
+                copyElem(m_root, other.m_root);
+            } else {
+                m_root = nullptr;
+            }
+        }
+
+    public:
+        constexpr auto operator=(const RBTree &other) -> RBTree & {
+            saveCopyFrom(other);
+            m_size = other.m_size;
+            return *this;
+        }
+
+        constexpr auto operator=(RBTree &&other) noexcept -> RBTree & {
+            m_size       = other.m_size;
+            m_root       = other.m_root;
+            other.m_root = nullptr;
+            other.m_size = 0;
+            return *this;
         }
 
     public:
         constexpr RBTree() noexcept = default;
 
-        constexpr ~RBTree() {
-            self_delete(m_root);
+        constexpr ~RBTree() { selfDelete(m_root); }
+
+        constexpr RBTree(const RBTree &other) : m_size(other.m_size) {
+            copyFrom(other);
+        }
+
+        constexpr RBTree(RBTree &&other) noexcept
+          : m_root(other.m_root), m_size(other.m_size) {
+            other.m_size = 0;
+            other.m_root = nullptr;
         }
     };
 
@@ -732,15 +966,18 @@ namespace cerb::PRIVATE {
         size_t counter;
 
     public:
-        [[nodiscard]] constexpr friend auto operator==(const MultiSetNode &lhs, const MultiSetNode &rhs) {
+        [[nodiscard]] constexpr friend auto operator==(const MultiSetNode &lhs,
+                                                       const MultiSetNode &rhs) {
             return lhs.value == rhs.value;
         }
 
-        [[nodiscard]] constexpr friend auto operator==(const MultiSetNode &lhs, const T &rhs) {
+        [[nodiscard]] constexpr friend auto operator==(const MultiSetNode &lhs,
+                                                       const T &rhs) {
             return lhs.value == rhs;
         }
 
-        [[nodiscard]] constexpr friend auto operator==(const T &lhs, const MultiSetNode &rhs) {
+        [[nodiscard]] constexpr friend auto operator==(const T &lhs,
+                                                       const MultiSetNode &rhs) {
             return lhs == rhs.value;
         }
 
@@ -753,7 +990,8 @@ namespace cerb::PRIVATE {
         }
 
     public:
-        constexpr auto operator=(const MultiSetNode &other) noexcept -> MultiSetNode & {
+        constexpr auto operator=(const MultiSetNode &other) noexcept
+            -> MultiSetNode & {
             value   = other.value;
             counter = other.counter;
             return *this;
@@ -772,10 +1010,12 @@ namespace cerb::PRIVATE {
         constexpr explicit MultiSetNode(T &&t_value) noexcept
           : value(t_value), counter(0) {}
 
-        constexpr MultiSetNode(MultiSetNode &&other) noexcept(std::is_nothrow_move_constructible_v<T>)
+        constexpr MultiSetNode(MultiSetNode &&other) noexcept(
+            std::is_nothrow_move_constructible_v<T>)
           : value(std::move(other.value)), counter(other.counter) {}
 
-        constexpr MultiSetNode(const MultiSetNode &other) noexcept(std::is_nothrow_copy_constructible_v<T>)
+        constexpr MultiSetNode(const MultiSetNode &other) noexcept(
+            std::is_nothrow_copy_constructible_v<T>)
           : value(other.value), counter(other.counter) {}
 
         constexpr ~MultiSetNode() = default;

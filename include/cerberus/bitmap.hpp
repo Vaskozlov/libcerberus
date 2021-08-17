@@ -49,11 +49,8 @@ namespace cerb::PRIVATE {
     [[nodiscard]] constexpr auto joinValues() -> u64 {
         u64 result = 0;
 
-        forEach(
-            [&](auto i) {
-                result = (result << 1U) + static_cast<u8>(i);
-            },
-            Values...);
+        forEach([&](auto i) { result = (result << 1U) + static_cast<u8>(i); },
+                Values...);
 
         return result;
     }
@@ -71,7 +68,8 @@ namespace cerb::PRIVATE {
 
     template<BitMapRule Value, BitMapRule... Values, typename T>
     [[nodiscard]] constexpr auto reverse(size_t index, T data) -> value_type {
-        return reverse<Value, T>(index, data) & reverse<Values..., T>(index, data + 1);
+        return reverse<Value, T>(index, data) &
+               reverse<Values..., T>(index, data + 1);
     }
 
     template<u8 value, typename T>
@@ -91,14 +89,14 @@ namespace cerb::PRIVATE {
         auto arrayIndex = index / bitsizeof(value_type);
         auto bitIndex   = index % bitsizeof(value_type);
 
-        constexprFor<0, AxisCount, 1>(
-            [&](auto i) {
-                if constexpr (value == 1) {
-                    data[i.value][arrayIndex] |= static_cast<value_type>(1) << bitIndex;
-                } else {
-                    data[i.value][arrayIndex] &= ~(static_cast<value_type>(1) << bitIndex);
-                }
-            });
+        constexprFor<0, AxisCount, 1>([&](auto i) {
+            if constexpr (value == 1) {
+                data[i.value][arrayIndex] |= static_cast<value_type>(1) << bitIndex;
+            } else {
+                data[i.value][arrayIndex] &=
+                    ~(static_cast<value_type>(1) << bitIndex);
+            }
+        });
     }
 
     template<typename T>
@@ -123,7 +121,8 @@ namespace cerb::PRIVATE {
     }
 
     template<BitMapRule... Values, typename T>
-    [[nodiscard]] constexpr auto find_if(size_t limit, T iterator) noexcept -> size_t {
+    [[nodiscard]] constexpr auto find_if(size_t limit, T iterator) noexcept
+        -> size_t {
         size_t i = 0;
 
         CERBLIB_UNROLL_N(2)
@@ -141,10 +140,9 @@ namespace cerb::PRIVATE {
             if (value != 0) {
                 auto bitIndex = findSetBitForward(value);
 
-                return cmov<size_t>(
-                    bitIndex < limit % bitsizeof(value_type),
-                    i * bitsizeof(value_type) + bitIndex,
-                    std::numeric_limits<size_t>::max());
+                return cmov<size_t>(bitIndex < limit % bitsizeof(value_type),
+                                    i * bitsizeof(value_type) + bitIndex,
+                                    std::numeric_limits<size_t>::max());
             }
         }
 
@@ -152,7 +150,8 @@ namespace cerb::PRIVATE {
     }
 
     template<BitMapRule Value, typename T>
-    [[nodiscard]] constexpr auto axis_find_if(size_t limit, T data) noexcept -> size_t {
+    [[nodiscard]] constexpr auto axis_find_if(size_t limit, T data) noexcept
+        -> size_t {
         size_t i = 0;
 
         CERBLIB_UNROLL_N(2)
@@ -170,10 +169,9 @@ namespace cerb::PRIVATE {
             if (value != 0) {
                 auto bitIndex = findSetBitForward(value);
 
-                return cmov<size_t>(
-                    bitIndex < limit % bitsizeof(value_type),
-                    i * bitsizeof(value_type) + bitIndex,
-                    std::numeric_limits<size_t>::max());
+                return cmov<size_t>(bitIndex < limit % bitsizeof(value_type),
+                                    i * bitsizeof(value_type) + bitIndex,
+                                    std::numeric_limits<size_t>::max());
             }
         }
 
@@ -181,7 +179,8 @@ namespace cerb::PRIVATE {
     }
 
     template<BitMapRule... Values, typename T>
-    [[nodiscard]] constexpr auto long_find_if(size_t limit, size_t times, T iterator) noexcept -> size_t {
+    [[nodiscard]] constexpr auto
+        long_find_if(size_t limit, size_t times, T iterator) noexcept -> size_t {
         long last_match = 0;
         size_t i        = 0;
         size_t matches  = 0;
@@ -204,7 +203,8 @@ namespace cerb::PRIVATE {
                 }
 
                 if (matches == times) [[unlikely]] {
-                    return i * bitsizeof(value_type) + bit_cast<value_type>(new_match) - times;
+                    return i * bitsizeof(value_type) +
+                           bit_cast<value_type>(new_match) - times;
                 }
 
                 last_match = new_match;
@@ -216,7 +216,8 @@ namespace cerb::PRIVATE {
     }
 
     template<BitMapRule... Values, typename T>
-    [[nodiscard]] constexpr auto find_if(size_t limit, size_t times, T iterator) noexcept -> size_t {
+    [[nodiscard]] constexpr auto
+        find_if(size_t limit, size_t times, T iterator) noexcept -> size_t {
         if (times > bitsizeof(value_type)) [[unlikely]] {
             return long_find_if<Values...>(limit, times, iterator);
         }
@@ -239,13 +240,15 @@ namespace cerb::PRIVATE {
                 }
 
                 if ((value & mask) == value) {
-                    // we need to know how many bits are suitable at the end of the number
+                    // we need to know how many bits are suitable at the end of the
+                    // number
                     auto remainder = findFreeBitReverse(value & mask) - 1;
-                    mask           = pow2<value_type>(times - remainder) - 1;// mask of missing bits
+                    mask           = pow2<value_type>(times - remainder) -
+                           1;// mask of missing bits
 
-                    if (
-                        (i + 1 < limit / bitsizeof(value_type) ||
-                         limit < (i + 1) * bitsizeof(value_type) - (times - remainder)) &&
+                    if ((i + 1 < limit / bitsizeof(value_type) ||
+                         limit < (i + 1) * bitsizeof(value_type) -
+                                     (times - remainder)) &&
                         (reverse<Values..., T>(i + 1, iterator) & mask) == mask) {
                         return (i + 1) * bitsizeof(value_type) - (times - remainder);
                     }
@@ -261,7 +264,9 @@ namespace cerb::PRIVATE {
                 size_t j = 0;
 
                 CERBLIB_UNROLL_N(2)
-                for (; j != bitsizeof(value_type) && j + times < limit % bitsizeof(value_type); ++j) {
+                for (; j != bitsizeof(value_type) &&
+                       j + times < limit % bitsizeof(value_type);
+                     ++j) {
                     if ((value & mask) == mask) {
                         return i * bitsizeof(value_type) + j;
                     }
@@ -273,27 +278,31 @@ namespace cerb::PRIVATE {
     }
 
     template<BitMapRule... Values, typename T>
-    [[nodiscard]] constexpr auto is_set(size_t location, size_t times, T iterator) noexcept -> bool {
+    [[nodiscard]] constexpr auto
+        is_set(size_t location, size_t times, T iterator) noexcept -> bool {
         const auto bits_to_align = location % bitsizeof(value_type);
 
         size_t index = location / bitsizeof(value_type);
 
         if (bits_to_align != 0) {
-            size_t before_alignment = min(bitsizeof(value_type) - bits_to_align, times);
+            size_t before_alignment =
+                min(bitsizeof(value_type) - bits_to_align, times);
 
             times -= before_alignment;
 
             before_alignment = pow2<size_t>(before_alignment) - 1;
             before_alignment = before_alignment << bits_to_align;
 
-            if ((reverse<Values..., T>(index++, iterator) & before_alignment) != before_alignment) {
+            if ((reverse<Values..., T>(index++, iterator) & before_alignment) !=
+                before_alignment) {
                 return false;
             }
         }
 
         CERBLIB_UNROLL_N(2)
         for (; times >= bitsizeof(value_type); times -= bitsizeof(value_type)) {
-            if (reverse<Values..., T>(index++, iterator) != std::numeric_limits<value_type>::max()) {
+            if (reverse<Values..., T>(index++, iterator) !=
+                std::numeric_limits<value_type>::max()) {
                 return false;
             }
         }
@@ -303,7 +312,8 @@ namespace cerb::PRIVATE {
         }
 
         size_t after_alignment = pow2<size_t>(times) - 1;
-        return (reverse<Values..., T>(index, iterator) & after_alignment) == after_alignment;
+        return (reverse<Values..., T>(index, iterator) & after_alignment) ==
+               after_alignment;
     }
 
     template<typename T>
@@ -330,8 +340,9 @@ namespace cerb {
         using const_pointer    = const pointer;
 
     private:
-        constexpr static size_type array_size = Size / bitsizeof(value_type) +
-                                                static_cast<unsigned long>((Size % bitsizeof(value_type)) != 0);
+        constexpr static size_type array_size =
+            Size / bitsizeof(value_type) +
+            static_cast<unsigned long>((Size % bitsizeof(value_type)) != 0);
 
     public:
         using storage_elem_t           = std::array<value_type, Size>;
@@ -368,7 +379,8 @@ namespace cerb {
             return Axis;
         }
 
-        [[nodiscard]] constexpr auto lengthOfAxisArray() const noexcept -> size_type {
+        [[nodiscard]] constexpr auto lengthOfAxisArray() const noexcept
+            -> size_type {
             return array_size;
         }
 
@@ -418,10 +430,7 @@ namespace cerb {
         }
 
         constexpr auto clear() noexcept -> void {
-            constexprFor<0, Axis, 1>(
-                [&](auto i) {
-                    clear<i.value>();
-                });
+            constexprFor<0, Axis, 1>([&](auto i) { clear<i.value>(); });
         }
 
     public:
@@ -458,29 +467,35 @@ namespace cerb {
         }
 
         template<BitMapRule... Values>
-        [[nodiscard]] constexpr auto find(size_type times) const noexcept -> size_type {
+        [[nodiscard]] constexpr auto find(size_type times) const noexcept
+            -> size_type {
             return PRIVATE::find_if<Values...>(size(), times, m_data.begin());
         }
 
         template<size_type AxisN, BitMapRule Value>
-        [[nodiscard]] constexpr auto find_on_axis(size_type times) const noexcept -> size_type {
+        [[nodiscard]] constexpr auto find_on_axis(size_type times) const noexcept
+            -> size_type {
             static_assert(AxisN < Axis);
             return PRIVATE::find_if<Value>(size(), times, m_data.begin() + AxisN);
         }
 
         template<BitMapRule... Values>
-        [[nodiscard]] constexpr auto is_set(size_type index, size_type times) const noexcept -> bool {
+        [[nodiscard]] constexpr auto is_set(size_type index,
+                                            size_type times) const noexcept -> bool {
             return PRIVATE::is_set<Values...>(index, times, m_data.begin());
         }
 
         template<size_type AxisN, BitMapRule Values>
-        [[nodiscard]] constexpr auto is_set_on_axis(size_type index, size_type times) const noexcept -> bool {
+        [[nodiscard]] constexpr auto is_set_on_axis(size_type index,
+                                                    size_type times) const noexcept
+            -> bool {
             static_assert(AxisN < Axis);
             return PRIVATE::is_set<Values>(index, times, m_data.begin() + AxisN);
         }
 
         [[nodiscard]] constexpr auto at(size_t axisN, size_t index) noexcept -> u8 {
-            return PRIVATE::atAxis<const_ref_storage_elem_t>(axisN, index, m_data[axisN]);
+            return PRIVATE::atAxis<const_ref_storage_elem_t>(
+                axisN, index, m_data[axisN]);
         }
 
         template<size_type AxisN>
@@ -490,7 +505,8 @@ namespace cerb {
         }
 
     public:
-        constexpr auto operator=(const ConstBitmap &other) noexcept -> ConstBitmap & {
+        constexpr auto operator=(const ConstBitmap &other) noexcept
+            -> ConstBitmap & {
             copyFrom(other.m_data);
             return *this;
         }
@@ -557,7 +573,8 @@ namespace cerb {
             return Axis;
         }
 
-        [[nodiscard]] constexpr auto lengthOfAxisArray() const noexcept -> size_type {
+        [[nodiscard]] constexpr auto lengthOfAxisArray() const noexcept
+            -> size_type {
             return m_size / bitsizeof(value_type) +
                    static_cast<unsigned long>((m_size % bitsizeof(value_type)) != 0);
         }
@@ -608,10 +625,7 @@ namespace cerb {
         }
 
         constexpr auto clear() noexcept -> void {
-            constexprFor<0, Axis, 1>(
-                [&](auto i) {
-                    clear<i.value>();
-                });
+            constexprFor<0, Axis, 1>([&](auto i) { clear<i.value>(); });
         }
 
     public:
@@ -648,23 +662,28 @@ namespace cerb {
         }
 
         template<BitMapRule... Values>
-        [[nodiscard]] constexpr auto find(size_type times) const noexcept -> size_type {
+        [[nodiscard]] constexpr auto find(size_type times) const noexcept
+            -> size_type {
             return PRIVATE::find_if<Values...>(size(), times, m_data.begin());
         }
 
         template<size_type AxisN, BitMapRule Value>
-        [[nodiscard]] constexpr auto find_on_axis(size_type times) const noexcept -> size_type {
+        [[nodiscard]] constexpr auto find_on_axis(size_type times) const noexcept
+            -> size_type {
             static_assert(AxisN < Axis);
             return PRIVATE::find_if<Value>(size(), times, m_data.begin() + AxisN);
         }
 
         template<BitMapRule... Values>
-        [[nodiscard]] constexpr auto is_set(size_type index, size_type times) const noexcept -> bool {
+        [[nodiscard]] constexpr auto is_set(size_type index,
+                                            size_type times) const noexcept -> bool {
             return PRIVATE::is_set<Values...>(index, times, m_data.begin());
         }
 
         template<size_type AxisN, BitMapRule Values>
-        [[nodiscard]] constexpr auto is_set_on_axis(size_type index, size_type times) const noexcept -> bool {
+        [[nodiscard]] constexpr auto is_set_on_axis(size_type index,
+                                                    size_type times) const noexcept
+            -> bool {
             static_assert(AxisN < Axis);
             return PRIVATE::is_set<Values>(index, times, m_data.begin() + AxisN);
         }
@@ -681,24 +700,28 @@ namespace cerb {
 
     public:
         template<size_type OAxis, bool OFreestanding>
-        constexpr auto operator=(const Bitmap<OAxis, OFreestanding> &other) noexcept(Freestanding) -> Bitmap & {
+        constexpr auto operator=(const Bitmap<OAxis, OFreestanding> &other) noexcept(
+            Freestanding) -> Bitmap & {
             static_assert(!Freestanding);
 
             if (other.lengthOfAxisArray() > lengthOfAxisArray()) [[unlikely]] {
-                m_size                = other.m_size;
-                value_type *newBuffer = new value_type[other.lengthOfAxisArray() * axis()]();
+                m_size = other.m_size;
+                value_type *newBuffer =
+                    new value_type[other.lengthOfAxisArray() * axis()]();
 
                 delete[] m_data[0];
 
                 CERBLIB_UNROLL_N(1)
                 for (size_t i = 0; i < axis(); ++i) {
                     m_data[i] = newBuffer;
-                    memcpy<value_type>(m_data[i], other.m_data[i], lengthOfAxisArray());
+                    memcpy<value_type>(
+                        m_data[i], other.m_data[i], lengthOfAxisArray());
                     newBuffer += lengthOfAxisArray();
                 }
             } else [[likely]] {
                 m_size = other.m_size;
-                memcpy<value_type>(m_data[0], other.m_data[0], lengthOfAxisArray() * axis());
+                memcpy<value_type>(
+                    m_data[0], other.m_data[0], lengthOfAxisArray() * axis());
             }
 
             return *this;
@@ -712,15 +735,13 @@ namespace cerb {
         }
 
     public:
-        constexpr Bitmap(Bitmap &&other) noexcept
-          : m_size(other.m_size) {
+        constexpr Bitmap(Bitmap &&other) noexcept : m_size(other.m_size) {
             memcpy(m_data, other.m_data, axis());
             memset<pointer>(other.m_data, nullptr, axis());
             other.m_size = 0;
         }
 
-        constexpr Bitmap(const Bitmap &other)
-          : m_size(other.m_size) {
+        constexpr Bitmap(const Bitmap &other) : m_size(other.m_size) {
             static_assert(!Freestanding);
             auto *newBuffer = new value_type[other.lengthOfAxisArray() * axis()]();
 
@@ -732,8 +753,7 @@ namespace cerb {
             }
         }
 
-        constexpr explicit Bitmap(size_t size) noexcept
-          : m_size(size) {
+        constexpr explicit Bitmap(size_t size) noexcept : m_size(size) {
             static_assert(!Freestanding);
             auto *memory = new value_type[lengthOfAxisArray() * axis()]();
 
@@ -744,8 +764,7 @@ namespace cerb {
             }
         }
 
-        constexpr explicit Bitmap(pointer ptr, size_t size) noexcept
-          : m_size(size) {
+        constexpr explicit Bitmap(pointer ptr, size_t size) noexcept : m_size(size) {
             static_assert(Freestanding);
 
             CERBLIB_UNROLL_N(1)

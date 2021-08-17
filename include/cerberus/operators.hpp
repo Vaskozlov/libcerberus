@@ -6,7 +6,8 @@
 
 namespace cerb {
 
-    enum struct OperatorSignature : u8 {
+    enum struct OperatorSignature : u8
+    {
         LESS,
         LESS_EQUAL,
         GREATER,
@@ -37,7 +38,8 @@ namespace cerb {
             return lhs <= rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::LESS_EQUAL;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::LESS_EQUAL;
     };
 
     template<typename T1, typename T2 = T1>
@@ -47,7 +49,8 @@ namespace cerb {
             return lhs > rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::GREATER;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::GREATER;
     };
 
     template<typename T1, typename T2 = T1>
@@ -57,7 +60,8 @@ namespace cerb {
             return lhs >= rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::GREATER_EQUAL;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::GREATER_EQUAL;
     };
 
     template<typename T1, typename T2 = T1>
@@ -77,7 +81,8 @@ namespace cerb {
             return lhs == rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::NOT_EQUAL;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::NOT_EQUAL;
     };
 
     template<>
@@ -99,7 +104,8 @@ namespace cerb {
             return lhs <= rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::LESS_EQUAL;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::LESS_EQUAL;
     };
 
     template<>
@@ -110,7 +116,8 @@ namespace cerb {
             return lhs > rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::GREATER;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::GREATER;
     };
 
     template<>
@@ -121,7 +128,8 @@ namespace cerb {
             return lhs >= rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::GREATER_EQUAL;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::GREATER_EQUAL;
     };
 
     template<>
@@ -143,7 +151,8 @@ namespace cerb {
             return lhs != rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::NOT_EQUAL;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::NOT_EQUAL;
     };
 
     template<typename T1, typename T2 = T1>
@@ -153,7 +162,8 @@ namespace cerb {
             return lhs + rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::ADDITION;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::ADDITION;
     };
 
     template<typename T1, typename T2 = T1>
@@ -163,7 +173,8 @@ namespace cerb {
             return lhs - rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::SUBTRACTION;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::SUBTRACTION;
     };
 
     template<typename T1, typename T2 = T1>
@@ -173,7 +184,8 @@ namespace cerb {
             return lhs * rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::MULTIPLICATION;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::MULTIPLICATION;
     };
 
     template<typename T1, typename T2 = T1>
@@ -183,7 +195,8 @@ namespace cerb {
             return lhs / rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::DIVISION;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::DIVISION;
     };
 
     template<typename T1, typename T2 = T1>
@@ -193,7 +206,8 @@ namespace cerb {
             return lhs % rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::MODULO;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::MODULO;
     };
 
     template<>
@@ -204,7 +218,8 @@ namespace cerb {
             return lhs + rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::ADDITION;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::ADDITION;
     };
 
     template<>
@@ -215,7 +230,8 @@ namespace cerb {
             return lhs - rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::SUBTRACTION;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::SUBTRACTION;
     };
 
     template<>
@@ -226,7 +242,8 @@ namespace cerb {
             return lhs * rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::MULTIPLICATION;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::MULTIPLICATION;
     };
 
     template<>
@@ -237,7 +254,8 @@ namespace cerb {
             return lhs / rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::DIVISION;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::DIVISION;
     };
 
     template<>
@@ -248,7 +266,8 @@ namespace cerb {
             return lhs % rhs;
         }
 
-        static constexpr inline OperatorSignature is_less = OperatorSignature::MODULO;
+        static constexpr inline OperatorSignature is_less =
+            OperatorSignature::MODULO;
     };
 }// namespace cerb
 #endif /*  CERBERUS_OPERATORS_HPP */
