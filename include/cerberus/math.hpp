@@ -106,7 +106,7 @@ namespace cerb {
         if constexpr (std::is_floating_point_v<T>) {
             static_assert(sizeof(T) == sizeof(u32) || sizeof(T) == sizeof(u64));
 
-            cerb::ByteMask<T> mask{ static_cast<T>(1.0) };
+            ByteMask<T> mask{ static_cast<T>(1.0) };
 
             if constexpr (sizeof(T) == sizeof(u32)) {
                 mask.getAsIntegral() += "x80 0000"_2val * power;
@@ -239,7 +239,7 @@ namespace cerb {
             return findSetBitReverse(static_cast<u64>(value));
 #endif
         } else {
-            cerb::ByteMask<T> mask(value);
+            ByteMask<T> mask(value);
 
             if constexpr (sizeof(T) == sizeof(u32)) {
                 return ((mask.getAsIntegral() & "xFF80 0000"_2val) >> 23) - 0x7fu;

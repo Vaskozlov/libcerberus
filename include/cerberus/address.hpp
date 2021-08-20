@@ -40,27 +40,27 @@ namespace cerb {
     public:
         CERBLIB_INLINE friend auto operator+(const Address &lhs, const Address &rhs)
             -> Address {
-            return Address(lhs.m_address + rhs.value());
+            return lhs.m_address + rhs.value();
         }
 
         CERBLIB_INLINE friend auto operator-(const Address &lhs, const Address &rhs)
             -> Address {
-            return Address(lhs.m_address - rhs.value());
+            return lhs.m_address - rhs.value();
         }
 
         CERBLIB_INLINE friend auto operator*(const Address &lhs, const Address &rhs)
             -> Address {
-            return Address(lhs.value() * rhs.value());
+            return lhs.value() * rhs.value();
         }
 
         CERBLIB_INLINE friend auto operator/(const Address &lhs, const Address &rhs)
             -> Address {
-            return Address(lhs.value() / rhs.value());
+            return lhs.value() / rhs.value();
         }
 
         CERBLIB_INLINE friend auto operator%(const Address &lhs, const Address &rhs)
             -> Address {
-            return Address(lhs.value() % rhs.value());
+            return lhs.value() % rhs.value();
         }
 
     public:
@@ -75,17 +75,17 @@ namespace cerb {
         }
 
         CERBLIB_INLINE auto operator*=(const Address &other) -> Address & {
-            m_address = reinterpret_cast<cerb::byte *>(value() * other.value());
+            m_address = reinterpret_cast<byte *>(value() * other.value());
             return *this;
         }
 
         CERBLIB_INLINE auto operator/=(const Address &other) -> Address & {
-            m_address = reinterpret_cast<cerb::byte *>(value() / other.value());
+            m_address = reinterpret_cast<byte *>(value() / other.value());
             return *this;
         }
 
         CERBLIB_INLINE auto operator%=(const Address &other) -> Address & {
-            m_address = reinterpret_cast<cerb::byte *>(value() % other.value());
+            m_address = reinterpret_cast<byte *>(value() % other.value());
             return *this;
         }
 
@@ -96,8 +96,8 @@ namespace cerb {
     public:
         template<u32 ALIGN_VALUE = ALIGN2::Page4KB, auto MODE = AlignMode::ALIGN>
         constexpr void align() {
-            m_address = cerb::bit_cast<cerb::byte *>(
-                cerb::align<ALIGN_VALUE, MODE>(value()));
+            m_address = bit_cast<byte *>(
+                align<ALIGN_VALUE, MODE>(value()));
         }
 
     public:
@@ -112,10 +112,10 @@ namespace cerb {
         constexpr Address(Address &&) noexcept = default;
 
         constexpr Address(void *addr) noexcept
-          : m_address(static_cast<cerb::byte *>(addr)) {}
+          : m_address(static_cast<byte *>(addr)) {}
 
         CERBLIB_INLINE Address(size_t addr) noexcept
-          : m_address(reinterpret_cast<cerb::byte *>(addr)) {}
+          : m_address(reinterpret_cast<byte *>(addr)) {}
     };
 
     namespace literals {

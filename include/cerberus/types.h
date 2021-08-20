@@ -2,11 +2,11 @@
 #define CERBERUS_TYPES_H
 
 #if defined(__cplusplus)
-#    include <cstddef>
 #    include <cinttypes>
+#    include <cstddef>
 #else
-#    include <stddef.h>
 #    include <inttypes.h>
+#    include <stddef.h>
 #endif /* __cplusplus */
 
 #if defined(__unix__)
@@ -190,8 +190,8 @@ typedef u8 byte;
 #if defined(__cplusplus)
 #    include <array>
 #    include <limits>
-#    include <utility>
 #    include <type_traits>
+#    include <utility>
 
 namespace cerb {
 

@@ -28,7 +28,7 @@ namespace cerb {
 
     public:
         constexpr auto &getAsIntegral() noexcept {
-            static_assert(sizeof(T) < sizeof(u64) && cerb::isPowerOf2(sizeof(T)));
+            static_assert(sizeof(T) < sizeof(u64) && isPowerOf2(sizeof(T)));
 
             if constexpr (sizeof(T) == sizeof(u8)) {
                 return mask_u8[0];

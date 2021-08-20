@@ -2,6 +2,7 @@
 #define CERBERUS_QUICKSORT_HPP
 
 #include <cerberus/types.h>
+#include <cerberus/algorithms.hpp>
 
 namespace cerb {
     namespace PRIVATE {
@@ -22,7 +23,7 @@ namespace cerb {
                     return j;
                 }
 
-                std::swap(data[i], data[j]);
+                swap(data[i], data[j]);
             }
         }
 

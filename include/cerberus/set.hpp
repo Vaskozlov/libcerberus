@@ -10,11 +10,11 @@
 namespace cerb {
     namespace gl {
         template<typename T, size_t Size>
-        class Set : public cerb::PRIVATE::gl::BasicSet<T, Size>
+        class Set : public PRIVATE::gl::BasicSet<T, Size>
         {
             using value_type       = T;
             using const_value_type = const T;
-            using base_class       = cerb::PRIVATE::gl::BasicSet<T, Size>;
+            using base_class       = PRIVATE::gl::BasicSet<T, Size>;
 
             using base_class::begin;
             using base_class::end;
@@ -24,13 +24,13 @@ namespace cerb {
 
         private:
             constexpr auto search(const_value_type &key) noexcept {
-                return cerb::find_if(begin(), end(),
-                                     [&key](const auto &i) { return i == key; });
+                return find_if(begin(), end(),
+                               [&key](const auto &i) { return i == key; });
             }
 
             constexpr auto search(const_value_type &key) const noexcept {
-                return cerb::find_if(begin(), end(),
-                                     [&key](const auto &i) { return i == key; });
+                return find_if(begin(), end(),
+                               [&key](const auto &i) { return i == key; });
             }
 
         public:
@@ -78,7 +78,7 @@ namespace cerb {
         };
     }// namespace gl
 
-    template<typename T, auto OnThrowing = cerb::Throwable{},
+    template<typename T, auto OnThrowing = Throwable{},
              typename Compare = less<void>, typename Alloc = std::allocator<T>>
     class CERBLIB_TRIVIAL Set : public PRIVATE::RBTree<T, Compare, Alloc>
     {
@@ -133,8 +133,8 @@ namespace cerb {
         }
     };
 
-    template<typename T, auto OnThrowing = cerb::Throwable{},
-             typename Compare = cerb::less<void>, typename Alloc = std::allocator<T>>
+    template<typename T, auto OnThrowing = Throwable{},
+             typename Compare = less<void>, typename Alloc = std::allocator<T>>
     class CERBLIB_TRIVIAL Multiset
       : public PRIVATE::RBTree<Pair<size_t, T, BY_SECOND_VALUE>, Compare, Alloc>
     {

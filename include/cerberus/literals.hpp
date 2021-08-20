@@ -16,7 +16,7 @@ namespace cerb::literals {
     consteval auto operator"" _hash(const char *str, size_t len) -> u64 {
         switch (len) {
         case sizeof(u8):
-            return cerb::bit_cast<unsigned char>(str[0]);
+            return bit_cast<unsigned char>(str[0]);
         case sizeof(u16):
             return str2Uint<u16>(str);
         case sizeof(u32):
@@ -28,7 +28,7 @@ namespace cerb::literals {
 
             CERBLIB_UNROLL_N(2)
             for (size_t i = 0; i < len; ++i) {
-                result = result * 31UL + cerb::bit_cast<unsigned char>(str[i]);
+                result = result * 31UL + bit_cast<unsigned char>(str[i]);
             }
             return result;
         }

@@ -9,7 +9,7 @@ namespace cerb::gl {
     struct CERBLIB_TRIVIAL Container
     {
         using storage_t = std::array<T, Size>;
-        using tracker_t = cerb::ConstBitmap<1, Size>;
+        using tracker_t = ConstBitmap<1, Size>;
 
     private:
         storage_t m_data{};
@@ -98,7 +98,7 @@ namespace cerb::gl {
         constexpr Container(const Container &other) noexcept(
             std::is_nothrow_constructible_v<T>)
           : m_tracker(other.m_tracker) {
-            cerb::memcpy(m_data, other.m_data, Size);
+            memcpy(m_data, other.m_data, Size);
         }
 
         constexpr Container(Container &&other) noexcept(

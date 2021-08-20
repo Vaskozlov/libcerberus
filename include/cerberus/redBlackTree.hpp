@@ -88,13 +88,13 @@ namespace cerb::PRIVATE {
                 }
 
                 m_size = other.m_size;
-                cerb::memcpy(m_data, other.m_data, m_size);
+                memcpy(m_data, other.m_data, m_size);
                 return *this;
             }
 
             constexpr auto operator=(BasicSet &&other) noexcept -> BasicSet & {
                 m_size = other.m_size;
-                cerb::memcpy(m_data, other.m_data, m_size);
+                memcpy(m_data, other.m_data, m_size);
                 return *this;
             }
 
@@ -103,11 +103,11 @@ namespace cerb::PRIVATE {
 
             constexpr BasicSet(const BasicSet &other) noexcept
               : m_size(other.m_size) {
-                cerb::memcpy(m_data, other.m_data, m_size);
+                memcpy(m_data, other.m_data, m_size);
             }
 
             constexpr BasicSet(BasicSet &&other) noexcept : m_size(other.m_size) {
-                cerb::memcpy(m_data, other.m_data, m_size);
+                memcpy(m_data, other.m_data, m_size);
             }
 
             constexpr BasicSet(
@@ -120,7 +120,7 @@ namespace cerb::PRIVATE {
 
             template<typename... Ts>
             explicit constexpr BasicSet(Ts &&...args) noexcept {
-                cerb::forEach<false>(
+                forEach<false>(
                     [&](const auto &elem) { m_data[m_size++] = std::move(elem); },
                     args...);
             }
@@ -235,16 +235,17 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            constexpr auto operator=(const RBTreeNode &other) noexcept {
-                value  = other.value;
+            constexpr auto operator=(RBTreeNode &&other) noexcept -> RBTree & {
+                value  = move(other.value);
                 left   = other.left;
                 right  = other.right;
                 parent = other.parent;
                 color  = other.color;
             }
 
-            constexpr auto operator=(RBTreeNode &&other) noexcept {
-                value  = std::move(other.value);
+            constexpr auto operator=(const RBTreeNode &other) noexcept
+                -> RBTreeNode & {
+                value  = other.value;
                 left   = other.left;
                 right  = other.right;
                 parent = other.parent;
@@ -533,7 +534,7 @@ namespace cerb::PRIVATE {
                 return true;
             }
 
-            std::swap(u->value, node->value);
+            swap(u->value, node->value);
             return deleteNode(u);
         }
 

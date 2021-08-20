@@ -257,7 +257,7 @@ namespace cerb::PRIVATE {
         }
 
         if (limit % bitsizeof(value_type) != 0) {
-            auto mask  = cerb::pow2<value_type>(times) - 1;
+            auto mask  = pow2<value_type>(times) - 1;
             auto value = reverse<Values..., T>(i, iterator);
 
             if (value >= mask) {
@@ -426,7 +426,7 @@ namespace cerb {
         template<size_type AxisN>
         constexpr auto clear() noexcept -> void {
             static_assert(AxisN < Axis);
-            cerb::memset<value_type>(m_data[AxisN], 0, lengthOfAxisArray());
+            memset<value_type>(m_data[AxisN], 0, lengthOfAxisArray());
         }
 
         constexpr auto clear() noexcept -> void {
@@ -621,7 +621,7 @@ namespace cerb {
         template<size_type AxisN>
         constexpr auto clear() noexcept -> void {
             static_assert(AxisN < Axis);
-            cerb::memset<value_type>(m_data[AxisN], 0, lengthOfAxisArray());
+            memset<value_type>(m_data[AxisN], 0, lengthOfAxisArray());
         }
 
         constexpr auto clear() noexcept -> void {

@@ -13,16 +13,15 @@
 namespace cerb {
     namespace gl {
         template<typename T1, typename T2, size_t Size>
-        class Map : public cerb::PRIVATE::gl::BasicSet<cerb::Pair<T1, T2>, Size>
+        class Map : public PRIVATE::gl::BasicSet<Pair<T1, T2>, Size>
         {
             using key_type         = T1;
             using value_type       = T2;
             using const_key_type   = const T1;
             using const_value_type = const T2;
-            using map_elem         = cerb::Pair<key_type, value_type>;
-            using const_map_elem   = const cerb::Pair<key_type, value_type>;
-            using parent_class =
-                cerb::PRIVATE::gl::BasicSet<cerb::Pair<T1, T2>, Size>;
+            using map_elem         = Pair<key_type, value_type>;
+            using const_map_elem   = const Pair<key_type, value_type>;
+            using parent_class     = PRIVATE::gl::BasicSet<Pair<T1, T2>, Size>;
 
             using parent_class::begin;
             using parent_class::end;
@@ -32,15 +31,13 @@ namespace cerb {
 
         private:
             constexpr auto search(const_key_type &key) noexcept {
-                return cerb::find_if(begin(), end(), [&key](const auto &i) {
-                    return i.first == key;
-                });
+                return find_if(begin(), end(),
+                               [&key](const auto &i) { return i.first == key; });
             }
 
             constexpr auto search(const_key_type &key) const noexcept {
-                return cerb::find_if(begin(), end(), [&key](const auto &i) {
-                    return i.first == key;
-                });
+                return find_if(begin(), end(),
+                               [&key](const auto &i) { return i.first == key; });
             }
 
         public:
@@ -83,9 +80,8 @@ namespace cerb {
         };
     }// namespace gl
 
-    template<typename T1, typename T2, auto OnThrowing = cerb::Throwable{},
-             typename Compare = cerb::less<void>,
-             typename Alloc   = std::allocator<T1>>
+    template<typename T1, typename T2, auto OnThrowing = Throwable{},
+             typename Compare = less<void>, typename Alloc = std::allocator<T1>>
     class CERBLIB_TRIVIAL Map
       : public PRIVATE::RBTree<Pair<const T1, T2, BY_FIRST_VALUE>, Compare, Alloc>
     {

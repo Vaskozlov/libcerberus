@@ -9,6 +9,22 @@ namespace cerb {
         (&_value)->~T();
     }
 
+    template<typename T>
+    auto move(T &&value) noexcept -> typename std::remove_reference<T>::type && {
+        return static_cast<typename std::remove_reference<T>::type &&>(value);
+    }
+
+    template<typename T>
+    auto swap(T &&lhs, T &&rhs) noexcept(std::is_nothrow_move_constructible_v<T>
+                                             &&std::is_nothrow_move_assignable_v<T>)
+        -> typename std::enable_if<std::is_move_constructible_v<T> &&
+                                       std::is_move_assignable_v<T>,
+                                   bool>::type {
+        auto tmp = move(lhs);
+        lhs      = move(rhs);
+        rhs      = move(tmp);
+    }
+
     template<typename Iterator, typename T>
     constexpr auto find(Iterator first, Iterator last, const T &value) -> Iterator {
         CERBLIB_UNROLL_N(2)

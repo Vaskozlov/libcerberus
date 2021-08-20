@@ -98,8 +98,8 @@ namespace cerb {
 
     template<typename T1, typename T2, PairCompare Compare = DEFAULT>
     constexpr auto make_pair(const T1 &first, const T2 &second)
-        -> cerb::Pair<T1, T2, Compare> {
-        return cerb::Pair<T1, T2, Compare>(first, second);
+        -> Pair<T1, T2, Compare> {
+        return Pair<T1, T2, Compare>(first, second);
     }
 }// namespace cerb
 
