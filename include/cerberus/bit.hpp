@@ -7,7 +7,8 @@
 namespace cerb {
 
     template<typename T>
-    constexpr auto isPowerOf2(T value) -> bool {
+    constexpr auto isPowerOf2(T value) -> bool
+    {
         static_assert(std::is_integral_v<T>);
         return (value != 0) && (value & (value - 1)) == 0;
     }
@@ -27,7 +28,8 @@ namespace cerb {
         std::array<u64, sizeof(T) / sizeof(u64)> mask_u64;
 
     public:
-        constexpr auto &getAsIntegral() noexcept {
+        constexpr auto &getAsIntegral() noexcept
+        {
             static_assert(sizeof(T) < sizeof(u64) && isPowerOf2(sizeof(T)));
 
             if constexpr (sizeof(T) == sizeof(u8)) {
@@ -53,10 +55,11 @@ namespace cerb {
      * @return bits of x as TO type
      */
     template<typename TO, typename FROM>
-    [[nodiscard]] constexpr auto bit_cast(const FROM &x) noexcept -> TO {
-        static_assert(sizeof(TO) == sizeof(FROM) &&
-                      std::is_trivially_copyable_v<FROM> &&
-                      std::is_trivially_copyable_v<TO>);
+    [[nodiscard]] constexpr auto bit_cast(const FROM &x) noexcept -> TO
+    {
+        static_assert(
+            sizeof(TO) == sizeof(FROM) && std::is_trivially_copyable_v<FROM> &&
+            std::is_trivially_copyable_v<TO>);
 #if __cplusplus >= 202002L
         return std::bit_cast<TO>(x);
 #else
@@ -77,29 +80,34 @@ namespace cerb {
         T m_mask{ ~static_cast<T>(0) };
 
     public:
-        constexpr friend auto operator==(const BitPattern<T> &pattern,
-                                         const T &value) -> bool {
+        constexpr friend auto
+            operator==(const BitPattern<T> &pattern, const T &value) -> bool
+        {
             return (value & pattern.m_mask) == pattern.m_expected;
         }
 
-        constexpr friend auto operator==(const T &value,
-                                         const BitPattern<T> &pattern) -> bool {
+        constexpr friend auto
+            operator==(const T &value, const BitPattern<T> &pattern) -> bool
+        {
             return operator==(pattern, value);
         }
 
-        constexpr friend auto operator!=(const BitPattern<T> &pattern,
-                                         const T &value) -> bool {
+        constexpr friend auto
+            operator!=(const BitPattern<T> &pattern, const T &value) -> bool
+        {
             return !operator==(pattern, value);
         }
 
-        constexpr friend auto operator!=(const T &value,
-                                         const BitPattern<T> &pattern) -> bool {
+        constexpr friend auto
+            operator!=(const T &value, const BitPattern<T> &pattern) -> bool
+        {
             return !operator==(pattern, value);
         }
 
     public:
         template<int SIZE>
-        consteval explicit BitPattern(const char (&input)[SIZE]) {
+        consteval explicit BitPattern(const char (&input)[SIZE])
+        {
             T cur_bit = (static_cast<T>(1) << (SIZE - 2));
 
             CERBLIB_UNROLL_N(2)

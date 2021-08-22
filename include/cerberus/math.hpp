@@ -24,7 +24,8 @@
 #if defined(_MSC_VER)
 namespace cerb::PRIVATE {
     template<unsigned Value>
-    [[nodiscard]] constexpr auto findBitForward(u64 value) -> u64 {
+    [[nodiscard]] constexpr auto findBitForward(u64 value) -> u64
+    {
         u64 j = 0;
 
         for (; value > 0; j++) {
@@ -37,7 +38,8 @@ namespace cerb::PRIVATE {
     }
 
     template<unsigned Value>
-    [[nodiscard]] constexpr auto findBitReverse(u64 value) -> u64 {
+    [[nodiscard]] constexpr auto findBitReverse(u64 value) -> u64
+    {
         u64 j = 63;
 
         for (; value > 0; j--) {
@@ -74,7 +76,8 @@ namespace cerb {
      * @return T max(lhs, rhs)
      */
     template<typename T>
-    constexpr auto max(const T &lhs, const T &rhs) -> const T & {
+    constexpr auto max(const T &lhs, const T &rhs) -> const T &
+    {
         return cmov(lhs > rhs, lhs, rhs);
     }
 
@@ -87,7 +90,8 @@ namespace cerb {
      * @return T min(lhs, rhs)
      */
     template<typename T>
-    constexpr auto min(const T &lhs, const T &rhs) -> const T & {
+    constexpr auto min(const T &lhs, const T &rhs) -> const T &
+    {
         return cmov(lhs < rhs, lhs, rhs);
     }
 
@@ -100,7 +104,8 @@ namespace cerb {
      * @return T(2)^power
      */
     template<typename T>
-    constexpr auto pow2(u32 power) -> T {
+    constexpr auto pow2(u32 power) -> T
+    {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
 
         if constexpr (std::is_floating_point_v<T>) {
@@ -131,7 +136,8 @@ namespace cerb {
      * @return T or ResultType
      */
     template<typename ResultType = EmptyType, typename T>
-    constexpr auto abs(T value) {
+    constexpr auto abs(T value)
+    {
         if constexpr (std::is_unsigned_v<T>) {
             return value;
         } else if constexpr (std::is_floating_point_v<T>) {
@@ -156,7 +162,8 @@ namespace cerb {
     }
 
     template<u32 powerOf2, auto mode = AlignMode::ALIGN, typename T>
-    constexpr auto align(T value) -> T {
+    constexpr auto align(T value) -> T
+    {
         static_assert(std::is_integral_v<T>);
 
         if constexpr (mode == AlignMode::TRUNC) {
@@ -164,12 +171,14 @@ namespace cerb {
         } else if constexpr (mode == AlignMode::CEIL) {
             return value + (pow2<T>(powerOf2) - value % pow2<T>(powerOf2));
         } else {
-            return cmov(value % pow2<T>(powerOf2) == 0, value,
-                        align<powerOf2, AlignMode::CEIL>(value));
+            return cmov(
+                value % pow2<T>(powerOf2) == 0, value,
+                align<powerOf2, AlignMode::CEIL>(value));
         }
     }
 
-    [[nodiscard]] constexpr auto findSetBitForward(u64 value) -> u64 {
+    [[nodiscard]] constexpr auto findSetBitForward(u64 value) -> u64
+    {
         if (value == 0) {
             return UINTMAX_MAX;
         }
@@ -189,11 +198,13 @@ namespace cerb {
 #endif
     }
 
-    [[nodiscard]] constexpr auto findFreeBitForward(u64 value) -> u64 {
+    [[nodiscard]] constexpr auto findFreeBitForward(u64 value) -> u64
+    {
         return findSetBitForward(~value);
     }
 
-    [[nodiscard]] constexpr auto findSetBitReverse(u64 value) -> u64 {
+    [[nodiscard]] constexpr auto findSetBitReverse(u64 value) -> u64
+    {
         if (value == 0) {
             return UINTMAX_MAX;
         }
@@ -213,7 +224,8 @@ namespace cerb {
 #endif
     }
 
-    [[nodiscard]] constexpr auto findFreeBitReverse(u64 value) -> u64 {
+    [[nodiscard]] constexpr auto findFreeBitReverse(u64 value) -> u64
+    {
         return findSetBitReverse(~value);
     }
 
@@ -225,7 +237,8 @@ namespace cerb {
      * @return log2(value)
      */
     template<typename T>
-    constexpr auto log2(const T value) -> T {
+    constexpr auto log2(const T value) -> T
+    {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
 
         if constexpr (std::is_integral_v<T>) {

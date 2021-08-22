@@ -14,7 +14,8 @@ namespace cerb::hash {
      *
      * @return unique unsigned value
      */
-    CERBLIB_INLINE auto uuid() noexcept -> size_t {
+    CERBLIB_INLINE auto uuid() noexcept -> size_t
+    {
         return hash::PRIVATE::uid++;
     }
 }// namespace cerb::hash

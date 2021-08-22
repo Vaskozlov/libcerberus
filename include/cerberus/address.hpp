@@ -24,67 +24,80 @@ namespace cerb {
         };
 
     public:
-        [[nodiscard]] constexpr auto raw() const -> void * {
+        [[nodiscard]] constexpr auto raw() const -> void *
+        {
             return static_cast<void *>(m_address);
         }
 
-        [[nodiscard]] CERBLIB_INLINE auto value() const -> size_t {
+        [[nodiscard]] CERBLIB_INLINE auto value() const -> size_t
+        {
             return reinterpret_cast<size_t>(m_address);
         }
 
         template<typename T>
-        [[nodiscard]] explicit constexpr operator T *() const noexcept {
+        [[nodiscard]] explicit constexpr operator T *() const noexcept
+        {
             return static_cast<T *>(this->raw());
         }
 
     public:
         CERBLIB_INLINE friend auto operator+(const Address &lhs, const Address &rhs)
-            -> Address {
+            -> Address
+        {
             return lhs.m_address + rhs.value();
         }
 
         CERBLIB_INLINE friend auto operator-(const Address &lhs, const Address &rhs)
-            -> Address {
+            -> Address
+        {
             return lhs.m_address - rhs.value();
         }
 
         CERBLIB_INLINE friend auto operator*(const Address &lhs, const Address &rhs)
-            -> Address {
+            -> Address
+        {
             return lhs.value() * rhs.value();
         }
 
         CERBLIB_INLINE friend auto operator/(const Address &lhs, const Address &rhs)
-            -> Address {
+            -> Address
+        {
             return lhs.value() / rhs.value();
         }
 
         CERBLIB_INLINE friend auto operator%(const Address &lhs, const Address &rhs)
-            -> Address {
+            -> Address
+        {
             return lhs.value() % rhs.value();
         }
 
     public:
-        CERBLIB_INLINE auto operator+=(const Address &other) -> Address & {
+        CERBLIB_INLINE auto operator+=(const Address &other) -> Address &
+        {
             m_address += other.value();
             return *this;
         }
 
-        CERBLIB_INLINE auto operator-=(const Address &other) -> Address & {
+        CERBLIB_INLINE auto operator-=(const Address &other) -> Address &
+        {
             m_address -= other.value();
             return *this;
         }
 
-        CERBLIB_INLINE auto operator*=(const Address &other) -> Address & {
+        CERBLIB_INLINE auto operator*=(const Address &other) -> Address &
+        {
             m_address = reinterpret_cast<byte *>(value() * other.value());
             return *this;
         }
 
-        CERBLIB_INLINE auto operator/=(const Address &other) -> Address & {
+        CERBLIB_INLINE auto operator/=(const Address &other) -> Address &
+        {
             m_address = reinterpret_cast<byte *>(value() / other.value());
             return *this;
         }
 
-        CERBLIB_INLINE auto operator%=(const Address &other) -> Address & {
+        CERBLIB_INLINE auto operator%=(const Address &other) -> Address &
+        {
             m_address = reinterpret_cast<byte *>(value() % other.value());
             return *this;
         }
@@ -95,9 +108,9 @@ namespace cerb {
 
     public:
         template<u32 ALIGN_VALUE = ALIGN2::Page4KB, auto MODE = AlignMode::ALIGN>
-        constexpr void align() {
-            m_address = bit_cast<byte *>(
-                align<ALIGN_VALUE, MODE>(value()));
+        constexpr void align()
+        {
+            m_address = bit_cast<byte *>(align<ALIGN_VALUE, MODE>(value()));
         }
 
     public:
@@ -111,15 +124,17 @@ namespace cerb {
         constexpr Address(Address &)           = default;
         constexpr Address(Address &&) noexcept = default;
 
-        constexpr Address(void *addr) noexcept
-          : m_address(static_cast<byte *>(addr)) {}
+        constexpr Address(void *addr) noexcept : m_address(static_cast<byte *>(addr))
+        {}
 
         CERBLIB_INLINE Address(size_t addr) noexcept
-          : m_address(reinterpret_cast<byte *>(addr)) {}
+          : m_address(reinterpret_cast<byte *>(addr))
+        {}
     };
 
     namespace literals {
-        CERBLIB_INLINE auto operator"" _addr(unsigned long long address) {
+        CERBLIB_INLINE auto operator"" _addr(unsigned long long address)
+        {
             return Address(address);
         }
     }// namespace literals

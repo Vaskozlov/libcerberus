@@ -89,7 +89,7 @@ typedef u8 byte;
 #    if defined(__clang__)
 #        define CERBLIB_TRIVIAL [[clang::trivial_abi]]
 #    elif defined(__GNUC__)
-#        define CERBLIB_TRIVIAL __attribute__((trivial_abi))
+#        define CERBLIB_TRIVIAL
 #    else
 #        define CERBLIB_TRIVIAL
 #    endif /* COMPILER */
@@ -140,7 +140,7 @@ typedef u8 byte;
 #endif /* CERBLIB_UNROLL */
 
 #ifndef CERBLIB_UNROLL_N
-#    if defined(__clang__) || defined(__GNUC__)
+#    if defined(__clang__)
 #        define CERBLIB_UNROLL_N(N) _Pragma(CERBLIB_STR(unroll N))
 #    else
 #        define CERBLIB_UNROLL_N(N)
@@ -187,6 +187,18 @@ typedef u8 byte;
 #    endif
 #endif /* CERBLIB_DISABLE_WARNING */
 
+#ifndef CERBLIB_CLANG_DISABLE_WARNING
+#    if defined(__clang__)
+#        define CERBLIB_CLANG_DISABLE_WARNING(clang_option)                         \
+            CERBLIB_PRAGMA(clang, push)                                             \
+            CERBLIB_PRAGMA(clang, ignored clang_option)
+#        define CERBLIB_CLANG_ENABLE_WARNING CERBLIB_PRAGMA(clang, pop)
+#    else
+#        define CERBLIB_CLANG_DISABLE_WARNING(clang_option)
+#        define CERBLIB_CLANG_ENABLE_WARNING
+#    endif
+#endif /* CERBLIB_CLANG_DISABLE_WARNING */
+
 #if defined(__cplusplus)
 #    include <array>
 #    include <limits>
@@ -209,23 +221,10 @@ namespace cerb {
         auto operator=(const EmptyType &) -> EmptyType & = delete;
     };
 
-    struct Throwable
-    {
-        u8 empty;
-
-        constexpr Throwable()  = default;
-        constexpr ~Throwable() = default;
-
-        Throwable(Throwable &&)      = delete;
-        Throwable(const Throwable &) = delete;
-
-        auto operator=(Throwable &&) -> Throwable & = delete;
-        auto operator=(const Throwable &) -> Throwable & = delete;
-    };
-
     template<typename T>
     [[nodiscard]] constexpr auto getLimits(const T & /*unused*/)
-        -> std::numeric_limits<T> {
+        -> std::numeric_limits<T>
+    {
         return std::numeric_limits<T>();
     }
 
@@ -251,7 +250,8 @@ namespace cerb {
      * @param function  function which will be called
      */
     template<auto Begin, auto End, auto Inc, typename Function>
-    constexpr auto constexprFor(Function &&function) -> void {
+    constexpr auto constexprFor(Function &&function) -> void
+    {
         if constexpr (Begin < End) {
             function(std::integral_constant<decltype(Begin), Begin>());
             constexprFor<Begin + Inc, End, Inc>(function);
@@ -269,7 +269,8 @@ namespace cerb {
      */
     template<typename T>
     constexpr auto cmov(bool condition, const T &on_true, const T &on_false)
-        -> const T & {
+        -> const T &
+    {
         return condition ? on_true : on_false;
     }
 }// namespace cerb

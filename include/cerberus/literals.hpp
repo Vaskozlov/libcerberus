@@ -5,15 +5,18 @@
 #include <cerberus/string.hpp>
 
 namespace cerb::literals {
-    consteval auto operator""_z(unsigned long long x) -> size_t {
+    consteval auto operator""_z(unsigned long long x) -> size_t
+    {
         return static_cast<size_t>(x);
     }
 
-    consteval auto operator""_Z(unsigned long long x) -> size_t {
+    consteval auto operator""_Z(unsigned long long x) -> size_t
+    {
         return static_cast<size_t>(x);
     }
 
-    consteval auto operator"" _hash(const char *str, size_t len) -> u64 {
+    consteval auto operator"" _hash(const char *str, size_t len) -> u64
+    {
         switch (len) {
         case sizeof(u8):
             return bit_cast<unsigned char>(str[0]);
@@ -35,7 +38,8 @@ namespace cerb::literals {
         }
     }
 
-    consteval auto operator"" _2val(const char *str, size_t len) {
+    consteval auto operator"" _2val(const char *str, size_t len)
+    {
         uintmax_t result   = 0;
         uintmax_t modifier = 10;
 

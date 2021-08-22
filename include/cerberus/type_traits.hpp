@@ -12,12 +12,14 @@ namespace cerb {
         using no  = std::false_type;
 
         template<typename U>
-        static constexpr auto test(typename U::iterator * /*unused*/) -> bool {
+        static constexpr auto test(typename U::iterator * /*unused*/) -> bool
+        {
             return true;
         }
 
         template<typename... Us>
-        static constexpr auto test(Us... /*unused*/) -> bool {
+        static constexpr auto test(Us... /*unused*/) -> bool
+        {
             return false;
         }
 
@@ -29,7 +31,8 @@ namespace cerb {
     inline constexpr auto is_iterative_v = is_iterative<T>::value;
 
     template<typename F, typename... Ts>
-    [[nodiscard]] constexpr CERBLIB_INLINE auto forEach(F &&func, Ts &&...values) {
+    [[nodiscard]] constexpr CERBLIB_INLINE auto forEach(F &&func, Ts &&...values)
+    {
         auto _ = { ([&](auto &i) -> int {
             func(i);
             return 0;

@@ -23,7 +23,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct less
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs < rhs;
         }
 
@@ -33,7 +34,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct less_equal
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs <= rhs;
         }
 
@@ -44,7 +46,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct greater
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs > rhs;
         }
 
@@ -55,7 +58,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct greater_equal
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs >= rhs;
         }
 
@@ -66,7 +70,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct equal_to
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs == rhs;
         }
 
@@ -76,7 +81,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct not_equal_to
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs == rhs;
         }
 
@@ -88,7 +94,8 @@ namespace cerb {
     struct less<void>
     {
         template<typename T1, typename T2 = T1>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs < rhs;
         }
 
@@ -99,7 +106,8 @@ namespace cerb {
     struct less_equal<void>
     {
         template<typename T1, typename T2 = T1>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs <= rhs;
         }
 
@@ -111,7 +119,8 @@ namespace cerb {
     struct greater<void>
     {
         template<typename T1, typename T2 = T1>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs > rhs;
         }
 
@@ -123,7 +132,8 @@ namespace cerb {
     struct greater_equal<void>
     {
         template<typename T1, typename T2 = T1>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs >= rhs;
         }
 
@@ -135,7 +145,8 @@ namespace cerb {
     struct equal_to<void>
     {
         template<typename T1, typename T2 = T1>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs == rhs;
         }
 
@@ -146,7 +157,8 @@ namespace cerb {
     struct not_equal_to<void>
     {
         template<typename T1, typename T2 = T1>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs != rhs;
         }
 
@@ -157,7 +169,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct addition
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs + rhs;
         }
 
@@ -168,7 +181,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct subtraction
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs - rhs;
         }
 
@@ -179,7 +193,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct multiplication
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs * rhs;
         }
 
@@ -190,7 +205,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct division
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs / rhs;
         }
 
@@ -201,7 +217,8 @@ namespace cerb {
     template<typename T1, typename T2 = T1>
     struct modulo
     {
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs % rhs;
         }
 
@@ -213,7 +230,8 @@ namespace cerb {
     struct addition<void>
     {
         template<typename T1, typename T2>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs + rhs;
         }
 
@@ -225,7 +243,8 @@ namespace cerb {
     struct subtraction<void>
     {
         template<typename T1, typename T2>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs - rhs;
         }
 
@@ -237,7 +256,8 @@ namespace cerb {
     struct multiplication<void>
     {
         template<typename T1, typename T2>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs * rhs;
         }
 
@@ -249,7 +269,8 @@ namespace cerb {
     struct division<void>
     {
         template<typename T1, typename T2>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs / rhs;
         }
 
@@ -261,7 +282,8 @@ namespace cerb {
     struct modulo<void>
     {
         template<typename T1, typename T2>
-        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept {
+        constexpr auto operator()(const T1 &lhs, const T2 &rhs) const noexcept
+        {
             return lhs % rhs;
         }
 

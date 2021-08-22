@@ -30,29 +30,36 @@ namespace cerb {
             using parent_class::self;
 
         private:
-            constexpr auto search(const_key_type &key) noexcept {
-                return find_if(begin(), end(),
-                               [&key](const auto &i) { return i.first == key; });
+            constexpr auto search(const_key_type &key) noexcept
+            {
+                return cerb::find_if(begin(), end(), [&key](const auto &i) {
+                    return i.first == key;
+                });
             }
 
-            constexpr auto search(const_key_type &key) const noexcept {
-                return find_if(begin(), end(),
-                               [&key](const auto &i) { return i.first == key; });
+            constexpr auto search(const_key_type &key) const noexcept
+            {
+                return cerb::find_if(begin(), end(), [&key](const auto &i) {
+                    return i.first == key;
+                });
             }
 
         public:
             constexpr auto at(const_key_type &key) const noexcept
-                -> const_value_type & {
+                -> const_value_type &
+            {
                 const auto elem = search(key);
                 return elem->second;
             }
 
             constexpr auto operator[](const_key_type &key) const noexcept
-                -> const_value_type & {
+                -> const_value_type &
+            {
                 return at(key);
             }
 
-            constexpr auto operator[](const_key_type &key) noexcept -> value_type & {
+            constexpr auto operator[](const_key_type &key) noexcept -> value_type &
+            {
                 auto elem = static_cast<size_t>(search(key) - begin());
 
                 if (elem == m_size) {
@@ -67,21 +74,26 @@ namespace cerb {
             constexpr auto operator=(const Map &other) noexcept -> Map & = default;
 
         public:
-            constexpr Map(const Map &other) noexcept : parent_class(other.self()) {}
+            constexpr Map(const Map &other) noexcept : parent_class(other.self())
+            {}
 
             constexpr Map(Map &&other) noexcept
-              : parent_class(std::move(other.self())) {}
+              : parent_class(std::move(other.self()))
+            {}
 
             constexpr Map(const std::initializer_list<const_map_elem> &args) noexcept
-              : parent_class(args) {}
+              : parent_class(args)
+            {}
 
             template<typename... Ts>
-            explicit constexpr Map(Ts &&...args) noexcept : parent_class(args...) {}
+            explicit constexpr Map(Ts &&...args) noexcept : parent_class(args...)
+            {}
         };
     }// namespace gl
 
-    template<typename T1, typename T2, auto OnThrowing = Throwable{},
-             typename Compare = less<void>, typename Alloc = std::allocator<T1>>
+    template<
+        typename T1, typename T2, bool MayThrow = true,
+        typename Compare = less<void>, typename Alloc = std::allocator<T1>>
     class CERBLIB_TRIVIAL Map
       : public PRIVATE::RBTree<Pair<const T1, T2, BY_FIRST_VALUE>, Compare, Alloc>
     {
@@ -94,25 +106,25 @@ namespace cerb {
         using BasicTree::RBTreeErase;
         using BasicTree::search;
 
-    private:
-        constexpr static auto MayThrow =
-            std::is_same_v<Throwable, decltype(OnThrowing)>;
-
     public:
-        constexpr auto insert(value_type &&value) noexcept {
+        constexpr auto insert(value_type &&value) noexcept
+        {
             this->template RBTreeEmplace<true, true>(value);
         }
 
-        constexpr auto insert(const value_type &value) noexcept {
+        constexpr auto insert(const value_type &value) noexcept
+        {
             this->template RBTreeEmplace<true, true>(value);
         }
 
-        constexpr auto count(const T1 &key) const noexcept -> size_t {
+        constexpr auto count(const T1 &key) const noexcept -> size_t
+        {
             auto value = search(key);
             return value != nullptr && value->value == key;
         }
 
-        constexpr auto erase(const T1 &key) noexcept(!MayThrow) {
+        constexpr auto erase(const T1 &key) noexcept(!MayThrow)
+        {
             if constexpr (MayThrow) {
                 if (!RBTreeErase(key)) [[unlikely]] {
                     throw std::out_of_range("Unable to erase elem from cerb::Set");
@@ -123,15 +135,16 @@ namespace cerb {
             }
         }
 
-        constexpr auto operator[](const T1 &key) noexcept(!MayThrow) -> T2 & {
+        constexpr auto operator[](const T1 &key) noexcept(!MayThrow) -> T2 &
+        {
             auto value = search(key);
 
             if (value != nullptr && value->value.first == key) {
                 return value->value.second;
-            } else {
-                auto elem = RBTreeEmplace(key);
-                return elem->value.second;
             }
+
+            auto elem = RBTreeEmplace(key);
+            return elem->value.second;
         }
 
     public:
@@ -145,7 +158,8 @@ namespace cerb {
         constexpr Map(const Map &)     = default;
         constexpr Map(Map &&) noexcept = default;
 
-        constexpr Map(const std::initializer_list<value_type> &values) noexcept {
+        constexpr Map(const std::initializer_list<value_type> &values) noexcept
+        {
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : values) {
                 insert(elem);
