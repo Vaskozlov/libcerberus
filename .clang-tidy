@@ -1,5 +1,5 @@
 ---
-Checks:          '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-llvm*,-misc-non-private-member-variables-in-classes,-readability-redundant-access-specifiers,-modernize-avoid-c-arrays'
+Checks:          '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-llvm*,-misc-non-private-member-variables-in-classes,-readability-redundant-access-specifiers,-modernize-avoid-c-arrays,-cppcoreguidelines-pro-type-reinterpret-cast'
 WarningsAsErrors: '*'
 HeaderFilterRegex: ''
 FormatStyle:     none

@@ -2,9 +2,12 @@
 #define CERBERUS_STRING_HPP
 
 #include <cerberus/bit.hpp>
-#include <cerberus/private/string.hpp>
 #include <cerberus/type_traits.hpp>
 #include <cerberus/types.h>
+
+#if defined(__x86_64__)
+#    include <cerberus/private/string.hpp>
+#endif
 
 namespace cerb {
     namespace PRIVATE {
@@ -38,6 +41,7 @@ namespace cerb {
     {
         if (!std::is_constant_evaluated() && PRIVATE::trivially_copyable<T>) {
             memset(t_array.data(), value, times);
+
         } else {
             CERBLIB_UNROLL_N(4)
             for (size_t i = 0; i < times; i++)
