@@ -201,6 +201,12 @@ namespace cerb {
         NodePtr m_end{ m_begin };
         size_t m_size{ 0 };
 
+    public:
+        constexpr auto size() const -> size_t
+        {
+            return m_size;
+        }
+
     private:
         constexpr auto get_back() -> NodePtr
         {
