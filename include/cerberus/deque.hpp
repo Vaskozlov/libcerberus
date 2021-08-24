@@ -16,11 +16,11 @@ namespace cerb {
 
         struct DequeNode
         {
-            std::array<T, Size> data;
-            DequeNode *front;
-            DequeNode *back;
-            u8 first;
-            u8 last;
+            std::array<T, Size> data{};
+            DequeNode *front{ nullptr };
+            DequeNode *back{ nullptr };
+            u8 first{ 0 };
+            u8 last{ 0 };
 
         public:
             constexpr auto init() -> void
@@ -66,8 +66,8 @@ namespace cerb {
             }
 
         public:
-            constexpr DequeNode() noexcept  = delete;
-            constexpr ~DequeNode() noexcept = delete;
+            constexpr DequeNode() noexcept  = default;
+            constexpr ~DequeNode() noexcept = default;
             DequeNode(DequeNode &&other)    = delete;
 
             constexpr DequeNode(const DequeNode &other) noexcept
@@ -143,7 +143,7 @@ namespace cerb {
             constexpr iterator()  = default;
             constexpr ~iterator() = default;
 
-            constexpr iterator(const iterator &) = default;
+            constexpr iterator(const iterator &)     = default;
             constexpr iterator(iterator &&) noexcept = default;
 
             constexpr explicit iterator(u8 index, NodePtr node)
@@ -212,6 +212,11 @@ namespace cerb {
         {
             if (m_end->last == Size) [[unlikely]] {
                 NodePtr new_node = NodeTraits::allocate(m_allocator, 1);
+
+                if (std::is_constant_evaluated()) {
+                    NodeTraits::construct(m_allocator, new_node);
+                }
+
                 new_node->init_back(m_end);
                 m_end = new_node;
             }
@@ -222,6 +227,11 @@ namespace cerb {
         {
             if (m_begin->first == 0) {
                 NodePtr new_node = NodeTraits::allocate(m_allocator, 1);
+
+                if (std::is_constant_evaluated()) {
+                    NodeTraits::construct(m_allocator, new_node);
+                }
+
                 new_node->init_forward(m_begin);
                 m_begin = new_node;
             }
@@ -397,6 +407,9 @@ namespace cerb {
     public:
         constexpr Deque()
         {
+            if (std::is_constant_evaluated()) {
+                NodeTraits::construct(m_allocator, m_begin);
+            }
             m_begin->init();
         }
 

@@ -77,6 +77,7 @@ namespace cerb::literals {
             return 0;
         };
 
+        CERBLIB_UNROLL_N(2)
         for (size_t i = 0; i < len; i++) {
             if (str[i] == ' ') {
                 continue;

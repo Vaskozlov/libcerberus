@@ -2,6 +2,7 @@
 #define CERBERUS_ALGORITHMS_HPP
 
 #include <cerberus/types.h>
+#include <cerberus/string.hpp>
 
 namespace cerb {
     template<typename T>
@@ -14,6 +15,36 @@ namespace cerb {
     auto move(T &&value) noexcept -> typename std::remove_reference<T>::type &&
     {
         return static_cast<typename std::remove_reference<T>::type &&>(value);
+    }
+
+    template<typename T>
+    constexpr auto raw_move(T *dest, T *begin, T *end) -> void
+    {
+        if (std::is_constant_evaluated()) {
+            if constexpr (std::is_trivial_v<T>) {
+                return memcpy(dest, begin, static_cast<long>(end - begin));
+            }
+        }
+
+        CERBLIB_UNROLL_N(2)
+        for (; begin != end; ++begin, ++dest) {
+            std::construct_at(dest, cerb::move(*begin));
+        }
+    }
+
+    template<typename T>
+    constexpr auto raw_copy(T *dest, const T *begin, const T *end) -> void
+    {
+        if (!std::is_constant_evaluated()) {
+            if constexpr (std::is_trivial_v<T>) {
+                return memcpy(dest, begin, static_cast<ptrdiff_t>(end - begin));
+            }
+        }
+
+        CERBLIB_UNROLL_N(2)
+        for (; begin != end; ++begin, ++dest) {
+            std::construct_at(dest, static_cast<const T&>(*begin));
+        }
     }
 
     template<typename T>
@@ -150,8 +181,10 @@ namespace cerb {
 
     template<typename Iterator1, typename Iterator2>
     constexpr inline auto mismatch(
-        Iterator1 first1, Iterator1 last1, Iterator2 first2, Iterator2 last2)
-        -> Pair<Iterator1, Iterator2>
+        Iterator1 first1,
+        Iterator1 last1,
+        Iterator2 first2,
+        Iterator2 last2) -> Pair<Iterator1, Iterator2>
     {
         CERBLIB_UNROLL_N(2)
         for (; first1 != last1 && first2 != last2; ++first1, ++first2) {

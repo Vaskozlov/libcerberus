@@ -16,11 +16,14 @@ namespace cerb {
             using const_value_type = const T;
             using base_class       = PRIVATE::gl::BasicSet<T, Size>;
 
-            using base_class::begin;
-            using base_class::end;
             using base_class::m_data;
             using base_class::m_size;
             using base_class::self;
+
+        public:
+            using base_class::begin;
+            using base_class::end;
+            using base_class::size;
 
         private:
             constexpr auto search(const_value_type &key)

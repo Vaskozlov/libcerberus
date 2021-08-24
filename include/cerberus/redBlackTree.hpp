@@ -28,6 +28,12 @@ namespace cerb::PRIVATE {
             storage_t m_data{};
 
         public:
+            constexpr auto size() const -> size_t
+            {
+                return m_size;
+            }
+
+        public:
             constexpr auto begin() noexcept -> iterator
             {
                 return m_data.begin();
@@ -152,8 +158,8 @@ namespace cerb::PRIVATE {
         };
     }// namespace gl
 
-    template<typename T, typename Compare = less<T>,
-             typename Alloc = std::allocator<T>>
+    template<
+        typename T, typename Compare = less<T>, typename Alloc = std::allocator<T>>
     class RBTree
     {
         enum RBTreeNodeColor : bool
@@ -795,14 +801,14 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            constexpr friend auto operator==(const iterator &lhs,
-                                             const iterator &rhs) -> bool
+            constexpr friend auto
+                operator==(const iterator &lhs, const iterator &rhs) -> bool
             {
                 return lhs.m_node == rhs.m_node;
             }
 
-            constexpr friend auto operator<=>(const iterator &lhs,
-                                              const iterator &rhs)
+            constexpr friend auto
+                operator<=>(const iterator &lhs, const iterator &rhs)
             {
                 return lhs.m_node <=> rhs.m_node;
             }
@@ -818,7 +824,8 @@ namespace cerb::PRIVATE {
             constexpr iterator(iterator &&) noexcept      = default;
             constexpr iterator(const iterator &) noexcept = default;
 
-            constexpr explicit iterator(NodePtr node) noexcept : m_node(node) {}
+            constexpr explicit iterator(NodePtr node) noexcept : m_node(node)
+            {}
         };
 
         struct reverse_iterator
@@ -939,15 +946,17 @@ namespace cerb::PRIVATE {
         {
             if (src->left != nullptr) {
                 root->left = NodeTraits::allocate(m_allocator, 1);
-                NodeTraits::construct(m_allocator, root->left,
-                                      static_cast<const T &>(src->left->value));
+                NodeTraits::construct(
+                    m_allocator, root->left,
+                    static_cast<const T &>(src->left->value));
                 root->left->parent = root;
                 copyElem(root->left, src->left);
             }
             if (src->right != nullptr) {
                 root->right = NodeTraits::allocate(m_allocator, 1);
-                NodeTraits::construct(m_allocator, root->right,
-                                      static_cast<const T &>(src->right->value));
+                NodeTraits::construct(
+                    m_allocator, root->right,
+                    static_cast<const T &>(src->right->value));
                 root->right->parent = root;
                 return copyElem(root->right, src->right);
             }
@@ -957,8 +966,9 @@ namespace cerb::PRIVATE {
         {
             if (other.m_root != nullptr) {
                 m_root = NodeTraits::allocate(m_allocator, 1);
-                NodeTraits::construct(m_allocator, m_root,
-                                      static_cast<const T &>(other.m_root->value));
+                NodeTraits::construct(
+                    m_allocator, m_root,
+                    static_cast<const T &>(other.m_root->value));
 
                 copyElem(m_root, other.m_root);
             } else {
@@ -974,8 +984,9 @@ namespace cerb::PRIVATE {
                 } else {
                     destroy(root->left->value);
                 }
-                NodeTraits::construct(m_allocator, root->left,
-                                      static_cast<const T &>(src->left->value));
+                NodeTraits::construct(
+                    m_allocator, root->left,
+                    static_cast<const T &>(src->left->value));
                 root->left->parent = root;
                 copyElem(root->left, src->left);
             }
@@ -985,8 +996,9 @@ namespace cerb::PRIVATE {
                 } else {
                     destroy(root->right->value);
                 }
-                NodeTraits::construct(m_allocator, root->right,
-                                      static_cast<const T &>(src->right->value));
+                NodeTraits::construct(
+                    m_allocator, root->right,
+                    static_cast<const T &>(src->right->value));
                 root->right->parent = root;
                 return copyElem(root->right, src->right);
             }
@@ -1000,8 +1012,9 @@ namespace cerb::PRIVATE {
                 } else {
                     destroy(m_root->value);
                 }
-                NodeTraits::construct(m_allocator, m_root,
-                                      static_cast<const T &>(other.m_root->value));
+                NodeTraits::construct(
+                    m_allocator, m_root,
+                    static_cast<const T &>(other.m_root->value));
                 copyElem(m_root, other.m_root);
             } else {
                 m_root = nullptr;
@@ -1053,20 +1066,20 @@ namespace cerb::PRIVATE {
         size_t counter;
 
     public:
-        [[nodiscard]] constexpr friend auto operator==(const MultiSetNode &lhs,
-                                                       const MultiSetNode &rhs)
+        [[nodiscard]] constexpr friend auto
+            operator==(const MultiSetNode &lhs, const MultiSetNode &rhs)
         {
             return lhs.value == rhs.value;
         }
 
-        [[nodiscard]] constexpr friend auto operator==(const MultiSetNode &lhs,
-                                                       const T &rhs)
+        [[nodiscard]] constexpr friend auto
+            operator==(const MultiSetNode &lhs, const T &rhs)
         {
             return lhs.value == rhs;
         }
 
-        [[nodiscard]] constexpr friend auto operator==(const T &lhs,
-                                                       const MultiSetNode &rhs)
+        [[nodiscard]] constexpr friend auto
+            operator==(const T &lhs, const MultiSetNode &rhs)
         {
             return lhs == rhs.value;
         }

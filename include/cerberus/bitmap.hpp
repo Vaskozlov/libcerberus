@@ -2,6 +2,7 @@
 #define CERBERUS_BITMAP_HPP
 
 #include <cerberus/math.hpp>
+#include <cerberus/string.hpp>
 
 namespace cerb {
     enum BitMapRule : u8
@@ -343,7 +344,7 @@ namespace cerb::PRIVATE {
         auto arrayIndex = index / bitsizeof(value_type);
         auto bitIndex   = index % bitsizeof(value_type);
 
-        return (data[arrayIndex] & (1 << bitIndex)) != 0;
+        return (data[arrayIndex] & (static_cast<value_type>(1) << bitIndex)) != 0;
     }
 }// namespace cerb::PRIVATE
 
@@ -367,10 +368,10 @@ namespace cerb {
             static_cast<unsigned long>((Size % bitsizeof(value_type)) != 0);
 
     public:
-        using storage_elem_t           = std::array<value_type, Size>;
-        using ref_storage_elem_t       = std::array<value_type, Size> &;
-        using const_storage_elem_t     = const std::array<value_type, Size>;
-        using const_ref_storage_elem_t = const std::array<value_type, Size> &;
+        using storage_elem_t           = std::array<value_type, array_size>;
+        using ref_storage_elem_t       = std::array<value_type, array_size> &;
+        using const_storage_elem_t     = const std::array<value_type, array_size>;
+        using const_ref_storage_elem_t = const std::array<value_type, array_size> &;
 
         using storage_t           = std::array<storage_elem_t, Axis>;
         using ref_storage_t       = std::array<storage_elem_t, Axis> &;
@@ -389,7 +390,7 @@ namespace cerb {
                     memcpy<value_type>(m_data[i], src[i], lengthOfAxisArray());
                 }
             } else {
-                memcpy<value_type>(&m_data, &src, lengthOfAxisArray() * Axis);
+                cerb::memcpy<value_type>(&m_data, &src, lengthOfAxisArray() * Axis);
             }
         }
 
