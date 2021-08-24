@@ -18,11 +18,12 @@ namespace cerb {
 
             using base_class::m_data;
             using base_class::m_size;
-            using base_class::self;
 
         public:
             using base_class::begin;
+            using base_class::clear;
             using base_class::end;
+            using base_class::self;
             using base_class::size;
 
         private:

@@ -105,6 +105,11 @@ namespace cerb::PRIVATE {
                 return *this;
             }
 
+            constexpr auto clear() noexcept -> void
+            {
+                m_size = 0;
+            }
+
         public:
             constexpr auto operator=(const BasicSet &other) noexcept -> BasicSet &
             {
