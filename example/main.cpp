@@ -48,24 +48,28 @@ auto main(int /*argc*/, char * /*argv*/[]) -> int
 
     cerb::lex::DotItem<int> item(
         0, "[a-zA-Z]+[0-9]?"sv,
-        { { '=',  '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}', '\'',
-            '\"', '!', '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',' },
+        { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}',
+            '!', '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',' },
           { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=",
             "==", "!=", ">=", "<=", ">>=", "<<=" } });
 
-    std::string_view input = "vask\"";
+    std::string_view input = "vask ";
     item.set(input, "stdio"sv);
 
     cerb::lex::DotItem<int>::CheckResult elem;
     do {
         elem = item.check();
         std::cout << cerb::lex::ItemStateRepr.at(elem.first) << std::endl;
-    } while (item.get_input().size() != 0);
 
-    for (const auto &i : elem.second) {
-        std::cout << "File: " << i.pos.filename << ", line: " << i.pos.line_number
-                  << ", char : " << i.pos.char_number << ", repr: " << i.repr << std::endl;
-    }
+        if (elem.first == cerb::lex::SCAN_FINISHED) {
+            for (const auto &i : elem.second) {
+                std::cout << "File: " << i.pos.filename
+                          << ", line: " << i.pos.line_number
+                          << ", char : " << i.pos.char_number << ", repr: " << i.repr
+                          << std::endl;
+            }
+        }
+    } while (item.get_input().size() != 0);
 
     return 0;
 }

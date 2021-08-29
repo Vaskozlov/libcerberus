@@ -855,21 +855,22 @@ namespace cerb::lex {
         using iterator  = typename storage_t::iterator;
 
     public:// make it private later
+        bool isStringToken = false;
         Typename4Tokens m_class_of_token{};
         size_t m_dot{ 0 };
         size_t m_line{ 0 };
         size_t m_char{ 0 };
         storage_t m_ranges{};
+        PositionInFile m_position{};
         std::string_view m_input{};
-        std::string_view m_filename{};
         iterator m_current{ m_ranges.begin() };
         StringChecker<StrictTokenSize, MayThrow> m_strong_tokens;
 
         inline static size_t m_shred_dot{ 0 };
         inline static size_t m_shred_line{ 0 };
         inline static size_t m_shred_char{ 0 };
+        inline static PositionInFile m_shared_position{ 0, 0, "" };
         inline static std::string_view m_shared_input{};
-        inline static std::string_view m_shared_filename{};
 
     private:
         constexpr auto dot() -> size_t &
@@ -916,36 +917,20 @@ namespace cerb::lex {
             return m_input;
         }
 
-        constexpr auto get_filename() -> std::string_view &
+        constexpr auto position() -> PositionInFile &
         {
             if constexpr (ShredObject) {
-                return m_shared_filename;
+                return m_shared_position;
             }
-            return m_filename;
+            return m_position;
         }
 
-    public:
-        constexpr auto rebind() -> void
+    private:
+        constexpr auto update_position() -> PositionInFile
         {
-            m_current = m_ranges.begin();
-
-            CERBLIB_UNROLL_N(2)
-            for (auto &elem : m_ranges) {
-                elem.rebind();
-            }
-        }
-
-        constexpr auto
-            set(const std::string_view &input, const std::string_view &filename)
-                -> void
-        {
-            rebind();
-
-            dot()          = 0;
-            line()         = 0;
-            char_number()  = 0;
-            get_input()    = input;
-            get_filename() = filename;
+            PositionInFile copy = position();
+            position() = {line(), char_number(), copy.filename};
+            return copy;
         }
 
         constexpr auto canEnd() -> bool
@@ -972,12 +957,15 @@ namespace cerb::lex {
             auto begin_of_rep  = get_input().begin();
             auto end_of_repr = min(get_input().begin() + offset, get_input().end());
 
-            dot()       = 0;
+            if (get_input()[offset] == '\n') {
+                line()++;
+                char_number() = 0;
+            }
+
+            dot() = 0;
             change_input(end_of_repr + casted_layout);
 
-            return { { begin_of_rep, end_of_repr },
-                     m_class_of_token,
-                     { line(), char_number(), get_filename() } };
+            return { { begin_of_rep, end_of_repr }, m_class_of_token, position() };
         }
 
         constexpr auto convert_result(
@@ -986,7 +974,7 @@ namespace cerb::lex {
             -> Pair<ItemState, gl::Set<Token<std::string_view, Typename4Tokens>, 2>>
         {
             if (m_current->canEnd() && canEnd()) {
-                if (strong.size() != 0) {
+                if (!strong.empty()) {
                     return { SCAN_FINISHED,
                              { end_scan(dot()), end_scan(strong.size()) } };
                 }
@@ -995,9 +983,65 @@ namespace cerb::lex {
             return { UNABLE_TO_MATCH, {} };
         }
 
+        constexpr auto next_line_check() -> bool
+        {
+            if (!isStringToken) {
+                if (get_input()[dot()] == '\\' && (get_input()[dot() + 1] == '\n' ||
+                                                   get_input()[dot() + 1] == '\r')) {
+                    dot() += 2;
+                    CERBLIB_UNROLL_N(2)
+                    while (is_layout(get_input()[dot()])) {
+                        if (get_input()[dot()] == '\\') {
+                            return next_line_check();
+                        }
+
+                        if (is_layout(get_input()[dot()]) == '\n' ||
+                            is_layout(get_input()[dot()]) == '\r') {
+                            return false;
+                        }
+
+                        ++dot();
+                    }
+                }
+            }
+            return true;
+        }
+
+    public:
+        constexpr auto rebind() -> void
+        {
+            m_current = m_ranges.begin();
+
+            CERBLIB_UNROLL_N(2)
+            for (auto &elem : m_ranges) {
+                elem.rebind();
+            }
+        }
+
+        constexpr auto
+            set(const std::string_view &input, const std::string_view &filename)
+                -> void
+        {
+            rebind();
+
+            dot()         = 0;
+            line()        = 0;
+            char_number() = 0;
+            get_input()   = input;
+            position()    = { 0, 0, filename };
+        }
+
         constexpr auto check()
             -> Pair<ItemState, gl::Set<Token<std::string_view, Typename4Tokens>, 2>>
         {
+            if (!next_line_check()) {
+                return UNABLE_TO_MATCH;
+            }
+            if (get_input()[dot()] == '\n') {
+                ++line();
+                char_number() = 0;
+            }
+
             bool layout = is_layout(get_input()[dot()]);
             auto strong = m_strong_tokens.check(dot(), get_input());
 
@@ -1009,9 +1053,13 @@ namespace cerb::lex {
             CERBLIB_UNROLL_N(2)
             while (is_layout(get_input()[dot()++])) {}
 
-            if (dot() >= get_input().size() || get_input()[dot()] == '\0') {
+            if (get_input()[dot()] == '\0') {
                 change_input(1);
-                return { UNABLE_TO_MATCH, {} };
+                return { OUT_OF_ELEMS, {} };
+            }
+            if (dot() >= get_input().size()) {
+                change_input(get_input().end());
+                return { OUT_OF_ELEMS, {} };
             }
 
             auto state = m_current->check(get_input()[dot()]);
@@ -1032,6 +1080,8 @@ namespace cerb::lex {
             case UNABLE_TO_MATCH:
                 return { UNABLE_TO_MATCH, {} };
             }
+
+            ++char_number();
         }
 
     public:
