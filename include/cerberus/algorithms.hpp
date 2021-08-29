@@ -43,16 +43,14 @@ namespace cerb {
 
         CERBLIB_UNROLL_N(2)
         for (; begin != end; ++begin, ++dest) {
-            std::construct_at(dest, static_cast<const T&>(*begin));
+            std::construct_at(dest, static_cast<const T &>(*begin));
         }
     }
 
     template<typename T>
     auto swap(T &&lhs, T &&rhs) noexcept(std::is_nothrow_move_constructible_v<T>
                                              &&std::is_nothrow_move_assignable_v<T>)
-        -> typename std::enable_if<
-            std::is_move_constructible_v<T> && std::is_move_assignable_v<T>,
-            bool>::type
+        -> void
     {
         auto tmp = move(lhs);
         lhs      = move(rhs);

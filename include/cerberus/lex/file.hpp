@@ -6,9 +6,9 @@
 namespace cerb::lex {
     struct PositionInFile
     {
-        u32 line_number{ 0 };
-        u32 char_number{ 0 };
-        const char *filename{ nullptr };
+        size_t line_number{ 0 };
+        size_t char_number{ 0 };
+        std::string_view filename{};
 
     public:
         constexpr auto operator =(const PositionInFile &)
@@ -23,8 +23,8 @@ namespace cerb::lex {
         constexpr PositionInFile(const PositionInFile &)     = default;
         constexpr PositionInFile(PositionInFile &&) noexcept = default;
 
-        constexpr explicit PositionInFile(const char *file)
-          : filename(file)
+        constexpr PositionInFile(size_t line, size_t char_n, const std::string_view &s)
+          : line_number(line), char_number(char_n), filename(s)
         {}
     };
 }// namespace cerb::lex

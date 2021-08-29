@@ -382,15 +382,11 @@ namespace cerb {
         storage_t m_data{};
 
     private:
-        constexpr auto copyFrom(ref_storage_t src) noexcept
+        constexpr auto copyFrom(const_ref_storage_t src) noexcept
         {
-            if (std::is_constant_evaluated()) {
-                CERBLIB_UNROLL_N(1)
-                for (size_t i = 0; i < axis(); ++i) {
-                    memcpy<value_type>(m_data[i], src[i], lengthOfAxisArray());
-                }
-            } else {
-                cerb::memcpy<value_type>(&m_data, &src, lengthOfAxisArray() * Axis);
+            CERBLIB_UNROLL_N(2)
+            for (size_t i = 0; i < axis(); ++i) {
+                memcpy<value_type>(m_data[i], src[i], lengthOfAxisArray());
             }
         }
 

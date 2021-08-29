@@ -234,7 +234,7 @@ namespace cerb::PRIVATE {
 
         constexpr auto pop_back() -> void
         {
-            ValueTraits::destroy(m_allocator, m_data[--m_size]);
+            ValueTraits::destroy(m_allocator, &m_data[--m_size]);
         }
 
     protected:
@@ -313,7 +313,7 @@ namespace cerb::PRIVATE {
         {
             size_type i = static_cast<ptrdiff_t>(first - m_data);
 
-            if (i >= size() || size() == 0) [[unkiely]] {
+            if (i >= size() || size() == 0) [[unlikely]] {
                 return;
             }
 
@@ -340,7 +340,7 @@ namespace cerb::PRIVATE {
             size_type elems = static_cast<ptrdiff_t>(last - first);
             size_type i     = static_cast<ptrdiff_t>(first - m_data);
 
-            if (i + elems > size() || size() == 0) [[unkiely]] {
+            if (i + elems > size() || size() == 0) [[unlikely]] {
                 return;
             }
 

@@ -9,9 +9,10 @@
 
 namespace cerb::PRIVATE {
     namespace gl {
-        template<typename T, size_t Size>
-        struct BasicSet
+        template<typename T, size_t Size, bool MayThrow = true>
+        class BasicSet
         {
+        protected:
             using value_type       = T;
             using const_value_type = const T;
             using storage_t        = std::array<value_type, Size>;
@@ -23,143 +24,274 @@ namespace cerb::PRIVATE {
             using const_reverse_iterator =
                 typename storage_t::const_reverse_iterator;
 
-        protected:
+        private:
             size_t m_size{ 0 };
+            size_t m_hidden{ 0 };
             storage_t m_data{};
 
         public:
-            constexpr auto size() const -> size_t
+            [[nodiscard]] constexpr auto size() const -> size_t
             {
                 return m_size;
             }
 
+            [[nodiscard]] constexpr auto hidden() const -> size_t
+            {
+                return m_hidden;
+            }
+
+            [[nodiscard]] constexpr auto data() -> storage_t &
+            {
+                return m_data;
+            }
+
+            [[nodiscard]] constexpr auto data() const -> const storage_t &
+            {
+                return m_data;
+            }
+
         public:
-            constexpr auto begin() noexcept -> iterator
+            constexpr auto begin() -> iterator
             {
                 return m_data.begin();
             }
 
-            constexpr auto end() noexcept -> iterator
+            constexpr auto end() -> iterator
             {
                 return m_data.begin() + m_size;
             }
 
-            constexpr auto begin() const noexcept -> const_iterator
+            constexpr auto begin() const -> const_iterator
             {
                 return m_data.begin();
             }
 
-            constexpr auto end() const noexcept -> const_iterator
+            constexpr auto end() const -> const_iterator
             {
                 return m_data.begin() + m_size;
             }
 
-            constexpr auto rbegin() noexcept -> reverse_iterator
+            constexpr auto rbegin() -> reverse_iterator
             {
                 return reverse_iterator(begin());
             }
 
-            constexpr auto rend() noexcept -> reverse_iterator
+            constexpr auto rend() -> reverse_iterator
             {
                 return reverse_iterator(end());
             }
 
-            constexpr auto rbegin() const noexcept -> const_reverse_iterator
+            constexpr auto rbegin() const -> const_reverse_iterator
             {
                 return const_reverse_iterator(begin());
             }
 
-            constexpr auto rend() const noexcept -> const_reverse_iterator
+            constexpr auto rend() const -> const_reverse_iterator
             {
                 return const_reverse_iterator(end());
             }
 
-            constexpr auto cbegin() noexcept -> const_iterator
+            constexpr auto cbegin() -> const_iterator
             {
                 return m_data.cbegin();
             }
 
-            constexpr auto cend() noexcept -> const_iterator
+            constexpr auto cend() -> const_iterator
             {
                 return m_data.cbegin() + m_size;
             }
 
-            constexpr auto crbegin() noexcept -> const_reverse_iterator
+            constexpr auto crbegin() -> const_reverse_iterator
             {
                 return const_reverse_iterator(cbegin());
             }
 
-            constexpr auto crend() noexcept -> const_reverse_iterator
+            constexpr auto crend() -> const_reverse_iterator
             {
                 return const_reverse_iterator(cend());
             }
 
         public:
-            constexpr auto self() noexcept -> BasicSet &
+            [[nodiscard]] constexpr auto self() const -> const BasicSet &
             {
                 return *this;
             }
 
-            constexpr auto self() const noexcept -> const BasicSet &
+            constexpr auto clear() -> void
             {
-                return *this;
+                m_size   = 0;
+                m_hidden = 0;
             }
 
-            constexpr auto clear() noexcept -> void
+
+        protected:
+            template<typename U>
+            [[nodiscard]] constexpr auto search(const U &key)
             {
-                m_size = 0;
+                return cerb::find_if(
+                    begin(), end(), [&key](const auto &i) { return i == key; });
+            }
+
+            template<typename U>
+            [[nodiscard]] constexpr auto search(const U &key) const
+            {
+                return cerb::find_if(
+                    begin(), end(), [&key](const auto &i) { return i == key; });
+            }
+
+            constexpr auto hide(iterator i) -> void
+            {
+                --m_size;
+                ++m_hidden;
+
+                if (m_size != 0) {
+                    swap(*i, *end());
+                }
+            }
+
+            constexpr auto hide(const_iterator i) -> void
+            {
+                --m_size;
+                ++m_hidden;
+
+                if (m_size != 0) {
+                    swap(*i, *end());
+                }
+            }
+
+            template<typename U>
+            constexpr auto hide(const U &key) -> void
+            {
+                auto elem = search(key);
+
+                if (elem != end()) {
+                    hide(elem);
+                }
+            }
+
+            constexpr auto show() -> void
+            {
+                m_hidden = 0;
+                m_size += m_hidden;
             }
 
         public:
-            constexpr auto operator=(const BasicSet &other) noexcept -> BasicSet &
+            constexpr auto last() -> value_type *
             {
-                if (this == &other) {
-                    return *this;
+                if constexpr (MayThrow) {
+                    if (m_size == Size) {
+                        throw std::out_of_range("cerb::Set is full");
+                    }
+                }
+                return &m_data[m_size++];
+            }
+
+            template<typename U>
+            constexpr auto insert(U &&value) -> void
+            {
+                if constexpr (MayThrow) {
+                    if (m_size == Size) {
+                        throw std::out_of_range("cerb::Set is full");
+                    }
                 }
 
-                m_size = other.m_size;
-                memcpy(m_data, other.m_data, m_size);
+                m_data[m_size++] = value_type(value);
+            }
+
+            template<typename U>
+            constexpr auto insert(const U &value) -> void
+            {
+                if constexpr (MayThrow) {
+                    if (m_size == Size) {
+                        throw std::out_of_range("cerb::Set is full");
+                    }
+                }
+
+                m_data[m_size++] = value_type(value);
+            }
+
+            template<typename... Ts>
+            constexpr auto emplace(Ts&&... args) -> void
+            {
+                if constexpr (MayThrow) {
+                    if (m_size == Size) {
+                        throw std::out_of_range("cerb::Set is full");
+                    }
+                }
+
+                m_data[m_size++] = std::move(T(args...));
+            }
+
+            template<typename U>
+            constexpr auto erase(const U &value)
+            {
+                auto elem = search(value);
+
+                if (elem != end()) {
+                    --m_size;
+
+                    CERBLIB_UNROLL_N(2)
+                    for (const auto back = end(); elem != back; ++elem) {
+                        *elem = *(elem + 1);
+                    }
+                }
+            }
+
+            template<typename U>
+            constexpr auto contains(const U &value) const -> bool
+            {
+                return search(value) != end();
+            }
+
+        public:
+            constexpr auto operator=(const BasicSet &other) -> BasicSet &
+            {
+                if (this != &other) {
+                    m_size   = other.m_size;
+                    m_hidden = other.m_hidden;
+                    cerb::memcpy(m_data, other.m_data, m_size + m_hidden);
+                }
                 return *this;
             }
 
             constexpr auto operator=(BasicSet &&other) noexcept -> BasicSet &
             {
-                m_size = other.m_size;
-                memcpy(m_data, other.m_data, m_size);
+                m_size   = other.m_size;
+                m_hidden = other.m_hidden;
+                cerb::memcpy(m_data, other.m_data, m_size + m_hidden);
+
                 return *this;
             }
 
         public:
-            constexpr BasicSet() noexcept = default;
+            constexpr BasicSet()  = default;
+            constexpr ~BasicSet() = default;
 
-            constexpr BasicSet(const BasicSet &other) noexcept : m_size(other.m_size)
+            constexpr BasicSet(const BasicSet &other)
+              : m_size(other.m_size), m_hidden(other.m_hidden)
             {
-                memcpy(m_data, other.m_data, m_size);
+                cerb::memcpy(m_data, other.m_data, m_size + m_hidden);
             }
 
-            constexpr BasicSet(BasicSet &&other) noexcept : m_size(other.m_size)
+            constexpr BasicSet(BasicSet &&other) noexcept
+              : m_size(other.m_size), m_hidden(other.m_hidden)
             {
-                memcpy(m_data, other.m_data, m_size);
+                cerb::memcpy(m_data, other.m_data, m_size + m_hidden);
             }
 
-            constexpr BasicSet(
-                const std::initializer_list<const_value_type> &args) noexcept
+            constexpr BasicSet(const std::initializer_list<const T> &args)
             {
-                CERBLIB_UNROLL_N(2)
                 for (const auto &elem : args) {
-                    m_data[m_size++] = std::move(elem);
+
+                    if constexpr (MayThrow) {
+                        if (m_size == Size) {
+                            throw std::out_of_range("cerb::gl::Set is full");
+                        }
+                    }
+
+                    m_data[m_size++] = elem;
                 }
             }
-
-            template<typename... Ts>
-            explicit constexpr BasicSet(Ts &&...args) noexcept
-            {
-                forEach<false>(
-                    [&](const auto &elem) { m_data[m_size++] = std::move(elem); },
-                    args...);
-            }
-
-            constexpr ~BasicSet() noexcept = default;
         };
     }// namespace gl
 

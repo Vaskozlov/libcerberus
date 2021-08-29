@@ -9,83 +9,51 @@
 
 namespace cerb {
     namespace gl {
-        template<typename T, size_t Size>
-        class Set : public PRIVATE::gl::BasicSet<T, Size>
+        template<typename T, size_t Size, bool MayThrow = true>
+        class Set : public PRIVATE::gl::BasicSet<T, Size, MayThrow>
         {
-            using value_type       = T;
-            using const_value_type = const T;
-            using base_class       = PRIVATE::gl::BasicSet<T, Size>;
-
-            using base_class::m_data;
-            using base_class::m_size;
+            using parent           = PRIVATE::gl::BasicSet<T, Size>;
+            using value_type       = typename parent::value_type;
+            using const_value_type = typename parent::const_value_type;
 
         public:
-            using base_class::begin;
-            using base_class::clear;
-            using base_class::end;
-            using base_class::self;
-            using base_class::size;
+            using parent::begin;
+            using parent::cbegin;
+            using parent::cend;
+            using parent::clear;
+            using parent::contains;
+            using parent::crbegin;
+            using parent::crend;
+            using parent::data;
+            using parent::end;
+            using parent::erase;
+            using parent::hidden;
+            using parent::hide;
+            using parent::insert;
+            using parent::rbegin;
+            using parent::rend;
+            using parent::self;
+            using parent::show;
+            using parent::size;
+            using parent::last;
 
-        private:
-            constexpr auto search(const_value_type &key)
-            {
-                return cerb::find_if(
-                    begin(), end(), [&key](const auto &i) { return i == key; });
-            }
-
-            constexpr auto search(const_value_type &key) const
-            {
-                return cerb::find_if(
-                    begin(), end(), [&key](const auto &i) { return i == key; });
-            }
-
-        public:
-            constexpr auto insert(const_value_type &new_elem)
-            {
-                auto elem = search(new_elem);
-
-                if (elem == end()) {
-                    m_data[m_size++] = new_elem;
-                }
-            }
-
-            constexpr auto erase(const_value_type &value2erase)
-            {
-                auto elem = search(value2erase);
-
-                if (elem != end()) {
-                    --m_size;
-
-                    CERBLIB_UNROLL_N(2)
-                    for (const auto back = end(); elem != back; ++elem) {
-                        *elem = *(elem + 1);
-                    }
-                }
-            }
-
-            constexpr auto contains(const_value_type &value) const -> bool
-            {
-                return search(value) != end();
-            }
+            using iterator               = typename parent::iterator;
+            using const_iterator         = typename parent::const_iterator;
+            using reverse_iterator       = typename parent::reverse_iterator;
+            using const_reverse_iterator = typename parent::const_reverse_iterator;
 
         public:
-            constexpr auto operator=(Set &&other) noexcept -> Set & = default;
-            constexpr auto operator=(const Set &other) noexcept -> Set & = default;
+            constexpr auto operator=(const Set &) -> Set & = default;
+            constexpr auto operator=(Set &&) noexcept -> Set & = default;
 
         public:
-            constexpr Set(const Set &other) noexcept : base_class(other.self())
-            {}
+            constexpr Set() = default;
 
-            constexpr Set(Set &&other) noexcept : base_class(std::move(other.self()))
-            {}
+            constexpr Set(const Set &)     = default;
+            constexpr Set(Set &&) noexcept = default;
 
-            constexpr Set(
-                const std::initializer_list<const_value_type> &args) noexcept
-              : base_class(args)
-            {}
-
-            template<typename... Ts>
-            explicit constexpr Set(Ts &&...args) noexcept : base_class(args...)
+            constexpr Set(const std::initializer_list<const_value_type> &args)
+              : parent(args)
             {}
         };
     }// namespace gl

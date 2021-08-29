@@ -7,70 +7,65 @@
 #include <cerberus/deque.hpp>
 #include <cerberus/container.hpp>
 #include <cerberus/bitmap.hpp>
+#include <cerberus/lex/dot_item.hpp>
+#include <cerberus/vector.hpp>
 
 using namespace cerb::literals;
+using namespace std::string_view_literals;
 
-struct S
-{
-    int a;
-
-    S(int b) : a(b){};
-
-    ~S()
+/*
+cerb::gl::Map<std::string_view , cerb::lex::DotItem<true>, 8> items (
     {
-        std::cout << "destroyed " << a << std::endl;
+        {"NAME", {3, "[a-zA-Z]+"}},
+        {"IDENTIFIER", {0, "[a-zA-Z_]+[a-zA-Z0-9_]*"}},
+        {"NUMBER", {1, "[0-9]+"}},
+        {"FLOAT", {2, "[0-9]+[.][0-9]+"}}
     }
-};
+);
+ */
 
 auto main(int /*argc*/, char * /*argv*/[]) -> int
 {
+    /*
+    std::string_view input = "vask 4.5 51";
 
-    {
-        srand(0);
-        std::deque<int> a{};
-        auto value = rand();
-        auto begin = std::chrono::high_resolution_clock::now();
+    cerb::lex::ItemState state = cerb::lex::UNINITIALIZED;
+    cerb::Vector<cerb::Pair<u32, std::string_view>> vec;
 
-        for (size_t i = 0; i < 1000; ++i) {
-            a.emplace_back(value);
-        }
+     items.begin()->second.set(input);
 
-        for (size_t i = 0; i < 1000; ++i) {
-            a.emplace_front(value);
-        }
-
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - begin;
-        printf("std::deque %e\n", elapsed.count());
+    for (auto &elem : items) {
+        elem.second.rebind();
+        do {
+            state = elem.second.check(vec);
+        } while (state != cerb::lex::OUT_OF_ELEMS);
     }
 
-    {
-        srand(0);
-        cerb::Deque<int, 128> a{};
-        auto value = rand();
-        auto begin = std::chrono::high_resolution_clock::now();
-
-        for (size_t i = 0; i < 1000; ++i) {
-            a.emplace_back(value);
-        }
-
-        for (size_t i = 0; i < 1000; ++i) {
-            a.emplace_front(value);
-        }
-
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - begin;
-        printf("cerb::Deque %e\n", elapsed.count());
+    for (const auto &elem: vec) {
+        std::cout << elem.first << ' ' << elem.second << std::endl;
     }
+    */
 
+    cerb::lex::DotItem<int> item(
+        0, "[a-zA-Z]+[0-9]?"sv,
+        { { '=',  '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}', '\'',
+            '\"', '!', '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',' },
+          { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=",
+            "==", "!=", ">=", "<=", ">>=", "<<=" } });
 
-    cerb::Deque<int, 8> a;
-    a.push_back(10);
-    a.push_back(20);
-    a.emplace_front(1);
+    std::string_view input = "vask\"";
+    item.set(input, "stdio"sv);
 
-    std::cout << a.front() << std::endl;
+    cerb::lex::DotItem<int>::CheckResult elem;
+    do {
+        elem = item.check();
+        std::cout << cerb::lex::ItemStateRepr.at(elem.first) << std::endl;
+    } while (item.get_input().size() != 0);
 
+    for (const auto &i : elem.second) {
+        std::cout << "File: " << i.pos.filename << ", line: " << i.pos.line_number
+                  << ", char : " << i.pos.char_number << ", repr: " << i.repr << std::endl;
+    }
 
     return 0;
 }

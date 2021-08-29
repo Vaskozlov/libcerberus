@@ -11,6 +11,7 @@
 #include <cerberus/redBlackTree.hpp>
 
 namespace cerb {
+    /*
     namespace gl {
         template<typename T1, typename T2, size_t Size>
         class Map : public PRIVATE::gl::BasicSet<Pair<T1, T2>, Size>
@@ -87,6 +88,105 @@ namespace cerb {
 
             template<typename... Ts>
             explicit constexpr Map(Ts &&...args) noexcept : parent_class(args...)
+            {}
+        };
+    }// namespace gl
+    */
+
+    namespace gl {
+        template<typename T1, typename T2, size_t Size, bool MayThrow = true>
+        class Map
+          : public PRIVATE::gl::BasicSet<
+                Pair<T1, T2, BY_FIRST_VALUE>, Size, MayThrow>
+        {
+            using key_type         = T1;
+            using value_type       = T2;
+            using const_key_type   = const T1;
+            using const_value_type = const T2;
+            using map_elem         = Pair<T1, T2, BY_FIRST_VALUE>;
+            using const_map_elem   = const Pair<T1, T2, BY_FIRST_VALUE>;
+            using parent           = PRIVATE::gl::BasicSet<map_elem, Size, MayThrow>;
+
+        private:
+            using parent::search;
+
+        public:
+            using parent::begin;
+            using parent::cbegin;
+            using parent::cend;
+            using parent::clear;
+            using parent::contains;
+            using parent::crbegin;
+            using parent::crend;
+            using parent::data;
+            using parent::end;
+            using parent::erase;
+            using parent::hidden;
+            using parent::hide;
+            using parent::insert;
+            using parent::last;
+            using parent::rbegin;
+            using parent::rend;
+            using parent::self;
+            using parent::show;
+            using parent::size;
+
+            using iterator               = typename parent::iterator;
+            using const_iterator         = typename parent::const_iterator;
+            using reverse_iterator       = typename parent::reverse_iterator;
+            using const_reverse_iterator = typename parent::const_reverse_iterator;
+
+        public:
+            constexpr auto at(const_key_type &key) const -> const value_type &
+            {
+                auto elem = search(key);
+
+                if (elem == end()) {
+                    if constexpr (MayThrow) {
+                        if (elem >= begin() + Size) {
+                            throw std::out_of_range("cerb::Map is full");
+                        }
+                    } else {
+                        insert(map_elem(key));
+                    }
+                }
+
+                return elem->second;
+            }
+
+            constexpr auto operator[](const_key_type &key) -> value_type &
+            {
+                auto elem = search(key);
+
+                if (elem == end()) {
+                    if constexpr (MayThrow) {
+                        if (elem >= begin() + Size) {
+                            throw std::out_of_range("cerb::Map is full");
+                        }
+                    }
+                    insert(map_elem(key));
+                }
+
+                return elem->second;
+            }
+
+            constexpr auto operator[](const_key_type &key) const -> const value_type &
+            {
+                return at(key);
+            }
+
+        public:
+            constexpr auto operator=(const Map &) -> Map & = default;
+            constexpr auto operator=(Map &&) noexcept -> Map & = default;
+
+        public:
+            constexpr Map() = default;
+
+            constexpr Map(const Map &)     = default;
+            constexpr Map(Map &&) noexcept = default;
+
+            constexpr Map(const std::initializer_list<const_map_elem> &args)
+              : parent(args)
             {}
         };
     }// namespace gl

@@ -7,9 +7,10 @@
 
 namespace cerb::PRIVATE {
 
-    #if defined(__x86_64__)
+#if defined(__x86_64__)
     CERBLIB_INLINE
-    void memset8(void *__restrict ptr, u8 value2set, size_t times) {
+    void memset8(void *__restrict ptr, u8 value2set, size_t times)
+    {
         asm volatile("rep stosb\n"
                      : "+D"(ptr), "+c"(times)
                      : "a"(value2set)
@@ -17,45 +18,54 @@ namespace cerb::PRIVATE {
     }
 
     CERBLIB_INLINE
-    void memset16(void *__restrict ptr, u16 value, size_t times) {
+    void memset16(void *__restrict ptr, u16 value, size_t times)
+    {
         asm volatile("rep stosw\n" : "+D"(ptr), "+c"(times) : "a"(value) : "memory");
     }
 
     CERBLIB_INLINE
-    void memset32(void *__restrict ptr, u32 value, size_t times) {
+    void memset32(void *__restrict ptr, u32 value, size_t times)
+    {
         asm volatile("rep stosl\n" : "+D"(ptr), "+c"(times) : "a"(value) : "memory");
     }
 
     CERBLIB_INLINE
-    void memset64(void *__restrict ptr, u64 value, size_t times) {
+    void memset64(void *__restrict ptr, u64 value, size_t times)
+    {
         asm volatile("rep stosq\n" : "+D"(ptr), "+c"(times) : "a"(value) : "memory");
     }
 
     CERBLIB_INLINE
-    void memcpy8(void *__restrict dest, const void *__restrict src, size_t times) {
+    void memcpy8(void *__restrict dest, const void *__restrict src, size_t times)
+    {
         asm volatile("rep movsb" : "+S"(src), "+D"(dest), "+c"(times) : : "memory");
     }
 
     CERBLIB_INLINE
-    void memcpy16(void *__restrict dest, const void *__restrict src, size_t times) {
+    void memcpy16(void *__restrict dest, const void *__restrict src, size_t times)
+    {
         asm volatile("rep movsw" : "+S"(src), "+D"(dest), "+c"(times) : : "memory");
     }
 
     CERBLIB_INLINE
-    void memcpy32(void *__restrict dest, const void *__restrict src, size_t times) {
+    void memcpy32(void *__restrict dest, const void *__restrict src, size_t times)
+    {
         asm volatile("rep movsl" : "+S"(src), "+D"(dest), "+c"(times) : : "memory");
     }
 
     CERBLIB_INLINE
-    void memcpy64(void *__restrict dest, const void *__restrict src, size_t times) {
+    void memcpy64(void *__restrict dest, const void *__restrict src, size_t times)
+    {
         asm volatile("rep movsq" : "+S"(src), "+D"(dest), "+c"(times) : : "memory");
     }
-    #endif /* __x86_64__ */
+#endif /* __x86_64__ */
 
     template<typename T>
-    CERBLIB_INLINE auto memset(void *__restrict ptr, T value, size_t times) -> void {
-        static_assert((std::is_pointer_v<T> || std::is_integral_v<T>)&&sizeof(T) <=
-                      sizeof(u64));
+    CERBLIB_INLINE auto memset(void *__restrict ptr, T value, size_t times) -> void
+    {
+        static_assert(
+            (std::is_pointer_v<T> || std::is_integral_v<T>)&&sizeof(T) <=
+            sizeof(u64));
 
         if (times == 0) [[unlikely]] {
             return;
@@ -73,32 +83,38 @@ namespace cerb::PRIVATE {
     }
 
     template<typename T>
-    CERBLIB_INLINE void memcpy(T *__restrict dest, const T *__restrict src,
-                               size_t times) {
+    CERBLIB_INLINE void
+        memcpy(T *__restrict dest, const T *__restrict src, size_t times)
+    {
         if (times == 0) [[unlikely]] {
             return;
         }
 
         if constexpr (sizeof(T) == sizeof(u8)) {
-            PRIVATE::memcpy8(reinterpret_cast<u8 *>(dest),
-                             reinterpret_cast<const u8 *>(src),
-                             times);
+            PRIVATE::memcpy8(
+                reinterpret_cast<u8 *>(dest),
+                reinterpret_cast<const u8 *>(src),
+                times);
         } else if constexpr (sizeof(T) == sizeof(u16)) {
-            PRIVATE::memcpy16(reinterpret_cast<u16 *>(dest),
-                              reinterpret_cast<const u16 *>(src),
-                              times);
+            PRIVATE::memcpy16(
+                reinterpret_cast<u16 *>(dest),
+                reinterpret_cast<const u16 *>(src),
+                times);
         } else if constexpr (sizeof(T) == sizeof(u32)) {
-            PRIVATE::memcpy32(reinterpret_cast<u32 *>(dest),
-                              reinterpret_cast<const u32 *>(src),
-                              times);
+            PRIVATE::memcpy32(
+                reinterpret_cast<u32 *>(dest),
+                reinterpret_cast<const u32 *>(src),
+                times);
         } else if constexpr (sizeof(T) == sizeof(u64)) {
-            PRIVATE::memcpy64(reinterpret_cast<u64 *>(dest),
-                              reinterpret_cast<const u64 *>(src),
-                              times);
+            PRIVATE::memcpy64(
+                reinterpret_cast<u64 *>(dest),
+                reinterpret_cast<const u64 *>(src),
+                times);
         } else {
-            PRIVATE::memcpy8(reinterpret_cast<u8 *>(dest),
-                             reinterpret_cast<const u8 *>(src),
-                             times * sizeof(T));
+            PRIVATE::memcpy8(
+                reinterpret_cast<u8 *>(dest),
+                reinterpret_cast<const u8 *>(src),
+                times * sizeof(T));
         }
     }
 }// namespace cerb::PRIVATE
