@@ -28,7 +28,7 @@ namespace cerb {
 
         CERBLIB_UNROLL_N(2)
         for (; begin != end; ++begin, ++dest) {
-            std::construct_at(dest, cerb::move(*begin));
+            std::construct_at(dest, std::move(*begin));
         }
     }
 

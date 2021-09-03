@@ -23,6 +23,7 @@ namespace cerb {
         using parent::rbegin;
         using parent::rend;
         using parent::size;
+        using parent::clear;
 
         using typename parent::const_reference;
         using typename parent::iterator;

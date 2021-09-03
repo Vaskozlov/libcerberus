@@ -59,7 +59,7 @@ namespace cerb::PRIVATE {
                 pointer new_buffer =
                     ValueTraits::allocate(m_allocator, capacity() * 2U);
 
-                if constexpr (std::is_nothrow_copy_constructible_v<value_type>) {
+                if constexpr (std::is_nothrow_move_constructible_v<value_type>) {
                     raw_move(new_buffer, m_data, m_data + m_size);
                 } else {
                     raw_copy(new_buffer, m_data, m_data + m_size);
@@ -109,6 +109,11 @@ namespace cerb::PRIVATE {
                 auto copy = *this;
                 operator--();
                 return copy;
+            }
+
+            constexpr auto operator+(size_t offset) -> iterator
+            {
+                return iterator(m_p + offset);
             }
 
             constexpr auto operator*() -> reference
@@ -206,7 +211,7 @@ namespace cerb::PRIVATE {
         constexpr auto push_back(value_type &&value) -> void
         {
             check_size();
-            ValueTraits::construct(m_allocator, m_data + (m_size++), value);
+            ValueTraits::construct(m_allocator, m_data + (m_size++), std::move(value));
         }
 
         constexpr auto push_back(const_reference value) -> void
@@ -490,11 +495,17 @@ namespace cerb::PRIVATE {
             return *this;
         }
 
+        constexpr auto clear() -> void
+        {
+            std::destroy(begin(), end());
+            m_size = 0;
+        }
+
     public:
         constexpr BasicVector() = default;
         constexpr ~BasicVector()
         {
-            std::destroy(cbegin(), cend());
+            std::destroy(begin(), end());
             ValueTraits::deallocate(m_allocator, m_data, m_capacity);
         }
 
