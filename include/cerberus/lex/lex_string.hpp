@@ -5,24 +5,24 @@
 
 namespace cerb::lex {
 
-    template<typename T>
-    constexpr auto to_unsigned(T value)
+    template<typename CharT>
+    constexpr auto to_unsigned(CharT value)
     {
-        static_assert(std::is_integral_v<T>);
+        static_assert(std::is_integral_v<CharT>);
 
-        if constexpr (std::is_unsigned_v<T>) {
+        if constexpr (std::is_unsigned_v<CharT>) {
             return value;
         }
-        if constexpr (sizeof(T) == sizeof(u8)) {
+        if constexpr (sizeof(CharT) == sizeof(u8)) {
             return bit_cast<u8>(value);
         }
-        if constexpr (sizeof(T) == sizeof(u16)) {
+        if constexpr (sizeof(CharT) == sizeof(u16)) {
             return bit_cast<u16>(value);
         }
-        if constexpr (sizeof(T) == sizeof(u32)) {
+        if constexpr (sizeof(CharT) == sizeof(u32)) {
             return bit_cast<u32>(value);
         }
-        if constexpr (sizeof(T) == sizeof(u64)) {
+        if constexpr (sizeof(CharT) == sizeof(u64)) {
             return bit_cast<u64>(value);
         }
     }

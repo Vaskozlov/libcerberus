@@ -1,8 +1,6 @@
 #ifndef CERBERUS_DOT_ITEM_HPP
 #define CERBERUS_DOT_ITEM_HPP
 
-#include <set>
-#include <list>
 #include <iomanip>
 #include <iostream>
 #include <cerberus/map.hpp>
@@ -248,6 +246,7 @@ namespace cerb::lex {
 
         constexpr auto skip_comments_and_layout() -> void
         {
+            m_dot             = 0;
             SkipStatus status = EMPTY;
 
             CERBLIB_UNROLL_N(2)
@@ -441,9 +440,8 @@ namespace cerb::lex {
 
     public:
         constexpr DotItem(
-            int /*keyword*/, TokenType token_type, const string_view_t &repr,
-            size_t input_index)
-          : m_input_index(input_index), m_token_type(token_type)
+            int /*keyword*/, TokenType token_type, const string_view_t &repr)
+          : m_token_type(token_type)
         {
             iterator current_range = m_ranges.begin();// current range
 
@@ -454,9 +452,8 @@ namespace cerb::lex {
             }
         }
 
-        constexpr DotItem(
-            TokenType token_type, const string_view_t &input, size_t input_index = 0)
-          : m_input_index(input_index), m_token_type(token_type)
+        constexpr DotItem(TokenType token_type, const string_view_t &input)
+          : m_token_type(token_type)
         {
             bool is_range = false;// if we are looking for a range of chars
             bool are_brackets_opened = false;       // if range brackets are opened
@@ -528,15 +525,14 @@ namespace cerb::lex {
         }
 
         consteval DotItem(
-            bool constEval, TokenType token_type, const string_view_t &input,
-            size_t input_index = 0)
-          : DotItem(token_type, input, input_index)
+            bool /*constEval*/, TokenType token_type, const string_view_t &input)
+          : DotItem(token_type, input)
         {}
 
         consteval DotItem(
-            bool constEval, int keyword, TokenType token_type,
-            const string_view_t &input, size_t input_index = 0)
-          : DotItem(keyword, token_type, input, input_index)
+            bool /*constEval*/, int keyword, TokenType token_type,
+            const string_view_t &input)
+          : DotItem(keyword, token_type, input)
         {}
     };
 }// namespace cerb::lex

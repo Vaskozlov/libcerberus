@@ -97,7 +97,7 @@ namespace cerb {
         template<typename U>
         constexpr auto insert(const U& key, T &&value) noexcept
         {
-            RBTreeEmplaceKey(value);
+            RBTreeEmplaceKey(key, value);
         }
 
         template<typename U>

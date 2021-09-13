@@ -83,7 +83,7 @@ namespace cerb {
         }
 
         template<typename T>
-        inline friend auto operator<<(T &os, const ConstructorChecker &checker)
+        inline friend auto operator<<(T &os, const ConstructorChecker & /*checker*/)
             -> T &
         {
             os << "Constructions: " << cerb::ConstructorChecker::m_constructions
@@ -101,53 +101,41 @@ namespace cerb {
     };
 }// namespace cerb
 
-cerb::lex::LexAnalyzer<char, unsigned> controller{
-    { { 3, "for" },
-      { 4, "while" },
-      { 5, "char" },
-      { 6, "int" },
-      { 7, "return" } },
+CERBERUS_LEX_TEMPLATES
+struct Lex : public CERBERUS_LEX_PARENT_CLASS
+{
+    CERBERUS_LEX_PARENT_CLASS_ACCESS
+
+    constexpr void yield(size_t first, size_t last) override
+    {
+        for (; first != last; ++first) {
+            auto &token = m_tokens[first];
+            std::cout << std::setw(8) << std::left << token.repr << ' ' << token.type
+                      << ' ' << "line: " << token.pos.line_number + 1 << ' '
+                      << token.pos.char_number << std::endl;
+        }
+    }
+
+    CERBERUS_LEX_INITIALIZER(Lex)
+    {}
+};
+
+Lex<char, unsigned> controller{
+    { { 3, "for" }, { 4, "while" }, { 5, "char" }, { 6, "int" }, { 7, "return" } },
     { { 8, "[a-zA-Z_]+" }, { 9, "[0-9]+" } },
-    { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}',  '!',
-        '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\', '.', '#' },
-      { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=",
-        "==", "!=", ">=", "<=", ">>=", "<<=" } }
+    { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{',  '}', '!', '^',
+        '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\', '.', '#' },
+      { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "==",
+        "!=", ">=", "<=", ">>=", "<<=" } }
 };
 
 auto main(int /*argc*/, char * /*argv*/[]) -> int
 {
-
-    // c.scan("elem = item.check();");
-
-    /*
-    cerb::lex::DotItem<char, unsigned, 0> a{ 2, "[a-zA-Z_]+"sv };
-    a.set_input("vask+", "stdio");
-    a.set_terminals(
-        { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}',  '!',
-            '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\', '.' },
-          { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=",
-            "==", "!=", ">=", "<=", ">>=", "<<=" } });
-    a.dump();
-    a.rebind();
-
-    auto state = a.check();
-
-    while (state != cerb::lex::UNABLE_TO_MATCH &&
-           state != cerb::lex::SCAN_FINISHED) {
-        state = a.check();
-    }
-
-    if (state == cerb::lex::SCAN_FINISHED) {
-        for (auto &elem : a.result()) {
-            std::cout << std::setw(8) << std::left << elem.repr << ' ' << elem.type
-                      << ' ' << elem.pos.char_number << ' ' << elem.pos.line_number
-                      << std::endl;
-        }
-    }
-    */
-
     controller.scan(
-        R"(int main(int argc, char **argv) {
+        R"(
+    #define f(x) (x * 2)
+
+    int main(int argc, char **argv) {
         int a = 10;
         int b = 20;
 
