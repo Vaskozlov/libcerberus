@@ -826,6 +826,57 @@ namespace cerb::PRIVATE {
             return new_node;
         }
 
+        template<bool Construct = true, bool Update = false, typename... Ts>
+        constexpr auto RBTreeEmplaceKey(const auto &cmp, Ts &&...args) -> NodePtr
+        {
+            if (m_root == nullptr) [[unlikely]] {
+                ++m_size;
+                NodePtr new_node = NodeTraits::allocate(m_allocator, 1);
+
+                if constexpr (Construct) {
+                    NodeTraits::construct(m_allocator, new_node, args...);
+                } else {
+                    Node::init(new_node);
+                }
+
+                new_node->color = BLACK;
+                m_root          = new_node;
+
+                return new_node;
+            }
+
+            NodePtr tmp = search(cmp);
+
+            if (tmp->value == cmp) [[unlikely]] {
+                if constexpr (Update) {
+                    destroy(tmp->value);
+                    std::construct_at(&tmp->value, args...);
+                }
+
+                return tmp;
+            }
+
+            NodePtr new_node = NodeTraits::allocate(m_allocator, 1);
+
+            if (Compare{}(cmp, tmp->value)) {
+                tmp->left = new_node;
+            } else {
+                tmp->right = new_node;
+            }
+
+            ++m_size;
+
+            if constexpr (Construct) {
+                NodeTraits::construct(m_allocator, new_node, args...);
+            } else {
+                Node::init(new_node);
+            }
+
+            new_node->parent = tmp;
+            fixRedRed(new_node);
+            return new_node;
+        }
+
         template<typename U>
         constexpr auto RBTreeErase(const U &key) noexcept -> bool
         {
@@ -940,6 +991,11 @@ namespace cerb::PRIVATE {
             constexpr auto operator*() const -> T &
             {
                 return m_node->value;
+            }
+
+            constexpr auto operator->() const -> T *
+            {
+                return &m_node->value;
             }
 
         public:

@@ -1,160 +1,137 @@
 #ifndef CERBERUS_LEX_HPP
 #define CERBERUS_LEX_HPP
 
-#include <iostream>
-#include <cerberus/set.hpp>
-#include <cerberus/vector.hpp>
-#include <cerberus/lex/char.hpp>
+#include <cerberus/lex/dot_item.hpp>
 
 namespace cerb::lex {
+    template<
+        typename CharT,
+        typename TokenType,
+        TokenType ValueForNonTerminal = 0,
+        bool MayThrow                 = true,
+        size_t UID                    = 0,
+        bool AllowStringLiterals      = true,
+        bool AllowComments            = true,
+        size_t MaxSize4Terminals      = 4>
+    class LexAnalyzer
+    {
+        using Item = DotItem<
+            CharT,
+            TokenType,
+            ValueForNonTerminal,
+            MayThrow,
+            UID,
+            AllowStringLiterals,
+            AllowComments,
+            MaxSize4Terminals>;
+        using string_view_t    = typename Item::string_view_t;
+        using string_checker_t = typename Item::string_checker_t;
 
-    /*
+        Set<Item> m_items{};
 
-     class DotItem
-     {
-         enum struct MaskOfValues : i8
-         {
-             LETTER    = 0b1,
-             LAYOUT    = 0b10,
-             OPERATOR  = 0b100,
-             SEPARATOR = 0b1000,
-             EoF       = 0b10000,
-         };
+    public:
+        constexpr auto
+            scan(const string_view_t &input, const string_view_t &filename)
+        {
+            m_items.begin()->set_input(input, filename);
+            m_items.begin()->skip_comments_and_layout();
+            m_items.begin()->dump();
 
-         enum Types : u16
-         {
-             LETTER    = 256 + static_cast<int>(MaskOfValues::LETTER),
-             LAYOUT    = 256 + static_cast<int>(MaskOfValues::LAYOUT),
-             OPERATOR  = 256 + static_cast<int>(MaskOfValues::OPERATOR),
-             SEPARATOR = 256 + static_cast<int>(MaskOfValues::SEPARATOR),
-             EoF       = 256 + +static_cast<int>(MaskOfValues::EoF)
-         };
+            size_t times = 0;
+            Item *item   = nullptr;
+            std::list<typename Item::result_t> results{};
 
-         struct TokenType
-         {
-             PositionInFile position{};
-             Types tokenClass{};
-             char repr{ '\0' };
-         };
+            while (!Item::empty()) {
+                ItemState state = UNABLE_TO_MATCH;
 
-         struct DotItemNode
-         {
-             enum Rule
-             {
-                 ONCE,
-                 OPTIONAL,
-                 ONE_OR_MORE_TIMES,
-                 ZERO_OR_MORE_TIMES,
-             };
+                for (auto &elem : m_items) {
+                    elem.rebind();
 
-             Rule rule{ONCE};
-             Set<char> available_chars{};
-             DotItemNode *next{ nullptr };
-         };
+                    do {
+                        state = elem.check();
+                    } while (state != UNABLE_TO_MATCH && state != SCAN_FINISHED);
 
-     private:
-         constexpr static std::array<char, 127> m_values{
-             0x10, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2,
-             0x2,  0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x2,
-             0x2,  0x2, 0x2, 0x2, 0x2, 0x2, 0x2, 0x0,   0x0,   0x0,   0x0,   0x0,
-     0x0, 0x0,    0x8, 0x8, 0x4, 0x4, 0,   0x4, 0x0,   0x0,   0x1, 0x1, 0x1, 0x1,
-             0x1,  0x1, 0x1, 0x1, 0x1, 0x1, 0x0,   0x0,   0x0,   0x0,   0x0,   0x4,
-     0x0, 0x1,  0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1,
-     0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x8,  0x0,   0x8, 0x0,
-     0x0,   0x0,   0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1,  0x1, 0x1, 0x1, 0x1, 0x1,
-     0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1, 0x1,  0x1, 0x1, 0x1, 0x1, 0x1, 0x0,   0x4,
-     0x0,   0x0
-         };
-         constexpr static gl::Set<char, 8> m_operators{ { '+', '*', '?', '|' } };
-         constexpr static gl::Set<char, 8> m_separators{ { '[', ']', '(', ')' } };
+                    if (state == SCAN_FINISHED &&
+                        (item == nullptr || elem.dot() > item->dot())) {
+                        item = &elem;
+                    }
+                }
 
-     private:
-         size_t m_dot{ 0 };
-         TokenType m_token{};
-         char m_input_char{ '\0' };
-         std::string_view m_input{};
-         DotItemNode *m_root{ nullptr };
+                if (item != nullptr) {
+                    auto i = item->result();
+                    results.template emplace_back(item->result());
+                    item->add2input(item->dot());
+                    item->skip_comments_and_layout();
+                    item->dump();
+                    times = 0;
 
-     private:
-         constexpr auto nextChar() -> void
-         {
-             if (m_dot + 1 < m_input.size()) {
-                 m_input_char = m_input[++m_dot];
-             } else {
-                 m_input_char = '\0';
-             }
+                    for (auto &elem : i) {
+                        std::cout << std::setw(8) << std::left << elem.repr << ' '
+                                  << elem.type << ' '
+                                  << "line: " << elem.pos.line_number + 1 << ' '
+                                  << elem.pos.char_number << std::endl;
+                    }
+                } else {
+                    m_items.begin()->skip_comments_and_layout();
+                    m_items.begin()->dump();
+                    ++times;
 
-             if (m_input_char == '\n') {
-                 ++m_token.position.line_number;
-                 m_token.position.char_number = 0;
-             } else {
-                 ++m_token.position.char_number;
-             }
-         }
+                    if (times > 1) {
+                        if constexpr (MayThrow) {
+                            throw std::runtime_error(
+                                "Unable to recognize token at " +
+                                std::to_string(
+                                    m_items.begin()->get_token_pos().char_number) +
+                                " " +
+                                std::to_string(
+                                    m_items.begin()->get_token_pos().line_number));
+                        }
+                    }
+                }
+                item = nullptr;
+            }
 
-         constexpr auto skipLayout()
-         {
-             CERBLIB_UNROLL_N(1)
-             while ((m_values[m_input_char & 127] &
-                     static_cast<i8>(MaskOfValues::LAYOUT)) ==
-                    static_cast<i8>(MaskOfValues::LAYOUT)) {
-                 nextChar();
-             }
-         }
+            for (const auto &i : results) {
+                for (auto &elem : i) {
+                    /*std::cout << std::setw(8) << std::left << elem.repr << ' '
+                              << elem.type << ' ' << "line: " << elem.pos.line_number
+                              << ' ' << elem.pos.char_number << std::endl;
+                    */
+                }
+            }
+        }
 
-         constexpr auto notePosition() -> void
-         {
-             m_token.position.start_position = m_dot;
-             m_token.position.end_position   = m_dot + 1;
-         }
+    public:
+        LexAnalyzer(
+            const std::initializer_list<const Pair<TokenType, const string_view_t>>
+                keywords,
+            const std::initializer_list<const Pair<TokenType, const string_view_t>>
+                rules,
+            const string_checker_t terminals,
+            size_t input_index                           = 0,
+            const string_view_t &single_line_comment     = "//"sv,
+            const string_view_t &multiline_comment_begin = "/*"sv,
+            const string_view_t &multiline_comment_end   = "*/"sv)
+        {
+            CERBLIB_UNROLL_N(2)
+            for (const auto &elem : keywords) {
+                m_items.template emplaceKey(
+                    elem.first, 0, elem.first, elem.second, input_index);
+            }
 
-         constexpr auto GetNextToken() -> void
-         {
-             skipLayout();
-             notePosition();
-             m_token.tokenClass =
-                 static_cast<Types>(256 + m_values[m_input_char & 127]);
-             m_token.repr = m_input_char;
-             nextChar();
-         }
+            CERBLIB_UNROLL_N(2)
+            for (const auto &elem : rules) {
+                m_items.template emplaceKey(
+                    elem.first, elem.first, elem.second, input_index);
+            }
 
-         constexpr auto allocateNewNode()
-         {
-             if (m_root == nullptr) {
-                 m_root = new DotItemNode();
-                 return m_root;
-             } else {
-                 DotItemNode *node = m_root;
+            Item::set_terminals(terminals);
+            Item::set_comments(
+                single_line_comment, multiline_comment_begin, multiline_comment_end);
+        }
 
-                 CERBLIB_UNROLL_N(2)
-                 while (node->next != nullptr) {
-                     node = node->next;
-                 }
-                 node->next = new DotItemNode();
-                 return node->next;
-             }
-         }
-
-         constexpr auto checkClass(Types type, Types target)
-         {
-             return ((static_cast<u16>(type) & static_cast<u16>(target)) ==
-     static_cast<u16>(target));
-         }
-
-     public:
-         consteval DotItem(std::string_view input)
-           : m_input_char(input[0]), m_input(input)
-         {
-             Deque<TokenType> m_tokens{};
-
-             CERBLIB_UNROLL_N(1)
-             while (m_token.tokenClass != EoF) {
-                 GetNextToken();
-                 m_tokens.push_back(m_token);
-             }
-         }
-     };
-      */
+        constexpr LexAnalyzer() = default;
+    };
 }// namespace cerb::lex
 
 #endif /* CERBERUS_LEX_HPP */

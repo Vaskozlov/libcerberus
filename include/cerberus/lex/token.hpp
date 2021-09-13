@@ -4,12 +4,43 @@
 #include <cerberus/lex/file.hpp>
 
 namespace cerb::lex {
-    template<typename Repr, typename TokenType>
+    template<typename CharT, typename Repr, typename TokenType>
     struct Token
     {
         Repr repr{};
         TokenType type{};
-        PositionInFile<char> pos{};
+        PositionInFile<CharT> pos{};
+
+    public:
+        constexpr auto operator==(const Token &other) const -> bool
+        {
+            return type == other.type;
+        }
+
+        constexpr auto operator<=>(const Token &other) const
+        {
+            return type <=> other.type;
+        }
+
+        constexpr auto operator==(const TokenType &other) const -> bool
+        {
+            return type == other;
+        }
+
+        constexpr auto operator<=>(const TokenType &other) const
+        {
+            return type <=> other;
+        }
+
+        constexpr auto operator==(const Repr &other) const -> bool
+        {
+            return type == other;
+        }
+
+        constexpr auto operator<=>(const Repr &other) const
+        {
+            return type <=> other;
+        }
     };
 }// namespace cerb::lex
 

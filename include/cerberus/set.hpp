@@ -69,6 +69,7 @@ namespace cerb {
         using BasicTree::RBTreeEmplace;
         using BasicTree::RBTreeErase;
         using BasicTree::search;
+        using BasicTree::RBTreeEmplaceKey;
 
     public:
         constexpr auto count(const T &key) const
@@ -85,6 +86,30 @@ namespace cerb {
         constexpr auto insert(const T &value) noexcept
         {
             RBTreeEmplace(value);
+        }
+
+        template<typename... Ts>
+        constexpr auto emplace(Ts&&... values) noexcept
+        {
+            RBTreeEmplace(values...);
+        }
+
+        template<typename U>
+        constexpr auto insert(const U& key, T &&value) noexcept
+        {
+            RBTreeEmplaceKey(value);
+        }
+
+        template<typename U>
+        constexpr auto insert(const U& key, const T &value) noexcept
+        {
+            RBTreeEmplaceKey(key, value);
+        }
+
+        template<typename U, typename... Ts>
+        constexpr auto emplaceKey(const U& key, Ts&&... values) noexcept
+        {
+            RBTreeEmplaceKey(key, values...);
         }
 
         constexpr auto erase(const T &key) noexcept(!MayThrow)

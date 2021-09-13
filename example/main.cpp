@@ -8,7 +8,7 @@
 #include <cerberus/deque.hpp>
 #include <cerberus/container.hpp>
 #include <cerberus/bitmap.hpp>
-#include <cerberus/lex/dot_item.hpp>
+#include <cerberus/lex/lex.hpp>
 #include <cerberus/vector.hpp>
 #include <random>
 
@@ -101,15 +101,21 @@ namespace cerb {
     };
 }// namespace cerb
 
+cerb::lex::LexAnalyzer<char, unsigned> controller{
+    { { 3, "for" },
+      { 4, "while" },
+      { 5, "char" },
+      { 6, "int" },
+      { 7, "return" } },
+    { { 8, "[a-zA-Z_]+" }, { 9, "[0-9]+" } },
+    { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}',  '!',
+        '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\', '.', '#' },
+      { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=",
+        "==", "!=", ">=", "<=", ">>=", "<<=" } }
+};
+
 auto main(int /*argc*/, char * /*argv*/[]) -> int
 {
-    cerb::lex::experimental::DotItemController<char, unsigned> c{
-        { { 2, "[a-zA-Z]+"sv }, { 3, "[0-9]+"sv } },
-        { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}',  '!',
-            '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\', '.' },
-          { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=",
-            "==", "!=", ">=", "<=", ">>=", "<<=" } }
-    };
 
     // c.scan("elem = item.check();");
 
@@ -139,19 +145,6 @@ auto main(int /*argc*/, char * /*argv*/[]) -> int
         }
     }
     */
-
-    cerb::lex::DotItemController<char, unsigned> controller{
-        { { 3, "for" },
-          { 4, "while" },
-          { 5, "char" },
-          { 6, "int" },
-          { 7, "return" } },
-        { { 8, "[a-zA-Z_]+" }, { 9, "[0-9]+" } },
-        { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}',  '!',
-            '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\', '.' },
-          { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=",
-            "==", "!=", ">=", "<=", ">>=", "<<=" } }
-    };
 
     controller.scan(
         R"(int main(int argc, char **argv) {
