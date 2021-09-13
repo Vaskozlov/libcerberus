@@ -176,14 +176,19 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            constexpr auto last() -> value_type *
+            constexpr auto last() -> iterator
             {
                 if constexpr (MayThrow) {
                     if (m_size == Size) {
                         throw std::out_of_range("cerb::Set is full");
                     }
                 }
-                return &m_data[m_size++];
+                return begin() + (m_size++);
+            }
+
+            constexpr auto get_last() const -> const_iterator
+            {
+                return begin() + (m_size - 1);
             }
 
             template<typename U>

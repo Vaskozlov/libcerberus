@@ -541,7 +541,7 @@ namespace cerb {
         }
 
         template<size_type AxisN>
-        [[nodiscard]] constexpr auto at(size_t index) noexcept -> u8
+        [[nodiscard]] constexpr auto at(size_t index) const noexcept -> u8
         {
             static_assert(AxisN < Axis);
             return PRIVATE::atAxis<const_ref_storage_elem_t>(index, m_data[AxisN]);

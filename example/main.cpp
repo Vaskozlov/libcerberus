@@ -15,19 +15,6 @@
 using namespace cerb::literals;
 using namespace std::string_view_literals;
 
-/*
-cerb::gl::Map<std::string_view , cerb::lex::DotItem<true>, 8> items (
-    {
-        {"NAME", {3, "[a-zA-Z]+"}},
-        {"IDENTIFIER", {0, "[a-zA-Z_]+[a-zA-Z0-9_]*"}},
-        {"NUMBER", {1, "[0-9]+"}},
-        {"FLOAT", {2, "[0-9]+[.][0-9]+"}}
-    }
-);
- */
-
-cerb::lex::experimental::DotItem<char, unsigned> item(0, 0, "", { {}, {} });
-
 namespace cerb {
     class ConstructorChecker
     {
@@ -114,62 +101,76 @@ namespace cerb {
     };
 }// namespace cerb
 
-namespace cerb::test {
-    inline static std::random_device random_device{};
-    inline static std::default_random_engine random_engine(random_device());
-    inline static std::uniform_int_distribution<size_t> uniform_dist(10000, 1000000);
-}// namespace cerb::test
-
-using namespace std::string_literals;
-
 auto main(int /*argc*/, char * /*argv*/[]) -> int
 {
+    cerb::lex::experimental::DotItemController<char, unsigned> c{
+        { { 2, "[a-zA-Z]+"sv }, { 3, "[0-9]+"sv } },
+        { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}',  '!',
+            '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\', '.' },
+          { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=",
+            "==", "!=", ">=", "<=", ">>=", "<<=" } }
+    };
+
+    // c.scan("elem = item.check();");
+
     /*
-    std::string_view input = "vask 4.5 51";
-
-    cerb::lex::ItemState state = cerb::lex::UNINITIALIZED;
-    cerb::Vector<cerb::Pair<u32, std::string_view>> vec;
-
-     items.begin()->second.set(input);
-
-    for (auto &elem : items) {
-        elem.second.rebind();
-        do {
-            state = elem.second.check(vec);
-        } while (state != cerb::lex::OUT_OF_ELEMS);
-    }
-
-    for (const auto &elem: vec) {
-        std::cout << elem.first << ' ' << elem.second << std::endl;
-    }
-    */
-    /*
-    cerb::lex::DotItem2<int> item(
-        0, "[a-zA-Z]+[0-9]?"sv,
-        { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}',
-            '!', '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\' },
+    cerb::lex::DotItem<char, unsigned, 0> a{ 2, "[a-zA-Z_]+"sv };
+    a.set_input("vask+", "stdio");
+    a.set_terminals(
+        { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}',  '!',
+            '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\', '.' },
           { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=",
             "==", "!=", ">=", "<=", ">>=", "<<=" } });
+    a.dump();
+    a.rebind();
 
-    std::string_view input = "vask ";
-    item.set(input, "stdio"sv);
+    auto state = a.check();
 
-    cerb::lex::DotItem2<int>::ResultType elem;
-    do {
-        elem = item.check();
-        std::cout << cerb::lex::ItemStateRepr.at(elem.first) << std::endl;
+    while (state != cerb::lex::UNABLE_TO_MATCH &&
+           state != cerb::lex::SCAN_FINISHED) {
+        state = a.check();
+    }
 
-        if (elem.first == cerb::lex::SCAN_FINISHED) {
-            for (const auto &i : elem.second) {
-                std::cout << "File: " << i.pos.filename
-                          << ", line: " << i.pos.line_number
-                          << ", char : " << i.pos.char_number << ", repr: " << i.repr
-                          << std::endl;
-            }
+    if (state == cerb::lex::SCAN_FINISHED) {
+        for (auto &elem : a.result()) {
+            std::cout << std::setw(8) << std::left << elem.repr << ' ' << elem.type
+                      << ' ' << elem.pos.char_number << ' ' << elem.pos.line_number
+                      << std::endl;
         }
-    } while (!item.get_input().empty() && elem.first != cerb::lex::UNABLE_TO_MATCH);
+    }
     */
 
+    cerb::lex::DotItemController<char, unsigned> controller{
+        { { 3, "for" },
+          { 4, "while" },
+          { 5, "char" },
+          { 6, "int" },
+          { 7, "return" } },
+        { { 8, "[a-zA-Z_]+" }, { 9, "[0-9]+" } },
+        { { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{', '}',  '!',
+            '^', '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\', '.' },
+          { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=",
+            "==", "!=", ">=", "<=", ">>=", "<<=" } }
+    };
+
+    controller.scan(
+        R"(int main(int argc, char **argv) {
+        int a = 10;
+        int b = 20;
+
+        return a + b;
+    })",
+        "stdio");
+
+    puts(
+        R"(int main(int argc, char **argv) {
+        int a = 10;
+        int b = 20;
+
+        return a + b;
+    })");
+
+    /*
     size_t Iterations = cerb::test::uniform_dist(cerb::test::random_engine);
     std::vector<cerb::ConstructorChecker> std_vector{};
     cerb::Vector<cerb::ConstructorChecker> cerb_vector{};
@@ -229,6 +230,7 @@ auto main(int /*argc*/, char * /*argv*/[]) -> int
     std::cout << "Iterations: " << Iterations << ", "
               << cerb::ConstructorChecker{ 1 } << std::endl;
     cerb::ConstructorChecker::clear();
+    */
 
     return 0;
 }

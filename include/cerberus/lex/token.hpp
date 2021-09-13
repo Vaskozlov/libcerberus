@@ -9,7 +9,7 @@ namespace cerb::lex {
     {
         Repr repr{};
         TokenType type{};
-        PositionInFile pos{};
+        PositionInFile<char> pos{};
     };
 }// namespace cerb::lex
 
