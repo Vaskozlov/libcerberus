@@ -306,7 +306,7 @@ namespace cerb::PRIVATE {
 
         if (bits_to_align != 0) {
             size_t before_alignment =
-                min(bitsizeof(value_type) - bits_to_align, times);
+                cerb::min(bitsizeof(value_type) - bits_to_align, times);
 
             times -= before_alignment;
 

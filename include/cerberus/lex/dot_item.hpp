@@ -10,6 +10,7 @@
 #include <cerberus/lex/file.hpp>
 #include <cerberus/lex/token.hpp>
 #include <cerberus/lex/char.hpp>
+#include <cerberus/string_view.hpp>
 #include <cerberus/lex/lex_string.hpp>
 
 namespace cerb::lex {
@@ -32,13 +33,11 @@ namespace cerb::lex {
         SCAN_FINISHED,
     };
 
-    using namespace std::string_view_literals;
-
-    constexpr gl::Map<ItemState, std::string_view, 4> ItemStateRepr{
-        { UNABLE_TO_MATCH, "UNABLE_TO_MATCH"sv },
-        { NEED_TO_SCAN, "NEED_TO_SCAN"sv },
-        { NEED_TO_SWITCH_RANGE, "NEED_TO_SWITCH_RANGE"sv },
-        { SCAN_FINISHED, "SCAN_FINISHED"sv }
+    constexpr gl::Map<ItemState, cerb::string_view, 4> ItemStateRepr{
+        { UNABLE_TO_MATCH, "UNABLE_TO_MATCH" },
+        { NEED_TO_SCAN, "NEED_TO_SCAN" },
+        { NEED_TO_SWITCH_RANGE, "NEED_TO_SWITCH_RANGE" },
+        { SCAN_FINISHED, "SCAN_FINISHED" }
     };
 
     template<
@@ -219,13 +218,13 @@ namespace cerb::lex {
         static constexpr auto add2input(size_t offset) -> void
         {
             auto &input = m_input;
-            m_input     = { min(input.begin() + offset, input.end()), input.end() };
+            m_input     = { cerb::min(input.begin() + offset, input.end()), input.end() };
         }
 
         static constexpr auto add2input(string_view_iterator first) -> void
         {
             auto &input = m_input;
-            m_input     = { min(first, input.end()), input.end() };
+            m_input     = { cerb::min(first, input.end()), input.end() };
         }
 
         constexpr auto throw_if_can(bool condition, const char *message) -> void

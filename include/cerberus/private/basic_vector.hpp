@@ -246,7 +246,7 @@ namespace cerb::PRIVATE {
         constexpr auto insert(size_type index, const_reference value)
         {
             check_size();
-            index = min(index, size());
+            index = cerb::min(index, size());
 
             if (size() > 0) {
                 CERBLIB_UNROLL_N(2)
@@ -265,7 +265,7 @@ namespace cerb::PRIVATE {
         constexpr auto
             insert(size_type index, const std::initializer_list<T> &values)
         {
-            index           = min(index, size());
+            index           = cerb::min(index, size());
             size_type elems = static_cast<ptrdiff_t>(values.size());
 
             m_size += elems;
@@ -291,7 +291,7 @@ namespace cerb::PRIVATE {
         template<typename Iterator>
         constexpr auto insert(size_type index, Iterator first, Iterator last)
         {
-            index           = min(index, size());
+            index           = cerb::min(index, size());
             size_type elems = static_cast<ptrdiff_t>(last - first);
 
             m_size += elems;
@@ -410,7 +410,7 @@ namespace cerb::PRIVATE {
             }
 
             CERBLIB_UNROLL_N(2)
-            for (size_t i = 0; i < min(lhs.size(), rhs.size()); ++i) {
+            for (size_t i = 0; i < cerb::min(lhs.size(), rhs.size()); ++i) {
                 if (lhs.data()[i] < rhs.data()[i]) {
                     return true;
                 }
@@ -436,7 +436,7 @@ namespace cerb::PRIVATE {
             }
 
             CERBLIB_UNROLL_N(2)
-            for (size_t i = 0; i < min(lhs.size(), rhs.size()); ++i) {
+            for (size_t i = 0; i < cerb::min(lhs.size(), rhs.size()); ++i) {
                 if (lhs.data()[i] > rhs.data()[i]) {
                     return true;
                 }

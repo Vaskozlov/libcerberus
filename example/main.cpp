@@ -11,6 +11,7 @@
 #include <cerberus/lex/lex.hpp>
 #include <cerberus/vector.hpp>
 #include <random>
+#include <cerberus/string_view.hpp>
 
 using namespace cerb::literals;
 using namespace std::string_view_literals;
@@ -212,7 +213,7 @@ auto main(int /*argc*/, char * /*argv*/[]) -> int
               << cerb::ConstructorChecker{ 1 } << std::endl;
     cerb::ConstructorChecker::clear();
     */
-
+    
     return 0;
 }
 

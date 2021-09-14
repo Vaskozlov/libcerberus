@@ -36,15 +36,17 @@
 
 #define CERBERUS_LEX_INITIALIZER(class_name)                                        \
     class_name(                                                                     \
-        const std::initializer_list<const cerb::Pair<TokenType, const string_view_t>> \
+        const std::initializer_list<                                                \
+            const cerb::Pair<TokenType, const string_view_t>>                       \
             keywords,                                                               \
-        const std::initializer_list<const cerb::Pair<TokenType, const string_view_t>> \
+        const std::initializer_list<                                                \
+            const cerb::Pair<TokenType, const string_view_t>>                       \
             rules,                                                                  \
         const string_checker_t &terminals,                                          \
         size_t input_index                           = 0,                           \
-        const string_view_t &single_line_comment     = "//"sv,                      \
-        const string_view_t &multiline_comment_begin = "/*"sv,                      \
-        const string_view_t &multiline_comment_end   = "*/"sv)                      \
+        const string_view_t &single_line_comment     = "//",                        \
+        const string_view_t &multiline_comment_begin = "/*",                        \
+        const string_view_t &multiline_comment_end   = "*/")                        \
       : parent(                                                                     \
             keywords,                                                               \
             rules,                                                                  \
@@ -153,9 +155,9 @@ namespace cerb::lex {
                 rules,
             const string_checker_t terminals,
             size_t input_index                           = 0,
-            const string_view_t &single_line_comment     = "//"sv,
-            const string_view_t &multiline_comment_begin = "/*"sv,
-            const string_view_t &multiline_comment_end   = "*/"sv)
+            const string_view_t &single_line_comment     = "//",
+            const string_view_t &multiline_comment_begin = "/*",
+            const string_view_t &multiline_comment_end   = "*/")
         {
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : keywords) {
@@ -241,7 +243,7 @@ namespace cerb::lex::experimental {
                     auto vector_begin = m_tokens.size();
 
                     CERBLIB_UNROLL_N(1)
-                    for (const auto& result: item->result()) {
+                    for (const auto &result : item->result()) {
                         m_tokens.template emplace_back(result);
                     }
 
@@ -279,20 +281,18 @@ namespace cerb::lex::experimental {
                 rules,
             const string_checker_t &terminals,
             size_t input_index                           = 0,
-            const string_view_t &single_line_comment     = "//"sv,
-            const string_view_t &multiline_comment_begin = "/*"sv,
-            const string_view_t &multiline_comment_end   = "*/"sv)
+            const string_view_t &single_line_comment     = "//",
+            const string_view_t &multiline_comment_begin = "/*",
+            const string_view_t &multiline_comment_end   = "*/")
         {
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : keywords) {
-                m_items.template emplaceKey(
-                    elem.first, 0, elem.first, elem.second);
+                m_items.template emplaceKey(elem.first, 0, elem.first, elem.second);
             }
 
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : rules) {
-                m_items.template emplaceKey(
-                    elem.first, elem.first, elem.second);
+                m_items.template emplaceKey(elem.first, elem.first, elem.second);
             }
 
             item_t::set_terminals(terminals);

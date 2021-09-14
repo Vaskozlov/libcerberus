@@ -2,6 +2,7 @@
 #define CERBERUS_FILE_HPP
 
 #include <cerberus/types.h>
+#include <cerberus/string_view.hpp>
 
 namespace cerb::lex {
     template<typename CharT = char>
@@ -9,7 +10,7 @@ namespace cerb::lex {
     {
         size_t line_number{ 0 };
         size_t char_number{ 0 };
-        std::basic_string_view<CharT> filename{};
+        cerb::basic_string_view<CharT> filename{};
 
     public:
         constexpr auto operator+=(size_t value) -> PositionInFile &
@@ -50,7 +51,7 @@ namespace cerb::lex {
         constexpr PositionInFile(PositionInFile &&) noexcept = default;
 
         constexpr PositionInFile(
-            size_t line, size_t char_n, const std::basic_string_view<CharT> &s)
+            size_t line, size_t char_n, const cerb::basic_string_view<CharT> &s)
           : line_number(line), char_number(char_n), filename(s)
         {}
     };

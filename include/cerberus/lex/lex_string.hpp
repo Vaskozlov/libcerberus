@@ -2,6 +2,7 @@
 #define CERBERUS_LEX_STRING_HPP
 
 #include <cerberus/types.h>
+#include <cerberus/string_view.hpp>
 
 namespace cerb::lex {
 
@@ -29,8 +30,8 @@ namespace cerb::lex {
 
     template<typename CharT>
     constexpr auto check_substring(
-        size_t index, const std::basic_string_view<CharT> &src,
-        const std::basic_string_view<CharT> &substr) -> bool
+        size_t index, const cerb::basic_string_view<CharT> &src,
+        const cerb::basic_string_view<CharT> &substr) -> bool
     {
         size_t i           = 0;
         size_t src_size    = src.size();
@@ -51,7 +52,7 @@ namespace cerb::lex {
     struct StringChecker
     {
         constexpr static size_t MaxChars = (1ULL << bitsizeof(CharT)) - 1;
-        using string_view_t              = std::basic_string_view<CharT>;
+        using string_view_t              = cerb::basic_string_view<CharT>;
         using bitmap_t                   = ConstBitmap<1, MaxChars>;
         using storage_t                  = std::array<bitmap_t, MaxLength>;
 
