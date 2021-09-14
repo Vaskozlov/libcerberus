@@ -41,7 +41,7 @@ namespace cerb {
         constexpr basic_string_view(const basic_string_view &) noexcept = default;
 
         constexpr basic_string_view(const char *str) noexcept
-          : m_str(str), m_len(length_of_string(str))
+          : m_len(length_of_string(str)), m_str(str)
         {}
 
         constexpr basic_string_view(const char *str, size_t len) noexcept
@@ -55,8 +55,8 @@ namespace cerb {
 
         constexpr basic_string_view(
             const_iterator first, const_iterator last) noexcept
-          : m_str(first),
-            m_len(static_cast<size_t>(static_cast<difference_type>(last - first)))
+          : m_len(static_cast<size_t>(static_cast<difference_type>(last - first))),
+            m_str(first)
         {}
 
         constexpr ~basic_string_view() = default;

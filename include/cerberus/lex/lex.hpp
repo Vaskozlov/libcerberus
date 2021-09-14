@@ -43,7 +43,6 @@
             const cerb::Pair<TokenType, const string_view_t>>                       \
             rules,                                                                  \
         const string_checker_t &terminals,                                          \
-        size_t input_index                           = 0,                           \
         const string_view_t &single_line_comment     = "//",                        \
         const string_view_t &multiline_comment_begin = "/*",                        \
         const string_view_t &multiline_comment_end   = "*/")                        \
@@ -51,7 +50,6 @@
             keywords,                                                               \
             rules,                                                                  \
             terminals,                                                              \
-            input_index,                                                            \
             single_line_comment,                                                    \
             multiline_comment_begin,                                                \
             multiline_comment_end)
@@ -114,7 +112,7 @@ namespace cerb::lex {
 
                 if (item != nullptr) {
                     auto i = item->result();
-                    results.template emplace_back(item->result());
+                    results.emplace_back(item->result());
                     item->add2input(item->dot());
                     item->skip_comments_and_layout();
                     item->dump();
@@ -161,14 +159,13 @@ namespace cerb::lex {
         {
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : keywords) {
-                m_items.template emplaceKey(
+                m_items.emplaceKey(
                     elem.first, 0, elem.first, elem.second, input_index);
             }
 
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : rules) {
-                m_items.template emplaceKey(
-                    elem.first, elem.first, elem.second, input_index);
+                m_items.emplaceKey(elem.first, elem.first, elem.second, input_index);
             }
 
             Item::set_terminals(terminals);
@@ -244,7 +241,7 @@ namespace cerb::lex::experimental {
 
                     CERBLIB_UNROLL_N(1)
                     for (const auto &result : item->result()) {
-                        m_tokens.template emplace_back(result);
+                        m_tokens.emplace_back(result);
                     }
 
                     item->add2input(item->dot());
@@ -280,19 +277,18 @@ namespace cerb::lex::experimental {
             const std::initializer_list<const Pair<TokenType, const string_view_t>>
                 rules,
             const string_checker_t &terminals,
-            size_t input_index                           = 0,
             const string_view_t &single_line_comment     = "//",
             const string_view_t &multiline_comment_begin = "/*",
             const string_view_t &multiline_comment_end   = "*/")
         {
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : keywords) {
-                m_items.template emplaceKey(elem.first, 0, elem.first, elem.second);
+                m_items.emplaceKey(elem.first, 0, elem.first, elem.second);
             }
 
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : rules) {
-                m_items.template emplaceKey(elem.first, elem.first, elem.second);
+                m_items.emplaceKey(elem.first, elem.first, elem.second);
             }
 
             item_t::set_terminals(terminals);

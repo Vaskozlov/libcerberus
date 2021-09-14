@@ -213,7 +213,7 @@ auto main(int /*argc*/, char * /*argv*/[]) -> int
               << cerb::ConstructorChecker{ 1 } << std::endl;
     cerb::ConstructorChecker::clear();
     */
-    
+
     return 0;
 }
 
