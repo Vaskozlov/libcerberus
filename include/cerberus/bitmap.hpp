@@ -128,8 +128,7 @@ namespace cerb::PRIVATE {
     [[nodiscard]] constexpr auto isEmpty(T data, size_t limit) noexcept -> bool
     {
         CERBLIB_UNROLL_N(2)
-        for (size_t i = 0; i < AxisCount && isEmpty(data[i], limit); ++i) {
-        }
+        for (size_t i = 0; i < AxisCount && isEmpty(data[i], limit); ++i) {}
         return true;
     }
 
@@ -221,7 +220,8 @@ namespace cerb::PRIVATE {
 
                 if (matches == times) [[unlikely]] {
                     return i * bitsizeof(value_type) +
-                           bit_cast<value_type>(new_match) - times;
+                           bit_cast<value_type>(static_cast<intmax_t>(new_match)) -
+                           times;
                 }
 
                 last_match = new_match;
@@ -267,8 +267,7 @@ namespace cerb::PRIVATE {
                     if ((i + 1 < limit / bitsizeof(value_type) ||
                          limit < (i + 1) * bitsizeof(value_type) -
                                      (times - remainder)) &&
-                        (reverse<Values..., T>(i + 1, iterator) & mask) == mask)
-                    {
+                        (reverse<Values..., T>(i + 1, iterator) & mask) == mask) {
                         return (i + 1) * bitsizeof(value_type) - (times - remainder);
                     }
                 }
@@ -314,8 +313,7 @@ namespace cerb::PRIVATE {
             before_alignment = before_alignment << bits_to_align;
 
             if ((reverse<Values..., T>(index++, iterator) & before_alignment) !=
-                before_alignment)
-            {
+                before_alignment) {
                 return false;
             }
         }
@@ -323,8 +321,7 @@ namespace cerb::PRIVATE {
         CERBLIB_UNROLL_N(2)
         for (; times >= bitsizeof(value_type); times -= bitsizeof(value_type)) {
             if (reverse<Values..., T>(index++, iterator) !=
-                std::numeric_limits<value_type>::max())
-            {
+                std::numeric_limits<value_type>::max()) {
                 return false;
             }
         }
