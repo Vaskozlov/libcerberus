@@ -107,10 +107,8 @@ namespace cerb {
             using const_map_elem   = const Pair<T1, T2, BY_FIRST_VALUE>;
             using parent           = PRIVATE::gl::BasicSet<map_elem, Size, MayThrow>;
 
-        private:
-            using parent::search;
-
         public:
+            using parent::search;
             using parent::begin;
             using parent::cbegin;
             using parent::cend;

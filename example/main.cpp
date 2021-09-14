@@ -16,92 +16,6 @@
 using namespace cerb::literals;
 using namespace std::string_view_literals;
 
-namespace cerb {
-    class ConstructorChecker
-    {
-        u8 empty{};
-        static inline std::atomic<size_t> m_constructions{ 0 };
-        static inline std::atomic<size_t> m_copies{ 0 };
-        static inline std::atomic<size_t> m_moves{ 0 };
-        static inline std::atomic<size_t> m_copy_constructions{ 0 };
-        static inline std::atomic<size_t> m_move_constructions{ 0 };
-        static inline std::atomic<size_t> m_deconstructions{ 0 };
-        static inline std::atomic<size_t> m_counter{ 0 };
-
-    public:
-        inline static auto counter() -> size_t
-        {
-            return m_counter;
-        }
-
-        inline static auto clear() -> void
-        {
-            m_counter            = 0;
-            m_constructions      = 0;
-            m_copy_constructions = 0;
-            m_move_constructions = 0;
-            m_copies             = 0;
-            m_moves              = 0;
-            m_deconstructions    = 0;
-        }
-
-        inline auto operator=(const ConstructorChecker &) -> ConstructorChecker &
-        {
-            ++m_copies;
-            return *this;
-        }
-        inline auto operator=(ConstructorChecker &&) noexcept -> ConstructorChecker &
-        {
-            ++m_moves;
-            return *this;
-        }
-
-        inline ConstructorChecker(u8 /*unused*/)
-        {}
-
-        inline ConstructorChecker()
-        {
-            ++m_counter;
-            ++m_constructions;
-        }
-
-        inline ConstructorChecker(const ConstructorChecker & /*unused*/)
-        {
-            ++m_counter;
-            ++m_copy_constructions;
-        }
-
-        inline ConstructorChecker(ConstructorChecker && /*unused*/) noexcept
-        {
-            ++m_counter;
-            ++m_move_constructions;
-        }
-
-        inline ~ConstructorChecker()
-        {
-            --m_counter;
-            ++m_deconstructions;
-        }
-
-        template<typename T>
-        inline friend auto operator<<(T &os, const ConstructorChecker & /*checker*/)
-            -> T &
-        {
-            os << "Constructions: " << cerb::ConstructorChecker::m_constructions
-               << ", construction copies: "
-               << cerb::ConstructorChecker::m_copy_constructions
-               << ", construction moves: "
-               << cerb::ConstructorChecker::m_move_constructions
-               << ", copies: " << cerb::ConstructorChecker::m_copies
-               << ", moves: " << cerb::ConstructorChecker::m_moves
-               << ", deconstructions: "
-               << cerb::ConstructorChecker::m_deconstructions
-               << ", leaks: " << cerb::ConstructorChecker::m_counter;
-            return os;
-        }
-    };
-}// namespace cerb
-
 CERBERUS_LEX_TEMPLATES
 struct Lex : public CERBERUS_LEX_PARENT_CLASS
 {
@@ -130,8 +44,188 @@ Lex<char, unsigned> controller{
         "!=", ">=", "<=", ">>=", "<<=" } }
 };
 
+template<
+    typename CharT,
+    typename TokenType,
+    size_t MaxElems  = 128,
+    size_t MaxLength = 4,
+    bool MayThrow    = true>
+struct StringChecker
+{
+    constexpr static size_t MaxChars = (1ULL << bitsizeof(CharT)) - 1;
+    using string_view_t              = cerb::basic_string_view<CharT>;
+    using bitmap_t                   = cerb::ConstBitmap<1, MaxChars>;
+    using storage_t                  = std::array<bitmap_t, MaxLength>;
+    using map_t                      = cerb::gl::Map<uintmax_t, TokenType, MaxElems>;
+
+private:
+    storage_t m_bitmaps{};
+    map_t m_map{};
+
+public:
+    constexpr auto check(CharT elem) const -> cerb::Pair<bool, TokenType>
+    {
+        return { static_cast<bool>(
+                     m_bitmaps[0].template at<0>(cerb::lex::to_unsigned(elem))),
+                 m_map[cerb::lex::to_unsigned(elem)] };
+    }
+
+    constexpr auto check(size_t index, const string_view_t &str) const
+        -> cerb::Pair<string_view_t, TokenType>
+    {
+        size_t i    = 0;
+        size_t hash = 0;
+
+        CERBLIB_UNROLL_N(2)
+        for (; i < str.size(); ++i) {
+            hash <<= 8;
+            hash += cerb::lex::to_unsigned(str[i]);
+            if (m_bitmaps[i].template at<0>(
+                    cerb::lex::to_unsigned(str[index + i])) == 0) {
+                return { { str.begin(), str.begin() + i }, m_map[hash] };
+            }
+        }
+
+        return { { str.begin(), str.begin() + i }, m_map[hash] };
+    }
+
+public:
+    consteval StringChecker() = default;
+
+    consteval StringChecker(
+        const std::initializer_list<cerb::Pair<TokenType, CharT>> &chars,
+        const std::initializer_list<cerb::Pair<TokenType, const string_view_t>>
+            &strings)
+    {
+        CERBLIB_UNROLL_N(4)
+        for (const auto &elem : chars) {
+            m_map.emplace(cerb::lex::to_unsigned(elem.second), elem.first);
+            m_bitmaps[0].template set<1, 0>(cerb::lex::to_unsigned(elem.second));
+        }
+
+        CERBLIB_UNROLL_N(2)
+        for (const auto &elem : strings) {
+            size_t counter = 0;
+            uintmax_t hash = 0;
+
+            if constexpr (MayThrow) {
+                if (MaxLength <= counter) {
+                    throw std::out_of_range(
+                        "String checker can't hold such a long string!");
+                }
+            }
+
+            CERBLIB_UNROLL_N(4)
+            for (const auto chr : elem.second) {
+                hash <<= 8;
+                hash += cerb::lex::to_unsigned(chr);
+                m_bitmaps[counter++].template set<1, 0>(cerb::lex::to_unsigned(chr));
+            }
+            m_map.emplace(hash, elem.first);
+        }
+    }
+};
+
+using namespace cerb;
+using namespace cerb::lex;
+
+template<
+    typename CharT,
+    typename TokenType,
+    size_t MaxTerminals       = 128,
+    size_t MaxLength4Terminal = 8,
+    bool MayThrow             = true>
+class TerminalContainer
+{
+    constexpr static size_t MaxChars = (1ULL << bitsizeof(CharT)) - 1;
+    using string_view_t              = basic_string_view<CharT>;
+    using bitmap_t                   = ConstBitmap<1, MaxChars>;
+    using storage_t                  = std::array<bitmap_t, MaxLength4Terminal>;
+    using map_t                      = gl::Map<uintmax_t, TokenType, MaxTerminals>;
+
+public:
+    [[nodiscard]] constexpr auto check(CharT elem) const -> Pair<bool, TokenType>
+    {
+        auto hash = to_unsigned(elem);
+        return { static_cast<bool>(m_bitmaps[0].template at<0>(hash)),
+                 m_map.search(hash)->second };
+    }
+
+    [[nodiscard]] constexpr auto check(size_t offset, const string_view_t &str) const
+        -> Pair<string_view_t, TokenType>
+    {
+        size_t i    = offset;
+        size_t hash = 0;
+
+        CERBLIB_UNROLL_N(2)
+        for (; i < str.size(); ++i) {
+            auto local_hash = to_unsigned(str[i]);
+
+            hash = hash * 31U + local_hash;
+
+            if (m_bitmaps[0].template at<0>(local_hash) == 0) {
+                break;
+            }
+        }
+        return { { str.begin() + offset, str.begin() + i },
+                 m_map.search(hash)->second };
+    }
+
+    consteval TerminalContainer() = default;
+    consteval TerminalContainer(
+        const std::initializer_list<Pair<TokenType, CharT>> &chars,
+        const std::initializer_list<Pair<TokenType, const string_view_t>> &strings)
+    {
+        if constexpr (MayThrow) {
+            if (chars.size() + strings.size() > MaxTerminals) {
+                throw std::runtime_error(
+                    "Terminal container can't hold so much terminals!");
+            }
+        }
+
+        CERBLIB_UNROLL_N(4)
+        for (const auto &elem : chars) {
+            auto hash = to_unsigned(elem.second);
+            m_map.emplace(hash, elem.first);
+            m_bitmaps[0].template set<1, 0>(hash);
+        }
+
+        CERBLIB_UNROLL_N(2)
+        for (const auto &elem : strings) {
+            size_t hash    = 0;
+            size_t counter = 0;
+
+            if constexpr (MayThrow) {
+                if (MaxLength4Terminal <= elem.second.size()) {
+                    throw std::out_of_range(
+                        "String checker can't hold such a long string!");
+                }
+            }
+
+            CERBLIB_UNROLL_N(4)
+            for (const auto &chr : elem.second) {
+                auto local_hash = to_unsigned(chr);
+                hash = hash * 31U + local_hash;
+                m_bitmaps[0].template set<1, 0>(local_hash);
+            }
+
+            m_map.emplace(hash, elem.first);
+        }
+    }
+
+private:
+    map_t m_map{};
+    storage_t m_bitmaps{};
+};
+
 auto main(int /*argc*/, char * /*argv*/[]) -> int
 {
+    TerminalContainer<char, unsigned> terminals(
+        { { 1, '+' }, { 2, '-' } }, { { 4, "+=" }, { 6, "<<=" } });
+
+    auto elem = terminals.check(0, "<<=");
+    std::cout << elem.first << ' ' << elem.second << endl;
+
     controller.scan(
         R"(
     #define f(x) (x * 2)
