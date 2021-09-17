@@ -9,7 +9,7 @@
 #    include <stddef.h>
 #endif /* __cplusplus */
 
-#if defined(__unix__)
+#if defined(__unix__) || defined(__APPLE__)
 #    include <alloca.h>
 #else
 #    include <malloc.h>
@@ -71,7 +71,7 @@ typedef u8 byte;
 #    error cerberus requires at least C++20
 #endif /* C++20 */
 
-#if defined(__unix__)// todo: check if window's clang need this
+#if defined(__unix__) || defined(__APPLE__)
 #    define CERBLIB_INLINE __attribute__((always_inline)) inline
 #else
 #    define CERBLIB_INLINE __forceinline

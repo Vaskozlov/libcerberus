@@ -5,7 +5,7 @@
 
 namespace cerb {
     template<typename CharT>
-    class basic_string_view
+    class CERBLIB_TRIVIAL basic_string_view
     {
         static_assert(!std::is_array_v<CharT>);
         static_assert(std::is_trivial_v<CharT> && std::is_standard_layout_v<CharT>);

@@ -20,6 +20,29 @@ namespace cerb {
         T1 first;
         T2 second;
 
+    public:
+        static constexpr auto is_nothrow_destructible =
+            std::is_nothrow_destructible_v<T1> && std::is_nothrow_destructible_v<T2>;
+
+        static constexpr auto is_nothrow_copy_assignable =
+            std::is_nothrow_copy_assignable_v<T1> &&
+            std::is_nothrow_copy_assignable_v<T2>;
+
+        static constexpr auto is_nothrow_move_assignable =
+            std::is_nothrow_move_assignable_v<T1> &&
+            std::is_nothrow_move_assignable_v<T2>;
+
+        static constexpr auto is_nothrow_copy_constructible =
+            std::is_nothrow_copy_constructible_v<T1> &&
+            std::is_nothrow_copy_constructible_v<T2>;
+
+        static constexpr auto is_nothrow_move_constructible =
+            std::is_nothrow_move_constructible_v<T1> &&
+            std::is_nothrow_move_constructible_v<T2>;
+
+        static constexpr auto is_nothrow_default_constructible =
+            std::is_nothrow_default_constructible_v<T1> &&
+            std::is_nothrow_default_constructible_v<T2>;
 
     public:
         constexpr auto operator==(const Pair<T1, T2, DEFAULT> &other) const -> bool
@@ -86,28 +109,32 @@ namespace cerb {
         constexpr auto operator=(const Pair &) noexcept -> Pair & = default;
 
     public:
-        constexpr Pair() noexcept             = default;
-        constexpr ~Pair() noexcept            = default;
-        constexpr Pair(Pair &&) noexcept      = default;
-        constexpr Pair(const Pair &) noexcept = default;
+        constexpr Pair() noexcept(is_nothrow_default_constructible)       = default;
+        constexpr ~Pair() noexcept(is_nothrow_destructible)               = default;
+        constexpr Pair(Pair &&) noexcept(is_nothrow_move_assignable)      = default;
+        constexpr Pair(const Pair &) noexcept(is_nothrow_copy_assignable) = default;
 
-        constexpr explicit Pair(T1 &&t_first) noexcept : first(t_first), second()
-        {}
-
-        constexpr explicit Pair(const T1 &t_first) noexcept
+        constexpr explicit Pair(T1 &&t_first) noexcept(is_nothrow_move_constructible)
           : first(t_first), second()
         {}
 
-        constexpr Pair(T1 &&t_first, T2 &&t_second) noexcept
+        constexpr explicit Pair(const T1 &t_first) noexcept(
+            is_nothrow_copy_constructible)
+          : first(t_first), second()
+        {}
+
+        constexpr Pair(T1 &&t_first, T2 &&t_second) noexcept(
+            is_nothrow_move_constructible)
           : first(t_first), second(t_second)
         {}
 
-        constexpr Pair(const T1 &t_first, const T2 &t_second) noexcept
+        constexpr Pair(const T1 &t_first, const T2 &t_second) noexcept(
+            is_nothrow_copy_constructible)
           : first(t_first), second(t_second)
         {}
     };
 
-    template<typename T1, typename T2, PairCompare Compare = DEFAULT>
+    template<PairCompare Compare = DEFAULT, typename T1, typename T2>
     constexpr auto make_pair(const T1 &first, const T2 &second)
         -> Pair<T1, T2, Compare>
     {

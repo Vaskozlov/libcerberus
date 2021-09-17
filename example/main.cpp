@@ -44,88 +44,6 @@ Lex<char, unsigned> controller{
         "!=", ">=", "<=", ">>=", "<<=" } }
 };
 
-template<
-    typename CharT,
-    typename TokenType,
-    size_t MaxElems  = 128,
-    size_t MaxLength = 4,
-    bool MayThrow    = true>
-struct StringChecker
-{
-    constexpr static size_t MaxChars = (1ULL << bitsizeof(CharT)) - 1;
-    using string_view_t              = cerb::basic_string_view<CharT>;
-    using bitmap_t                   = cerb::ConstBitmap<1, MaxChars>;
-    using storage_t                  = std::array<bitmap_t, MaxLength>;
-    using map_t                      = cerb::gl::Map<uintmax_t, TokenType, MaxElems>;
-
-private:
-    storage_t m_bitmaps{};
-    map_t m_map{};
-
-public:
-    constexpr auto check(CharT elem) const -> cerb::Pair<bool, TokenType>
-    {
-        return { static_cast<bool>(
-                     m_bitmaps[0].template at<0>(cerb::lex::to_unsigned(elem))),
-                 m_map[cerb::lex::to_unsigned(elem)] };
-    }
-
-    constexpr auto check(size_t index, const string_view_t &str) const
-        -> cerb::Pair<string_view_t, TokenType>
-    {
-        size_t i    = 0;
-        size_t hash = 0;
-
-        CERBLIB_UNROLL_N(2)
-        for (; i < str.size(); ++i) {
-            hash <<= 8;
-            hash += cerb::lex::to_unsigned(str[i]);
-            if (m_bitmaps[i].template at<0>(
-                    cerb::lex::to_unsigned(str[index + i])) == 0) {
-                return { { str.begin(), str.begin() + i }, m_map[hash] };
-            }
-        }
-
-        return { { str.begin(), str.begin() + i }, m_map[hash] };
-    }
-
-public:
-    consteval StringChecker() = default;
-
-    consteval StringChecker(
-        const std::initializer_list<cerb::Pair<TokenType, CharT>> &chars,
-        const std::initializer_list<cerb::Pair<TokenType, const string_view_t>>
-            &strings)
-    {
-        CERBLIB_UNROLL_N(4)
-        for (const auto &elem : chars) {
-            m_map.emplace(cerb::lex::to_unsigned(elem.second), elem.first);
-            m_bitmaps[0].template set<1, 0>(cerb::lex::to_unsigned(elem.second));
-        }
-
-        CERBLIB_UNROLL_N(2)
-        for (const auto &elem : strings) {
-            size_t counter = 0;
-            uintmax_t hash = 0;
-
-            if constexpr (MayThrow) {
-                if (MaxLength <= counter) {
-                    throw std::out_of_range(
-                        "String checker can't hold such a long string!");
-                }
-            }
-
-            CERBLIB_UNROLL_N(4)
-            for (const auto chr : elem.second) {
-                hash <<= 8;
-                hash += cerb::lex::to_unsigned(chr);
-                m_bitmaps[counter++].template set<1, 0>(cerb::lex::to_unsigned(chr));
-            }
-            m_map.emplace(hash, elem.first);
-        }
-    }
-};
-
 using namespace cerb;
 using namespace cerb::lex;
 
@@ -205,7 +123,7 @@ public:
             CERBLIB_UNROLL_N(4)
             for (const auto &chr : elem.second) {
                 auto local_hash = to_unsigned(chr);
-                hash = hash * 31U + local_hash;
+                hash            = hash * 31U + local_hash;
                 m_bitmaps[0].template set<1, 0>(local_hash);
             }
 
