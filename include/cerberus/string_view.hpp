@@ -10,12 +10,12 @@ namespace cerb {
         static_assert(!std::is_array_v<CharT>);
         static_assert(std::is_trivial_v<CharT> && std::is_standard_layout_v<CharT>);
 
-        static constexpr auto length_of_string(const char *str) -> size_t
+        static constexpr auto length_of_string(const CharT *str) -> size_t
         {
             size_t index = 0;
 
             CERBLIB_UNROLL_N(4)
-            while (*str != '\0') {
+            while (*str != static_cast<CharT>(0)) {
                 str++;
                 index++;
             }
@@ -40,18 +40,20 @@ namespace cerb {
         constexpr basic_string_view(basic_string_view &&) noexcept      = default;
         constexpr basic_string_view(const basic_string_view &) noexcept = default;
 
-        constexpr basic_string_view(const char *str) noexcept
+        constexpr basic_string_view(const CharT *str) noexcept
           : m_len(length_of_string(str)), m_str(str)
         {}
 
-        constexpr basic_string_view(const char *str, size_t len) noexcept
-          : m_str(str), m_len(len)
+        constexpr basic_string_view(const CharT *str, size_t len) noexcept
+          : m_len(len), m_str(str)
         {}
 
         template<int Size>
-        constexpr basic_string_view(const char (&str)[Size]) noexcept
-          : m_str(str), m_len(Size)
-        {}
+        constexpr basic_string_view(const CharT (&str)[Size]) noexcept
+          : m_len(Size), m_str(str)
+        {
+            return;;
+        }
 
         constexpr basic_string_view(
             const_iterator first, const_iterator last) noexcept
@@ -185,6 +187,30 @@ namespace cerb {
     using u8string_view  = basic_string_view<char8_t>;
     using u16string_view = basic_string_view<char16_t>;
     using u32string_view = basic_string_view<char32_t>;
+
+    namespace literals
+    {
+        consteval auto operator"" _sv(const char *str, size_t len) -> string_view
+        {
+            return {str, len};
+        }
+
+        consteval auto operator"" _sv(const char8_t *str, size_t len) -> u8string_view
+        {
+            return {str, len};
+        }
+
+        consteval auto operator"" _sv(const char16_t *str, size_t len) -> u16string_view
+        {
+            return {str, len};
+        }
+
+        consteval auto operator"" _sv(const char32_t *str, size_t len) -> u32string_view
+        {
+            return {str, len};
+        }
+    }
+
 }// namespace cerb
 
 template<typename T, typename CharT>

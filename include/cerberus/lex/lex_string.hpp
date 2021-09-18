@@ -48,67 +48,96 @@ namespace cerb::lex {
         return i == substr_size;
     }
 
-    template<typename CharT, size_t MaxLength = 4, bool MayThrow = true>
-    struct StringChecker
+    template<
+        typename CharT, typename TokenType, size_t MaxTerminals = 128,
+        size_t MaxLength4Terminal = 8, bool MayThrow = true>
+    struct TerminalContainer
     {
         constexpr static size_t MaxChars = (1ULL << bitsizeof(CharT)) - 1;
-        using string_view_t              = cerb::basic_string_view<CharT>;
+        using string_view_t              = basic_string_view<CharT>;
         using bitmap_t                   = ConstBitmap<1, MaxChars>;
-        using storage_t                  = std::array<bitmap_t, MaxLength>;
-
-    private:
-        storage_t m_bitmaps{};
+        using storage_t                  = std::array<bitmap_t, MaxLength4Terminal>;
+        using map_t = gl::Map<uintmax_t, TokenType, MaxTerminals>;
 
     public:
-        constexpr auto check(CharT elem) const -> bool
+        [[nodiscard]] constexpr auto check(CharT elem) const -> Pair<bool, TokenType>
         {
-            return static_cast<bool>(m_bitmaps[0].template at<0>(to_unsigned(elem)));
+            auto hash = to_unsigned(elem);
+            return { static_cast<bool>(m_bitmaps[0].template at<0>(hash)),
+                     m_map.search(hash)->second };
         }
 
-        constexpr auto check(size_t index, const string_view_t &str) const
-            -> string_view_t
+        [[nodiscard]] constexpr auto
+            check(size_t offset, const string_view_t &str) const
+            -> Pair<string_view_t, TokenType>
         {
-            size_t i = 0;
+            size_t i    = 0;
+            size_t hash = 0;
 
             CERBLIB_UNROLL_N(2)
             for (; i < str.size(); ++i) {
-                if (m_bitmaps[i].template at<0>(to_unsigned(str[index + i])) == 0) {
-                    return { str.begin(), str.begin() + i };
+                auto local_hash = to_unsigned(str[offset + i]);
+
+                if (m_bitmaps[i].template at<0>(local_hash) == 0) {
+                    break;
+                }
+
+                hash = hash * 31U + local_hash;
+            }
+            auto result = m_map.search(hash);
+            i = cmov<size_t>(result == m_map.end(), 0, i);
+
+            return { { str.begin() + offset, str.begin() + i + offset },
+                     result->second };
+        }
+
+        consteval TerminalContainer() = default;
+        consteval TerminalContainer(
+            const std::initializer_list<Pair<TokenType, CharT>> &chars,
+            const std::initializer_list<Pair<TokenType, const string_view_t>>
+                &strings)
+        {
+            if constexpr (MayThrow) {
+                if (chars.size() + strings.size() > MaxTerminals) {
+                    throw std::runtime_error(
+                        "Terminal container can't hold so much terminals!");
                 }
             }
 
-            return { str.begin(), str.begin() + i };
-        }
-
-    public:
-        consteval StringChecker() = default;
-
-        consteval StringChecker(
-            const std::initializer_list<CharT> &chars,
-            const std::initializer_list<const string_view_t> &strings)
-        {
             CERBLIB_UNROLL_N(4)
             for (const auto &elem : chars) {
-                m_bitmaps[0].template set<1, 0>(to_unsigned(elem));
+                auto hash = to_unsigned(elem.second);
+                m_map.emplace(hash, elem.first);
+                m_bitmaps[0].template set<1, 0>(hash);
             }
 
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : strings) {
-                size_t counter = 0;
+                size_t hash    = 0;
 
                 if constexpr (MayThrow) {
-                    if (MaxLength <= counter) {
+                    if (MaxLength4Terminal <= elem.second.size()) {
                         throw std::out_of_range(
                             "String checker can't hold such a long string!");
                     }
                 }
 
                 CERBLIB_UNROLL_N(4)
-                for (const auto chr : elem) {
-                    m_bitmaps[counter++].template set<1, 0>(to_unsigned(chr));
+                for (const auto &chr : elem.second) {
+                    auto local_hash = to_unsigned(chr);
+                    hash            = hash * 31U + local_hash;
+                    m_bitmaps[0].template set<1, 0>(local_hash);
                 }
+
+                m_map.emplace(hash, elem.first);
             }
         }
+
+        constexpr ~TerminalContainer() = default;
+
+    private:
+        map_t m_map{};
+        storage_t m_bitmaps{};
     };
 }// namespace cerb::lex
 

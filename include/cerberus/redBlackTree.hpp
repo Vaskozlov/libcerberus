@@ -437,17 +437,15 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            CERBLIB_DISABLE_WARNING("-Wreorder", "-Wreorder-ctor", 0)
-
             template<typename... Ts>
             constexpr explicit RBTreeNode(Ts &&...args) noexcept
-              : value(args...), color(RED), left(nullptr), right(nullptr),
-                parent(nullptr)
+              : left(nullptr), right(nullptr),
+                parent(nullptr), value(args...), color(RED)
             {}
 
             constexpr explicit RBTreeNode(const T &t_value) noexcept
-              : value(t_value), color(RED), left(nullptr), right(nullptr),
-                parent(nullptr)
+              : left(nullptr), right(nullptr),
+                parent(nullptr), value(t_value), color(RED)
             {}
 
             constexpr explicit RBTreeNode(const T &&t_value) noexcept(
@@ -467,8 +465,6 @@ namespace cerb::PRIVATE {
               : value(other.value), color(other.color), left(other.left),
                 right(other.right), parent(other.parent)
             {}
-
-            CERBLIB_ENABLE_WARNING("-Wreorder-ctor", "-Wreorder-ctor", 0)
 
             constexpr ~RBTreeNode() noexcept = default;
         };

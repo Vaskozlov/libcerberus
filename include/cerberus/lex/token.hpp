@@ -12,6 +12,8 @@ namespace cerb::lex {
         PositionInFile<CharT> pos{};
 
     public:
+        constexpr ~Token() noexcept = default;
+
         constexpr auto operator==(const Token &other) const -> bool
         {
             return type == other.type;

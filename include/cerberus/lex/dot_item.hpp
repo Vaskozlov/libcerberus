@@ -14,7 +14,7 @@
 #include <cerberus/lex/lex_string.hpp>
 
 namespace cerb::lex {
-    constexpr size_t MAX_RANGES = 10;
+    constexpr size_t MAX_RANGES = 4;
 
     enum ItemRule : u16
     {
@@ -41,17 +41,49 @@ namespace cerb::lex {
     };
 
     template<
-        typename CharT, typename TokenType, TokenType ValueForNonTerminal = 0,
-        bool MayThrow = true, size_t UID = 0, bool AllowStringLiterals = true,
-        bool AllowComments = true, size_t MaxSize4Terminals = 4>
-    class DotItem
+        typename CharT, typename TokenType, bool MayThrow = true, size_t UID = 0,
+        bool AllowStringLiterals = true, bool AllowComments = true,
+        size_t MaxTerminals = 128, size_t MaxSize4Terminals = 8>
+    struct DotItem
     {
-    public:
-        using string_checker_t = StringChecker<CharT, MaxSize4Terminals, MayThrow>;
-        using string_view_t    = typename string_checker_t::string_view_t;
-        using token_t          = Token<CharT, string_view_t, TokenType>;
-        using result_t         = gl::Set<token_t, 2, MayThrow>;
+        using string_checker_t = TerminalContainer<
+            CharT, TokenType, MaxTerminals, MaxSize4Terminals, MayThrow>;
+        using string_view_t        = typename string_checker_t::string_view_t;
+        using token_t              = Token<CharT, string_view_t, TokenType>;
+        using result_t             = gl::Set<token_t, 2, MayThrow>;
+        using position_t           = PositionInFile<CharT>;
         using string_view_iterator = typename string_view_t::iterator;
+
+        struct DotItemInitializer
+        {
+            bool word{ false };
+            u32 priority{};
+            TokenType type{};
+            string_view_t rule{};
+
+        public:
+            constexpr DotItemInitializer()                               = default;
+            constexpr ~DotItemInitializer()                              = default;
+            constexpr DotItemInitializer(DotItemInitializer &&) noexcept = default;
+            constexpr DotItemInitializer(const DotItemInitializer &) noexcept =
+                default;
+
+            constexpr DotItemInitializer(
+                TokenType type_, const string_view_t &rule_, bool word_,
+                u32 priority_ = 0) noexcept
+              : word(word_), priority(priority_), type(type_), rule(rule_)
+            {}
+
+            consteval DotItemInitializer(
+                TokenType type_, const string_view_t &rule_) noexcept
+              : word(false), priority(0), type(type_), rule(rule_)
+            {}
+
+            constexpr auto operator     =(DotItemInitializer &&) noexcept
+                -> DotItemInitializer & = default;
+            constexpr auto operator     =(const DotItemInitializer &) noexcept
+                -> DotItemInitializer & = default;
+        };
 
     private:
         enum SkipStatus : u16
@@ -130,6 +162,14 @@ namespace cerb::lex {
                 }
             }
 
+            constexpr Range()                  = default;
+            constexpr ~Range()                 = default;
+            constexpr Range(const Range &)     = default;
+            constexpr Range(Range &&) noexcept = default;
+
+            constexpr auto operator=(const Range &) -> Range & = default;
+            constexpr auto operator=(Range &&) noexcept -> Range & = default;
+
         public:
             ItemRule rule{};
             size_t times{};
@@ -139,13 +179,19 @@ namespace cerb::lex {
         using storage_t = gl::Set<Range, MAX_RANGES, MayThrow>;
         using iterator  = typename storage_t::iterator;
 
+    public:
+        u32 priority{};
+
     private:
+        bool m_is_word{ false };
+        string_view_t m_word_repr{};
+
         size_t m_dot{};
         size_t m_input_index{};
         const TokenType m_token_type{};
 
-        PositionInFile<CharT> m_token_pos{};
-        PositionInFile<CharT> m_current_pos{};
+        position_t m_token_pos{};
+        position_t m_current_pos{};
 
         result_t result_of_check{};
 
@@ -159,17 +205,20 @@ namespace cerb::lex {
         static inline string_view_t m_single_line_comment{};
         static inline string_view_t m_multiline_comment_begin{};
         static inline string_view_t m_multiline_comment_end{};
-        static inline PositionInFile<CharT> m_global_position{};
+        static inline position_t m_global_position{};
 
     public:
         constexpr auto operator==(const DotItem &other) const -> bool
         {
-            return m_token_type == other.m_token_type;
+            return priority == other.priority && m_token_type == other.m_token_type;
         }
 
         constexpr auto operator<=>(const DotItem &other) const
         {
-            return m_token_type <=> other.m_token_type;
+            if (priority == other.priority) {
+                return m_token_type <=> other.m_token_type;
+            }
+            return priority <=> other.priority;
         }
 
         constexpr auto operator==(const TokenType &other) const -> bool
@@ -193,7 +242,7 @@ namespace cerb::lex {
             return result_of_check;
         }
 
-        constexpr auto get_token_pos() -> PositionInFile<CharT> &
+        constexpr auto get_token_pos() -> position_t &
         {
             return m_current_pos;
         }
@@ -209,6 +258,26 @@ namespace cerb::lex {
             return m_input[m_dot + offset];
         }
 
+        constexpr auto isolate_token() const -> const string_view_t
+        {
+            size_t index         = m_dot;
+            string_view_t result = { m_input.begin() + index,
+                                     m_input.size() - index };
+
+            CERBLIB_UNROLL_N(2)
+            while (!result.empty()) {
+                CharT elem = result[index];
+
+                if (is_layout(elem) || elem == char_cast(0) ||
+                    check_substring(index, m_input, m_single_line_comment) ||
+                    check_substring(index, m_input, m_multiline_comment_begin)) {
+                    break;
+                }
+                ++index;
+            }
+            return { result.begin(), m_input.begin() + index };
+        }
+
         template<typename T>
         static constexpr auto char_cast(T value) -> CharT
         {
@@ -218,7 +287,8 @@ namespace cerb::lex {
         static constexpr auto add2input(size_t offset) -> void
         {
             auto &input = m_input;
-            m_input     = { cerb::min(input.begin() + offset, input.end()), input.end() };
+            m_input     = { cerb::min(input.begin() + offset, input.end()),
+                        input.end() };
         }
 
         static constexpr auto add2input(string_view_iterator first) -> void
@@ -243,7 +313,7 @@ namespace cerb::lex {
                 "You can't change range's rule more than once!");
         }
 
-        constexpr auto skip_comments_and_layout() -> void
+        auto skip_comments_and_layout() -> void
         {
             m_dot             = 0;
             SkipStatus status = EMPTY;
@@ -316,9 +386,8 @@ namespace cerb::lex {
             m_global_position = m_current_pos;
         }
 
-        constexpr auto
-            rebind(bool load_from_shared = true, bool reload_position = false)
-                -> void
+        auto rebind(bool load_from_shared = true, bool reload_position = false)
+            -> void
         {
             m_dot           = 0;
             m_current_range = m_ranges.begin();
@@ -360,8 +429,12 @@ namespace cerb::lex {
             return m_input.empty();
         }
 
-        [[nodiscard]] constexpr auto can_end() const -> bool
+        [[nodiscard]] auto can_end() const -> bool
         {
+            if (m_is_word) {
+                return m_dot == m_word_repr.size();
+            }
+
             CERBLIB_UNROLL_N(2)
             for (auto i = m_ranges.end() - 1; i != m_current_range; --i) {
                 switch (i->rule) {
@@ -376,12 +449,12 @@ namespace cerb::lex {
             return true;
         }
 
-        constexpr auto check() -> ItemState
+        auto check() -> ItemState
         {
             if (is_layout(get_char()) || get_char() == char_cast(0) ||
                 check_substring(m_dot, m_input, m_single_line_comment) ||
                 check_substring(m_dot, m_input, m_multiline_comment_begin)) {
-                if (m_dot != 0) {
+                if (m_dot != 0 && can_end()) {
                     string_view_t repr = { m_token_begin, m_token_begin + m_dot };
                     result_of_check    = { { repr, m_token_type, m_token_pos } };
                     return SCAN_FINISHED;
@@ -391,27 +464,40 @@ namespace cerb::lex {
             }
 
             auto terminal_repr = m_checker.check(m_dot, m_input);
-            if (!terminal_repr.empty()) {
+            if (!terminal_repr.first.empty()) {
                 if (m_dot == 0) {
-                    string_view_t repr = { m_token_begin,
-                                           m_token_begin + terminal_repr.size() };
-                    result_of_check = { { repr, ValueForNonTerminal, m_token_pos } };
-                    m_dot += terminal_repr.size();
-                    m_current_pos += terminal_repr.size();
+                    string_view_t repr = {
+                        m_token_begin, m_token_begin + terminal_repr.first.size()
+                    };
+                    result_of_check = { { repr, terminal_repr.second,
+                                          m_token_pos } };
+                    m_dot += terminal_repr.first.size();
+                    m_current_pos += terminal_repr.first.size();
                     return SCAN_FINISHED;
                 }
                 if (m_current_range == m_ranges.end() ||
                     (m_current_range->can_end() && can_end())) {
                     string_view_t repr1 = { m_token_begin, m_token_begin + m_dot };
-                    string_view_t repr2 = { repr1.end(),
-                                            repr1.end() + terminal_repr.size() };
-                    result_of_check     = { { repr1, m_token_type, m_token_pos },
-                                        { repr2, ValueForNonTerminal,
-                                          m_current_pos + terminal_repr.size() } };
+                    string_view_t repr2 = {
+                        repr1.end(), repr1.end() + terminal_repr.first.size()
+                    };
+                    result_of_check = { { repr1, m_token_type, m_token_pos },
+                                        { repr2, terminal_repr.second,
+                                          m_current_pos +
+                                              terminal_repr.first.size() } };
 
-                    m_dot += terminal_repr.size();
-                    m_current_pos += terminal_repr.size() + 1;
+                    m_dot += terminal_repr.first.size();
+                    m_current_pos += terminal_repr.first.size() + 1;
                     return SCAN_FINISHED;
+                }
+                return UNABLE_TO_MATCH;
+            }
+
+            if (m_is_word) {
+                if (m_word_repr[m_dot] == get_char() && m_dot < m_word_repr.size()) {
+                    ++m_dot;
+                    m_current_pos += 1;
+                    return NEED_TO_SCAN;
                 }
                 return UNABLE_TO_MATCH;
             }
@@ -438,28 +524,20 @@ namespace cerb::lex {
         }
 
     public:
-        constexpr DotItem(
-            int /*keyword*/, TokenType token_type, const string_view_t &repr)
-          : m_token_type(token_type)
+        constexpr DotItem(const DotItemInitializer &item)
+          : priority(item.priority), m_is_word(item.word), m_word_repr(item.rule),
+            m_token_type(item.type)
         {
-            iterator current_range = m_ranges.begin();// current range
-
-            CERBLIB_UNROLL_N(2)
-            for (const auto elem : repr) {
-                current_range->template set<1>(elem);
-                ++current_range;
+            if (item.word) {
+                return;
             }
-        }
 
-        constexpr DotItem(TokenType token_type, const string_view_t &input)
-          : m_token_type(token_type)
-        {
             bool is_range = false;// if we are looking for a range of chars
             bool are_brackets_opened = false;       // if range brackets are opened
             auto letter              = char_cast(0);// previous letter
             iterator current_range   = m_ranges.begin();// current range
 
-            for (const auto elem : input) {
+            for (const auto elem : item.rule) {
                 switch (elem) {
                 case '[':
                     throw_if_can(
@@ -523,15 +601,8 @@ namespace cerb::lex {
             }
         }
 
-        consteval DotItem(
-            bool /*constEval*/, TokenType token_type, const string_view_t &input)
-          : DotItem(token_type, input)
-        {}
-
-        consteval DotItem(
-            bool /*constEval*/, int keyword, TokenType token_type,
-            const string_view_t &input)
-          : DotItem(keyword, token_type, input)
+        consteval DotItem(bool /*constEval*/, const DotItemInitializer &item)
+          : DotItem(item)
         {}
     };
 }// namespace cerb::lex

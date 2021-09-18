@@ -84,7 +84,6 @@ namespace cerb {
 
     public:
         constexpr Vector()  = default;
-        constexpr ~Vector() = default;
 
         constexpr Vector(const Vector &) = default;
         constexpr Vector(Vector &&) noexcept = default;

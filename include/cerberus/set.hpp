@@ -89,9 +89,9 @@ namespace cerb {
         }
 
         template<typename... Ts>
-        constexpr auto emplace(Ts&&... values) noexcept
+        constexpr auto emplace(Ts&&... values) noexcept -> T&
         {
-            RBTreeEmplace(values...);
+            return RBTreeEmplace(values...)->value;
         }
 
         template<typename U>
@@ -107,9 +107,9 @@ namespace cerb {
         }
 
         template<typename U, typename... Ts>
-        constexpr auto emplaceKey(const U& key, Ts&&... values) noexcept
+        constexpr auto emplaceKey(const U& key, Ts&&... values) -> T&
         {
-            RBTreeEmplaceKey(key, values...);
+            return RBTreeEmplaceKey(key, values...)->value;
         }
 
         constexpr auto erase(const T &key) noexcept(!MayThrow)

@@ -77,10 +77,6 @@ namespace cerb::PRIVATE {
             pointer m_p;
 
         public:
-            using value_type = T;
-            using reference  = T &;
-            using pointer    = T *;
-
             using iterator_category = std::bidirectional_iterator_tag;
             using difference_type   = ptrdiff_t;
 
@@ -119,6 +115,11 @@ namespace cerb::PRIVATE {
             constexpr auto operator*() -> reference
             {
                 return *m_p;
+            }
+
+            constexpr auto operator->() -> pointer
+            {
+                return m_p;
             }
 
             [[nodiscard]] explicit constexpr operator pointer() const noexcept
@@ -505,7 +506,10 @@ namespace cerb::PRIVATE {
         constexpr BasicVector() = default;
         constexpr ~BasicVector()
         {
-            std::destroy(begin(), end());
+            CERBLIB_UNROLL_N(4)
+            for (iterator i = begin(); i != end() ; ++i) {
+                i->~T();
+            }
             ValueTraits::deallocate(m_allocator, m_data, m_capacity);
         }
 
