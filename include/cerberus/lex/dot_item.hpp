@@ -15,6 +15,10 @@
 
 namespace cerb::lex {
     constexpr size_t MAX_RANGES = 4;
+    constexpr gl::Map<char, char, 8> UnprintableChars{ { 't', '\t' },
+                                                       { 'n', '\n' },
+                                                       { 'r', '\r' },
+                                                       { 't', '\t' } };
 
     enum ItemRule : u16
     {
@@ -409,7 +413,7 @@ namespace cerb::lex {
             }
         }
 
-        static constexpr auto set_comments(
+        static auto set_comments(
             const string_view_t &single_line_comment,
             const string_view_t &multiline_comment_begin,
             const string_view_t &multiline_comment_end) -> void
@@ -419,7 +423,7 @@ namespace cerb::lex {
             m_multiline_comment_end   = multiline_comment_end;
         }
 
-        static constexpr auto set_terminals(const string_checker_t &checker) -> void
+        static auto set_terminals(const string_checker_t &checker) -> void
         {
             m_checker = checker;
         }
@@ -483,15 +487,17 @@ namespace cerb::lex {
                     };
                     result_of_check = { { repr1, m_token_type, m_token_pos },
                                         { repr2, terminal_repr.second,
-                                          m_current_pos +
-                                              terminal_repr.first.size() } };
+                                          m_current_pos } };
 
                     m_dot += terminal_repr.first.size();
-                    m_current_pos += terminal_repr.first.size() + 1;
+                    m_current_pos += terminal_repr.first.size();
                     return SCAN_FINISHED;
                 }
                 return UNABLE_TO_MATCH;
             }
+
+            if (get_char() == char_cast('"')) {}
+            if (get_char() == char_cast('\'')) {}
 
             if (m_is_word) {
                 if (m_word_repr[m_dot] == get_char() && m_dot < m_word_repr.size()) {
@@ -503,15 +509,16 @@ namespace cerb::lex {
             }
 
             ItemState state = m_current_range->check(get_char());
-            m_current_pos += 1;
 
             switch (state) {
             case NEED_TO_SCAN:
                 ++m_dot;
+                m_current_pos += 1;
                 return NEED_TO_SCAN;
 
             case NEED_TO_SWITCH_RANGE_AND_CHAR:
                 ++m_dot;
+                m_current_pos += 1;
                 [[fallthrough]];
 
             case NEED_TO_SWITCH_RANGE:

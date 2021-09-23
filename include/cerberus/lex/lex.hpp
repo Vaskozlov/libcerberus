@@ -92,12 +92,12 @@ namespace cerb::lex::experimental {
 
         enum PriorityLevel
         {
-            LOW    = 0,
+            LOW    = 2,
             MEDIUM = 1,
-            HIGH   = 2
+            HIGH   = 0
         };
 
-        Set<item_t, MayThrow, greater<void>> m_items{};
+        Set<item_t, MayThrow> m_items{};
         Vector<token_t> m_tokens{};
 
     public:

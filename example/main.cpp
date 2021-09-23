@@ -12,11 +12,12 @@
 #include <cerberus/vector.hpp>
 #include <random>
 #include <cerberus/string_view.hpp>
+#include "lexical_generator.hpp"
 
 using namespace cerb::literals;
 using namespace std::string_view_literals;
 
-enum TokenType : u16
+enum TokenType : u32
 {
     PLUS,
     SUB,
@@ -54,6 +55,8 @@ enum TokenType : u16
     FOR,
     WHILE,
     RETURN,
+    SWITCH,
+    CASE,
     CHAR,
     INT,
     LONG,
@@ -77,13 +80,6 @@ enum TokenType : u16
     PREPROCESSOR,     // '#'
 };
 
-enum PriorityLevel : u32
-{
-    LOW    = 0,
-    MEDIUM = 1,
-    HIGH   = 2
-};
-
 CERBERUS_LEX_TEMPLATES
 struct Lex : public CERBERUS_LEX_PARENT_CLASS
 {
@@ -94,7 +90,7 @@ struct Lex : public CERBERUS_LEX_PARENT_CLASS
         for (; first != last; ++first) {
             auto &token = m_tokens[first];
             std::cout << std::setw(8) << std::left << token.repr << ' ' << token.type
-                      << ' ' << token.pos << std::endl;
+                      << ' ' << token.pos + 1 << std::endl;
         }
     }
 
@@ -109,11 +105,112 @@ struct Lex : public CERBERUS_LEX_PARENT_CLASS
     {}
 };
 
+CERBERUS_LEX_TEMPLATES
+struct Calculator : public CERBERUS_LEX_PARENT_CLASS
+{
+    CERBERUS_LEX_PARENT_CLASS_ACCESS
+
+    size_t TokenIndex{};
+    token_t Token{};
+
+    void input() {
+        Token = m_tokens[TokenIndex++];
+
+        switch (Token.type){
+        case 2:
+        case 5:
+            expression(); break;
+        default:
+            error();
+        }
+    }
+
+    void expression()
+    {
+        switch (Token.type){
+        case 2:
+        case 5:
+            term(); rest_expression(); break;
+        default:
+            error();
+        }
+    }
+
+    void term()
+    {
+        switch (Token.type) {
+        case 2:
+            token(2); break;
+
+        case 5:
+            parenthesized_expression(); break;
+        default:
+            error();
+        }
+    }
+
+    void parenthesized_expression()
+    {
+        switch (Token.type) {
+        case 5:
+            token(5); expression(); token(6);
+            break;
+
+        default:
+            error();
+        }
+    }
+
+    void rest_expression()
+    {
+        switch (Token.type) {
+        case 3:
+            token(3); expression(); break;
+        case 6:
+            break;
+        default:
+            error();
+        }
+    }
+
+    void token(TokenType tk)
+    {
+       if (tk != Token.type) error();
+       Token = m_tokens[TokenIndex++];
+    }
+
+    void error()
+    {
+        throw std::runtime_error("Syntax error!");
+    }
+
+    constexpr void yield(size_t first, size_t last) override
+    {
+        for (; first != last; ++first) {
+            auto &token = m_tokens[first];
+            std::cout << std::setw(8) << std::left << token.repr << ' ' << token.type
+                      << ' ' << token.pos + 1 << std::endl;
+        }
+    }
+
+    constexpr void error(const position_t &pos, const string_view_t &repr) override
+    {
+        std::cout << "Lexical analyzer error! At: " << pos
+                  << ", token repr: " << repr << std::endl;
+        throw std::runtime_error("");
+    }
+
+    constexpr CERBERUS_LEX_INITIALIZER(Calculator)
+    {}
+};
+
 Lex<char, TokenType> controller{ { { FOR, "for"_sv },
                                    { WHILE, "while"_sv },
                                    { CHAR, "char"_sv },
                                    { INT, "int"_sv },
                                    { RETURN, "return"_sv },
+                                   { SWITCH, "switch"_sv },
+                                   { CASE, "case"_sv },
                                    { FLOAT_T, "float"_sv },
                                    { DOUBLE_T, "double"_sv },
                                    { LONG, "long"_sv },
@@ -169,34 +266,37 @@ Lex<char, TokenType> controller{ { { FOR, "for"_sv },
                                        { XOR_EQ, "^="_sv },
                                    } } };
 
-/*
- { '=', '+', '-', '*', '/', '%', '(', ')', '[', ']', '{',  '}', '!', '^',
-      '&', '|', '~', '>', '<', '?', ':', ';', '$', ',', '\\', '.', '#' },
-    { "||", "&&", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "==",
-      "!=", ">=", "<=", ">>=", "<<=" }
- */
+Calculator<char, int> calcualtor(
+    { { 0, "sin"_sv }, { 1, "cos"_sv } },
+    { { 2, "[0-9]+" } },
+    { { { 3, '+' }, { 4, '-' }, { 5, '(' }, { 6, ')' } }, {} });
 
-
-auto main(int /*argc*/, char * /*argv*/[]) -> int
+auto main(int argc, char *argv[]) -> int
 {
     const char *input = R"(
-int main(int argc, char ** argv) {
-    int a = 10;
-    int b = 20;
+    int main(int argc, char **argv) {
+        int a = 10;
+        int b = 20;
 
-    float a2 = 20.0f;
+        float a2 = 20.0f;
 
-    a += b;
-    b *= a;
+        a += b;
+        b *= a;
 
-    return a + b;
-})";
+        return a + b;
+    }
+)";
 
-    controller.scan(
-        input,
-        "stdio");
+    // controller.scan(input, "stdio");
 
-    puts(input);
+    /*calcualtor.scan("50 + (50 + 20)", "stdio");
+    calcualtor.input();
+*/
+    main2(argc, argv);
+
+    // puts(input);
+
+     //item2.scan("1+2 + 3+4", "stdio");
 
     /*
     size_t Iterations = cerb::test::uniform_dist(cerb::test::random_engine);
@@ -265,5 +365,6 @@ int main(int argc, char ** argv) {
 
 /*
  * TODO:    1) do not rely on compiler and check builtin function manually
- *
+ *          2) isolate token should check for terminals (or print hole line and show
+ *          error's position
  */
