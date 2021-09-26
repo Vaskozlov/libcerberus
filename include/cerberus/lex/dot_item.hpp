@@ -78,7 +78,7 @@ namespace cerb::lex {
               : word(word_), priority(priority_), type(type_), rule(rule_)
             {}
 
-            consteval DotItemInitializer(
+            constexpr DotItemInitializer(
                 TokenType type_, const string_view_t &rule_) noexcept
               : word(false), priority(0), type(type_), rule(rule_)
             {}

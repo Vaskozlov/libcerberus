@@ -16,6 +16,7 @@ auto main2(int argc, char *argv[]) -> int
     std::cout << data << std::endl;
      */
     system("pwd");
+    return 0;
 }
 
 #endif /* CERBERUS_LEXICAL_GENERATOR_HPP */

@@ -32,22 +32,17 @@ namespace cerb::PRIVATE {
         constexpr static bool isVector = true;
 
     public:
-        [[nodiscard]] constexpr auto data() -> pointer
+        [[nodiscard]] constexpr auto data() const noexcept -> pointer
         {
             return m_data;
         }
 
-        [[nodiscard]] constexpr auto data() const -> pointer
-        {
-            return m_data;
-        }
-
-        [[nodiscard]] constexpr auto size() const -> size_type
+        [[nodiscard]] constexpr auto size() const noexcept -> size_type
         {
             return m_size;
         }
 
-        [[nodiscard]] constexpr auto capacity() const -> size_type
+        [[nodiscard]] constexpr auto capacity() const noexcept -> size_type
         {
             return m_capacity;
         }
@@ -112,12 +107,12 @@ namespace cerb::PRIVATE {
                 return iterator(m_p + offset);
             }
 
-            constexpr auto operator*() -> reference
+            constexpr auto operator*() const -> reference
             {
                 return *m_p;
             }
 
-            constexpr auto operator->() -> pointer
+            constexpr auto operator->() const noexcept -> pointer
             {
                 return m_p;
             }
@@ -128,42 +123,34 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            constexpr auto operator==(const iterator &) const -> bool = default;
-            constexpr auto operator<=>(const iterator &) const        = default;
+            constexpr auto operator==(const iterator &) const noexcept
+                -> bool                                                 = default;
+            constexpr auto operator<=>(const iterator &) const noexcept = default;
 
         public:
-            constexpr auto operator=(const iterator &) -> iterator & = default;
+            constexpr auto operator=(const iterator &) noexcept
+                -> iterator      & = default;
             constexpr auto operator=(iterator &&) noexcept -> iterator & = default;
 
         public:
-            constexpr iterator()           = default;
+            constexpr iterator() noexcept  = default;
             constexpr ~iterator() noexcept = default;
 
-            constexpr iterator(const iterator &)     = default;
-            constexpr iterator(iterator &&) noexcept = default;
+            constexpr iterator(iterator &&) noexcept      = default;
+            constexpr iterator(const iterator &) noexcept = default;
 
-            constexpr explicit iterator(pointer p) : m_p(p)
+            constexpr explicit iterator(pointer p) noexcept : m_p(p)
             {}
         };
 
         using reverse_iterator = std::reverse_iterator<iterator>;
 
-        constexpr auto begin() -> iterator
+        [[nodiscard]] constexpr auto begin() const noexcept -> iterator
         {
             return iterator(m_data);
         }
 
-        constexpr auto begin() const -> iterator
-        {
-            return iterator(m_data);
-        }
-
-        constexpr auto end() -> iterator
-        {
-            return iterator(m_data + m_size);
-        }
-
-        constexpr auto end() const -> iterator
+        [[nodiscard]] constexpr auto end() const noexcept -> iterator
         {
             return iterator(m_data + m_size);
         }
@@ -212,7 +199,8 @@ namespace cerb::PRIVATE {
         constexpr auto push_back(value_type &&value) -> void
         {
             check_size();
-            ValueTraits::construct(m_allocator, m_data + (m_size++), std::move(value));
+            ValueTraits::construct(
+                m_allocator, m_data + (m_size++), std::move(value));
         }
 
         constexpr auto push_back(const_reference value) -> void
@@ -507,7 +495,7 @@ namespace cerb::PRIVATE {
         constexpr ~BasicVector()
         {
             CERBLIB_UNROLL_N(4)
-            for (iterator i = begin(); i != end() ; ++i) {
+            for (iterator i = begin(); i != end(); ++i) {
                 i->~T();
             }
             ValueTraits::deallocate(m_allocator, m_data, m_capacity);
