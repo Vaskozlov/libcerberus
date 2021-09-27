@@ -286,6 +286,7 @@ namespace cerb::PRIVATE {
 
             constexpr BasicSet(const std::initializer_list<const T> &args)
             {
+                CERBLIB_UNROLL_N(2)
                 for (const auto &elem : args) {
 
                     if constexpr (MayThrow) {
@@ -417,13 +418,14 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            constexpr auto operator=(RBTreeNode &&other) noexcept -> RBTree &
+            constexpr auto operator=(RBTreeNode &&other) noexcept -> RBTreeNode &
             {
                 value  = move(other.value);
                 left   = other.left;
                 right  = other.right;
                 parent = other.parent;
                 color  = other.color;
+                return *this;
             }
 
             constexpr auto operator=(const RBTreeNode &other) noexcept
@@ -434,6 +436,7 @@ namespace cerb::PRIVATE {
                 right  = other.right;
                 parent = other.parent;
                 color  = other.color;
+                return *this;
             }
 
         public:
@@ -738,6 +741,7 @@ namespace cerb::PRIVATE {
         {
             NodePtr tmp = root;
 
+            CERBLIB_UNROLL_N(2)
             while (tmp != nullptr) {
                 if (Compare{}(key, tmp->value)) {
                     if (tmp->left == nullptr) {
@@ -928,6 +932,7 @@ namespace cerb::PRIVATE {
                 return nullptr;
             }
 
+            CERBLIB_UNROLL_N(1)
             while (m_node == ptr->right) {
                 m_node = ptr;
                 ptr    = ptr->parent;

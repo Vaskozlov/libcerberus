@@ -124,10 +124,11 @@ namespace cerb {
         constexpr Address(Address &)           = default;
         constexpr Address(Address &&) noexcept = default;
 
-        constexpr Address(void *addr) noexcept : m_address(static_cast<byte *>(addr))
+        constexpr explicit Address(void *addr) noexcept
+          : m_address(static_cast<byte *>(addr))
         {}
 
-        CERBLIB_INLINE Address(size_t addr) noexcept
+        CERBLIB_INLINE explicit Address(size_t addr) noexcept
           : m_address(reinterpret_cast<byte *>(addr))
         {}
     };

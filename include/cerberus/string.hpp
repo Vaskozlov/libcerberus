@@ -23,11 +23,11 @@ namespace cerb {
     template<typename T>
     constexpr auto memset(void *__restrict ptr, T value, size_t times) -> void
     {
-        #ifdef __x86_64__
+#ifdef __x86_64__
         if (!std::is_constant_evaluated() && PRIVATE::trivially_copyable<T>) {
             return PRIVATE::memset<T>(ptr, value, times);
         }
-        #endif
+#endif
 
         auto *address  = static_cast<T *>(ptr);
         auto *ptr_copy = static_cast<T *>(ptr);
@@ -46,8 +46,9 @@ namespace cerb {
 
         } else {
             CERBLIB_UNROLL_N(4)
-            for (size_t i = 0; i < times; i++)
+            for (size_t i = 0; i < times; i++) {
                 t_array[i] = value;
+            }
         }
     }
 
@@ -55,10 +56,11 @@ namespace cerb {
     constexpr auto memcpy(T *__restrict dest, const T *__restrict src, size_t times)
         -> void
     {
-        #ifdef __x86_64__
-        if (!std::is_constant_evaluated() && PRIVATE::trivially_copyable<T>)
+#ifdef __x86_64__
+        if (!std::is_constant_evaluated() && PRIVATE::trivially_copyable<T>) {
             return PRIVATE::memcpy(dest, src, times);
-        #endif /* __x86_64__ */
+        }
+#endif /* __x86_64__ */
 
         T *dest_copy           = dest;
         const T *converted_src = src;

@@ -80,7 +80,7 @@ namespace cerb::lex {
 
             constexpr DotItemInitializer(
                 TokenType type_, const string_view_t &rule_) noexcept
-              : word(false), priority(0), type(type_), rule(rule_)
+              : word(false), type(type_), rule(rule_)
             {}
 
             constexpr auto operator     =(DotItemInitializer &&) noexcept
@@ -262,7 +262,7 @@ namespace cerb::lex {
             return m_input[m_dot + offset];
         }
 
-        constexpr auto isolate_token() const -> const string_view_t
+        [[nodiscard]] constexpr auto isolate_token() const -> string_view_t
         {
             size_t index         = m_dot;
             string_view_t result = { m_input.begin() + index,
@@ -531,7 +531,7 @@ namespace cerb::lex {
         }
 
     public:
-        constexpr DotItem(const DotItemInitializer &item)
+        constexpr explicit DotItem(const DotItemInitializer &item)
           : priority(item.priority), m_is_word(item.word), m_word_repr(item.rule),
             m_token_type(item.type)
         {

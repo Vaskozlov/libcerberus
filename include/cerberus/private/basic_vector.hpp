@@ -143,7 +143,9 @@ namespace cerb::PRIVATE {
             {}
         };
 
-        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_iterator         = const iterator;
+        using reverse_iterator       = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = const reverse_iterator;
 
         [[nodiscard]] constexpr auto begin() const noexcept -> iterator
         {
@@ -155,44 +157,35 @@ namespace cerb::PRIVATE {
             return iterator(m_data + m_size);
         }
 
-        constexpr auto rbegin() -> reverse_iterator
+        [[nodiscard]] constexpr auto rbegin() const noexcept -> reverse_iterator
         {
             return reverse_iterator(end());
         }
 
-        constexpr auto rbegin() const -> reverse_iterator
-        {
-            return reverse_iterator(end());
-        }
-
-        constexpr auto rend() -> reverse_iterator
+        [[nodiscard]] constexpr auto rend() const noexcept -> reverse_iterator
         {
             return reverse_iterator(begin());
         }
 
-        constexpr auto rend() const -> reverse_iterator
-        {
-            return reverse_iterator(begin());
-        }
-
-        constexpr auto cbegin() -> pointer
+        [[nodiscard]] constexpr auto cbegin() const noexcept -> const_iterator
         {
             return data();
         }
 
-        constexpr auto cbegin() const -> pointer
-        {
-            return data();
-        }
-
-        constexpr auto cend() -> pointer
+        [[nodiscard]] constexpr auto cend() const noexcept -> const_iterator
         {
             return data() + size();
         }
 
-        constexpr auto cend() const -> pointer
+        [[nodiscard]] constexpr auto crbegin() const noexcept
+            -> const_reverse_iterator
         {
-            return data() + size();
+            return const_reverse_iterator(cbegin());
+        }
+
+        [[nodiscard]] constexpr auto crend() const noexcept -> const_reverse_iterator
+        {
+            return const_reverse_iterator(cend());
         }
 
     protected:

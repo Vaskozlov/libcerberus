@@ -52,7 +52,8 @@ namespace cerb {
         constexpr basic_string_view(const CharT (&str)[Size]) noexcept
           : m_len(Size), m_str(str)
         {
-            return;;
+            return;
+            ;
         }
 
         constexpr basic_string_view(
@@ -78,42 +79,44 @@ namespace cerb {
             return m_len;
         }
 
-        constexpr auto begin() const noexcept -> const_iterator
+        [[nodiscard]] constexpr auto begin() const noexcept -> const_iterator
         {
             return m_str;
         }
 
-        constexpr auto end() const noexcept -> const_iterator
+        [[nodiscard]] constexpr auto end() const noexcept -> const_iterator
         {
             return m_str + m_len;
         }
 
-        constexpr auto cbegin() const noexcept -> const_iterator
+        [[nodiscard]] constexpr auto cbegin() const noexcept -> const_iterator
         {
             return m_str;
         }
 
-        constexpr auto cend() const noexcept -> const_iterator
+        [[nodiscard]] constexpr auto cend() const noexcept -> const_iterator
         {
             return m_str + m_len;
         }
 
-        constexpr auto rbegin() const noexcept -> const_reverce_iterator
+        [[nodiscard]] constexpr auto rbegin() const noexcept
+            -> const_reverce_iterator
         {
             return const_reverce_iterator(begin());
         }
 
-        constexpr auto rend() const noexcept -> const_reverce_iterator
+        [[nodiscard]] constexpr auto rend() const noexcept -> const_reverce_iterator
         {
             return const_reverce_iterator(end());
         }
 
-        constexpr auto crbegin() const noexcept -> const_reverce_iterator
+        [[nodiscard]] constexpr auto crbegin() const noexcept
+            -> const_reverce_iterator
         {
             return const_reverce_iterator(begin());
         }
 
-        constexpr auto crend() const noexcept -> const_reverce_iterator
+        [[nodiscard]] constexpr auto crend() const noexcept -> const_reverce_iterator
         {
             return const_reverce_iterator(end());
         }
@@ -123,7 +126,8 @@ namespace cerb {
             return m_len == 0;
         }
 
-        constexpr auto at(size_type index) const noexcept -> const_reference
+        [[nodiscard]] constexpr auto at(size_type index) const noexcept
+            -> const_reference
         {
             return m_str[index];
         }
@@ -133,17 +137,17 @@ namespace cerb {
             return m_str[index];
         }
 
-        constexpr auto front() const noexcept -> const_reference
+        [[nodiscard]] constexpr auto front() const noexcept -> const_reference
         {
             return *m_str;
         }
 
-        constexpr auto back() const noexcept -> const_reference
+        [[nodiscard]] constexpr auto back() const noexcept -> const_reference
         {
             return m_str[m_len - 1];
         }
 
-        constexpr auto data() const noexcept -> const_pointer
+        [[nodiscard]] constexpr auto data() const noexcept -> const_pointer
         {
             return m_str;
         }
@@ -188,28 +192,30 @@ namespace cerb {
     using u16string_view = basic_string_view<char16_t>;
     using u32string_view = basic_string_view<char32_t>;
 
-    namespace literals
-    {
+    namespace literals {
         consteval auto operator"" _sv(const char *str, size_t len) -> string_view
         {
-            return {str, len};
+            return { str, len };
         }
 
-        consteval auto operator"" _sv(const char8_t *str, size_t len) -> u8string_view
+        consteval auto operator"" _sv(const char8_t *str, size_t len)
+            -> u8string_view
         {
-            return {str, len};
+            return { str, len };
         }
 
-        consteval auto operator"" _sv(const char16_t *str, size_t len) -> u16string_view
+        consteval auto operator"" _sv(const char16_t *str, size_t len)
+            -> u16string_view
         {
-            return {str, len};
+            return { str, len };
         }
 
-        consteval auto operator"" _sv(const char32_t *str, size_t len) -> u32string_view
+        consteval auto operator"" _sv(const char32_t *str, size_t len)
+            -> u32string_view
         {
-            return {str, len};
+            return { str, len };
         }
-    }
+    }// namespace literals
 
 }// namespace cerb
 

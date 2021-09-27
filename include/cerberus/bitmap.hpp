@@ -234,7 +234,7 @@ namespace cerb::PRIVATE {
 
     template<BitMapRule... Values, typename T>
     [[nodiscard]] constexpr auto
-        find_if(size_t limit, size_t times, T iterator) noexcept -> size_t
+        find_if(size_t limit, u32 times, T iterator) noexcept -> size_t
     {
         if (times > bitsizeof(value_type)) [[unlikely]] {
             return long_find_if<Values...>(limit, times, iterator);
@@ -836,7 +836,8 @@ namespace cerb {
             }
         }
 
-        constexpr explicit Bitmap(pointer ptr, size_t size) noexcept : m_size(size)
+        constexpr explicit Bitmap(const_pointer ptr, size_t size) noexcept
+          : m_size(size)
         {
             static_assert(Freestanding);
 

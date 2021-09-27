@@ -184,7 +184,7 @@ namespace cerb {
         }
 
 #if defined(__clang__) || defined(__GNUC__)
-        return __builtin_ctzl(value);
+        return static_cast<u64>(__builtin_ctzl(value));
 #elif defined(_MSC_VER)
         if (std::is_constant_evaluated()) {
             return PRIVATE::findBitForward<1>(value);
