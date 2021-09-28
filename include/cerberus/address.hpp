@@ -44,31 +44,31 @@ namespace cerb {
         CERBLIB_INLINE friend auto operator+(const Address &lhs, const Address &rhs)
             -> Address
         {
-            return lhs.m_address + rhs.value();
+            return Address(lhs.m_address + rhs.value());
         }
 
         CERBLIB_INLINE friend auto operator-(const Address &lhs, const Address &rhs)
             -> Address
         {
-            return lhs.m_address - rhs.value();
+            return Address(lhs.m_address - rhs.value());
         }
 
         CERBLIB_INLINE friend auto operator*(const Address &lhs, const Address &rhs)
             -> Address
         {
-            return lhs.value() * rhs.value();
+            return Address(lhs.value() * rhs.value());
         }
 
         CERBLIB_INLINE friend auto operator/(const Address &lhs, const Address &rhs)
             -> Address
         {
-            return lhs.value() / rhs.value();
+            return Address(lhs.value() / rhs.value());
         }
 
         CERBLIB_INLINE friend auto operator%(const Address &lhs, const Address &rhs)
             -> Address
         {
-            return lhs.value() % rhs.value();
+            return Address(lhs.value() % rhs.value());
         }
 
     public:
