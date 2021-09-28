@@ -37,7 +37,6 @@
         MaxSize4Terminals>;                                                         \
     using parent::m_items;                                                          \
     using parent::m_tokens;                                                         \
-    using item_t           = typename parent::item_t;                               \
     using token_t          = typename parent::token_t;                              \
     using result_t         = typename parent::result_t;                             \
     using position_t       = typename parent::position_t;                           \
@@ -47,8 +46,9 @@
 
 #define CERBERUS_LEX_INITIALIZER(class_name)                                        \
     class_name(                                                                     \
-        const std::initializer_list<const item_t> &keywords,                        \
-        const std::initializer_list<const item_t> &rules,                           \
+        const std::initializer_list<const item_initilizer> keywords,                \
+        const std::initializer_list<const item_initilizer>                          \
+            rules,                                                                  \
         const string_checker_t &terminals,                                          \
         const string_view_t &single_line_comment     = "//",                        \
         const string_view_t &multiline_comment_begin = "/*",                        \
@@ -165,9 +165,9 @@ namespace cerb::lex::experimental {
         constexpr ~LexicalAnalyzer() = default;
 
         constexpr LexicalAnalyzer(
-            const std::initializer_list<const item_t>
+            const std::initializer_list<const item_initilizer>
                 keywords,
-            const std::initializer_list<const item_t>
+            const std::initializer_list<const item_initilizer>
                 rules,
             const string_checker_t &terminals,
             const string_view_t &single_line_comment     = "//",
@@ -176,10 +176,10 @@ namespace cerb::lex::experimental {
         {
             CERBLIB_UNROLL_N(2)
             for (auto &elem : keywords) {
-                //                item_initilizer item = elem;
-                //                item.word            = true;
-                //                item.priority        = HIGH;
-                m_items.emplace(elem);
+                item_initilizer item = elem;
+                item.word            = true;
+                item.priority        = HIGH;
+                m_items.emplace(item);
             }
 
             CERBLIB_UNROLL_N(2)
