@@ -1,8 +1,6 @@
 #ifndef CERBERUS_DOT_ITEM_HPP
 #define CERBERUS_DOT_ITEM_HPP
 
-#include <iomanip>
-#include <iostream>
 #include <cerberus/map.hpp>
 #include <cerberus/set.hpp>
 #include <cerberus/vector.hpp>
@@ -206,6 +204,7 @@ namespace cerb::lex {
 
         static inline string_checker_t m_checker{};
         static inline string_view_t m_input{};
+        static inline string_view_t m_current_line{};
         static inline string_view_t m_single_line_comment{};
         static inline string_view_t m_multiline_comment_begin{};
         static inline string_view_t m_multiline_comment_end{};
@@ -262,6 +261,11 @@ namespace cerb::lex {
             return m_input[m_dot + offset];
         }
 
+        static constexpr auto get_line() -> const string_view_t
+        {
+            return m_current_line;
+        }
+
         [[nodiscard]] constexpr auto isolate_token() const -> string_view_t
         {
             size_t index         = m_dot;
@@ -274,7 +278,8 @@ namespace cerb::lex {
 
                 if (is_layout(elem) || elem == char_cast(0) ||
                     check_substring(index, m_input, m_single_line_comment) ||
-                    check_substring(index, m_input, m_multiline_comment_begin)) {
+                    check_substring(index, m_input, m_multiline_comment_begin) ||
+                    !m_checker.check(index, result).first.empty()) {
                     break;
                 }
                 ++index;
@@ -353,6 +358,7 @@ namespace cerb::lex {
                     } else {
                         if (get_char() == '\n') {
                             m_current_pos.new_line();
+                            m_current_line = { m_input.begin() + 1, m_input.end() };
                             status =
                                 cmov(status == SINGLE_LINE_COMMENT, EMPTY, status);
                         } else {
@@ -365,6 +371,7 @@ namespace cerb::lex {
                 if (is_layout(get_char())) {
                     if (get_char() == '\n') {
                         m_current_pos.new_line();
+                        m_current_line = { m_input.begin() + 1, m_input.end() };
                         status = cmov(status == SINGLE_LINE_COMMENT, EMPTY, status);
                     } else {
                         m_current_pos += 1;
@@ -380,7 +387,8 @@ namespace cerb::lex {
             set_input(const string_view_t &input, const string_view_t &filename)
                 -> void
         {
-            m_input = input;
+            m_input        = input;
+            m_current_line = input;
             skip_comments_and_layout();
             m_current_pos.filename = filename;
         }
@@ -456,14 +464,14 @@ namespace cerb::lex {
         auto check() -> ItemState
         {
             if (is_layout(get_char()) || get_char() == char_cast(0) ||
-                check_substring(m_dot, m_input, m_single_line_comment) ||
-                check_substring(m_dot, m_input, m_multiline_comment_begin)) {
+                (AllowComments &&
+                 (check_substring(m_dot, m_input, m_single_line_comment) ||
+                  check_substring(m_dot, m_input, m_multiline_comment_begin)))) {
                 if (m_dot != 0 && can_end()) {
                     string_view_t repr = { m_token_begin, m_token_begin + m_dot };
                     result_of_check    = { { repr, m_token_type, m_token_pos } };
                     return SCAN_FINISHED;
                 }
-
                 return UNABLE_TO_MATCH;
             }
 

@@ -152,6 +152,11 @@ namespace cerb {
             return m_str;
         }
 
+        [[nodiscard]] constexpr auto to_string() const noexcept -> std::basic_string_view<CharT>
+        {
+            return std::basic_string_view<CharT>(begin(), size());
+        }
+
         constexpr auto operator==(const basic_string_view &other) const noexcept
             -> bool
         {

@@ -5,7 +5,6 @@
 #include <cerberus/string_view.hpp>
 
 namespace cerb::lex {
-
     template<typename CharT>
     constexpr auto to_unsigned(CharT value)
     {
@@ -45,7 +44,7 @@ namespace cerb::lex {
             ++i;
         }
 
-        return i == substr_size;
+        return i == substr_size && !substr.empty();
     }
 
     template<
@@ -85,7 +84,7 @@ namespace cerb::lex {
                 hash = hash * 31U + local_hash;
             }
             auto result = m_map.search(hash);
-            i = cmov<size_t>(result == m_map.end(), 0, i);
+            i           = cmov<size_t>(result == m_map.end(), 0, i);
 
             return { { str.begin() + offset, str.begin() + i + offset },
                      result->second };
@@ -113,7 +112,8 @@ namespace cerb::lex {
 
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : strings) {
-                size_t hash    = 0;
+                size_t i    = 0;
+                size_t hash = 0;
 
                 if constexpr (MayThrow) {
                     if (MaxLength4Terminal <= elem.second.size()) {
@@ -126,7 +126,7 @@ namespace cerb::lex {
                 for (const auto &chr : elem.second) {
                     auto local_hash = to_unsigned(chr);
                     hash            = hash * 31U + local_hash;
-                    m_bitmaps[0].template set<1, 0>(local_hash);
+                    m_bitmaps[i++].template set<1, 0>(local_hash);
                 }
 
                 m_map.emplace(hash, elem.first);

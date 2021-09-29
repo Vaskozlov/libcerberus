@@ -61,7 +61,7 @@ template<typename T, typename CharT>
 constexpr auto operator<<(T &os, const cerb::lex::PositionInFile<CharT> &pos) -> T &
 {
     os << "File: " << pos.filename << ", line: " << pos.line_number + 1
-       << ", char: " << pos.char_number;
+       << ", char: " << pos.char_number + 1;
     return os;
 }
 

@@ -1,5 +1,6 @@
 #include <deque>
 #include <chrono>
+#include <iomanip>
 #include <iostream>
 #include <cerberus/set.hpp>
 #include <cerberus/map.hpp>
@@ -13,6 +14,8 @@
 #include <random>
 #include <cerberus/string_view.hpp>
 #include "lexical_generator.hpp"
+#include <fmt/format.h>
+#include <fmt/color.h>
 
 using namespace cerb::literals;
 using namespace std::string_view_literals;
@@ -90,14 +93,25 @@ struct Lex : public CERBERUS_LEX_PARENT_CLASS
         for (; first != last; ++first) {
             auto &token = m_tokens[first];
             std::cout << std::setw(8) << std::left << token.repr << ' ' << token.type
-                      << ' ' << token.pos + 1 << std::endl;
+                      << ' ' << token.pos << std::endl;
         }
     }
 
-    constexpr void error(const position_t &pos, const string_view_t &repr) override
+    constexpr void error(
+        const position_t &pos, const string_view_t &line,
+        const string_view_t &repr) override
     {
-        std::cout << "Lexical analyzer error! At: " << pos
-                  << ", token repr: " << repr << std::endl;
+        fmt::print(
+            "Lexical analyzer error! At: file: {}, line: {}, column: {}\n",
+            pos.filename.to_string(), pos.line_number, pos.char_number);
+
+        fmt::print(fmt::emphasis::italic, "{}\n", line.to_string());
+        CERBLIB_UNROLL_N(4)
+        for (int i = 0; i < static_cast<int>(repr.begin() - line.begin()); ++i) {
+            putchar(' ');
+        }
+        fmt::print(fmt::fg(fmt::color::red), "^\n");
+        fmt::print("Representation of token: {}\n", repr.to_string());
         throw std::runtime_error("");
     }
 
@@ -113,13 +127,15 @@ struct Calculator : public CERBERUS_LEX_PARENT_CLASS
     size_t TokenIndex{};
     token_t Token{};
 
-    void input() {
+    void input()
+    {
         Token = m_tokens[TokenIndex++];
 
-        switch (Token.type){
+        switch (Token.type) {
         case 2:
         case 5:
-            expression(); break;
+            expression();
+            break;
         default:
             error();
         }
@@ -127,10 +143,12 @@ struct Calculator : public CERBERUS_LEX_PARENT_CLASS
 
     void expression()
     {
-        switch (Token.type){
+        switch (Token.type) {
         case 2:
         case 5:
-            term(); rest_expression(); break;
+            term();
+            rest_expression();
+            break;
         default:
             error();
         }
@@ -140,10 +158,12 @@ struct Calculator : public CERBERUS_LEX_PARENT_CLASS
     {
         switch (Token.type) {
         case 2:
-            token(2); break;
+            token(2);
+            break;
 
         case 5:
-            parenthesized_expression(); break;
+            parenthesized_expression();
+            break;
         default:
             error();
         }
@@ -153,7 +173,9 @@ struct Calculator : public CERBERUS_LEX_PARENT_CLASS
     {
         switch (Token.type) {
         case 5:
-            token(5); expression(); token(6);
+            token(5);
+            expression();
+            token(6);
             break;
 
         default:
@@ -165,7 +187,9 @@ struct Calculator : public CERBERUS_LEX_PARENT_CLASS
     {
         switch (Token.type) {
         case 3:
-            token(3); expression(); break;
+            token(3);
+            expression();
+            break;
         case 6:
             break;
         default:
@@ -175,8 +199,9 @@ struct Calculator : public CERBERUS_LEX_PARENT_CLASS
 
     void token(TokenType tk)
     {
-       if (tk != Token.type) error();
-       Token = m_tokens[TokenIndex++];
+        if (tk != Token.type)
+            error();
+        Token = m_tokens[TokenIndex++];
     }
 
     void error()
@@ -189,14 +214,25 @@ struct Calculator : public CERBERUS_LEX_PARENT_CLASS
         for (; first != last; ++first) {
             auto &token = m_tokens[first];
             std::cout << std::setw(8) << std::left << token.repr << ' ' << token.type
-                      << ' ' << token.pos + 1 << std::endl;
+                      << ' ' << token.pos << std::setw(0) << std::endl;
         }
     }
 
-    constexpr void error(const position_t &pos, const string_view_t &repr) override
+    constexpr void error(
+        const position_t &pos, const string_view_t &line,
+        const string_view_t &repr) override
     {
-        std::cout << "Lexical analyzer error! At: " << pos
-                  << ", token repr: " << repr << std::endl;
+        fmt::print(
+            "Lexical analyzer error! At: file: {}, line: {}, column: {}\n",
+            pos.filename.to_string(), pos.line_number, pos.char_number);
+
+        fmt::print(fmt::emphasis::italic, "{}\n", line.to_string());
+        CERBLIB_UNROLL_N(4)
+        for (int i = 0; i < static_cast<int>(repr.begin() - line.begin()); ++i) {
+            putchar(' ');
+        }
+        fmt::print(fmt::fg(fmt::color::red), "^\n");
+        fmt::print("Representation of token: {}\n", repr.to_string());
         throw std::runtime_error("");
     }
 
@@ -267,9 +303,8 @@ Lex<char, TokenType> controller{ { { FOR, "for"_sv },
                                    } } };
 
 Calculator<char, int> calculator(
-    { { 0, "sin"_sv }, { 1, "cos"_sv } },
-    { { 2, "[0-9]+" } },
-    { { { 3, '+' }, { 4, '-' }, { 5, '(' }, { 6, ')' } }, {} });
+    { { 0, "sin"_sv }, { 1, "cos"_sv } }, { { 2, "[0-9]+" } },
+    { { { 3, '+' }, { 4, '-' }, { 5, '(' }, { 6, ')' } }, { { 7, ">>"_sv } } });
 
 auto main(int argc, char *argv[]) -> int
 {
@@ -288,11 +323,8 @@ auto main(int argc, char *argv[]) -> int
 )";
 
     // controller.scan(input, "stdio");
-
-    /*
-    calculator.scan("50 + (50 + 20)", "stdio");
-    calculator.input();
-    */
+    calculator.scan("sin(50) + tg(50 + 20)", "stdio");
+    // calculator.input();
 
     return 0;
 }
@@ -300,5 +332,8 @@ auto main(int argc, char *argv[]) -> int
 /*
  * TODO:    1) do not rely on compiler and check builtin function manually
  *          2) isolate token should check for terminals (or print hole line and show
- *          error's position
+ *          error's position (done)
+ *          3) AllowComments does not work properly (fixed)
+ *          4) Zero length comments cause errors (fixed)
+ *          5) Isolate token must check input in terminal container (done)
  */

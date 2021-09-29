@@ -3,11 +3,11 @@
 
 #include <cerberus/types.h>
 
-
 namespace cerb::lex {
-    constexpr auto is_end_of_input(char ch) -> bool
+    template<typename CharT>
+    constexpr auto is_end_of_input(CharT ch) -> bool
     {
-        return ch == '\0';
+        return ch == static_cast<CharT>(0);
     }
 
     constexpr auto is_layout(char ch) -> bool

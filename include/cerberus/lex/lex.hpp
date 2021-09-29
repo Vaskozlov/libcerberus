@@ -5,36 +5,19 @@
 
 #define CERBERUS_LEX_TEMPLATES                                                      \
     template<                                                                       \
-        typename CharT,                                                             \
-        typename TokenType,                                                         \
-        bool MayThrow            = true,                                            \
-        size_t UID               = 0,                                               \
-        bool AllowStringLiterals = true,                                            \
-        bool AllowComments       = true,                                            \
-        size_t MaxTerminals      = 128,                                             \
-        size_t MaxSize4Terminals = 8>
+        typename CharT, typename TokenType, bool MayThrow = true, size_t UID = 0,   \
+        bool AllowStringLiterals = true, bool AllowComments = true,                 \
+        size_t MaxTerminals = 128, size_t MaxSize4Terminals = 8>
 
 #define CERBERUS_LEX_PARENT_CLASS                                                   \
     cerb::lex::experimental::LexicalAnalyzer<                                       \
-        CharT,                                                                      \
-        TokenType,                                                                  \
-        MayThrow,                                                                   \
-        UID,                                                                        \
-        AllowStringLiterals,                                                        \
-        AllowComments,                                                              \
-        MaxTerminals,                                                               \
-        MaxSize4Terminals>
+        CharT, TokenType, MayThrow, UID, AllowStringLiterals, AllowComments,        \
+        MaxTerminals, MaxSize4Terminals>
 
 #define CERBERUS_LEX_PARENT_CLASS_ACCESS                                            \
     using parent = cerb::lex::experimental::LexicalAnalyzer<                        \
-        CharT,                                                                      \
-        TokenType,                                                                  \
-        MayThrow,                                                                   \
-        UID,                                                                        \
-        AllowStringLiterals,                                                        \
-        AllowComments,                                                              \
-        MaxTerminals,                                                               \
-        MaxSize4Terminals>;                                                         \
+        CharT, TokenType, MayThrow, UID, AllowStringLiterals, AllowComments,        \
+        MaxTerminals, MaxSize4Terminals>;                                           \
     using parent::m_items;                                                          \
     using parent::m_tokens;                                                         \
     using token_t          = typename parent::token_t;                              \
@@ -47,41 +30,25 @@
 #define CERBERUS_LEX_INITIALIZER(class_name)                                        \
     class_name(                                                                     \
         const std::initializer_list<const item_initilizer> keywords,                \
-        const std::initializer_list<const item_initilizer>                          \
-            rules,                                                                  \
+        const std::initializer_list<const item_initilizer> rules,                   \
         const string_checker_t &terminals,                                          \
         const string_view_t &single_line_comment     = "//",                        \
         const string_view_t &multiline_comment_begin = "/*",                        \
         const string_view_t &multiline_comment_end   = "*/")                        \
       : parent(                                                                     \
-            keywords,                                                               \
-            rules,                                                                  \
-            terminals,                                                              \
-            single_line_comment,                                                    \
-            multiline_comment_begin,                                                \
-            multiline_comment_end)
+            keywords, rules, terminals, single_line_comment,                        \
+            multiline_comment_begin, multiline_comment_end)
 
 namespace cerb::lex::experimental {
     template<
-        typename CharT,
-        typename TokenType,
-        bool MayThrow            = true,
-        size_t UID               = 0,
-        bool AllowStringLiterals = true,
-        bool AllowComments       = true,
-        size_t MaxTerminals      = 128,
-        size_t MaxSize4Terminals = 4>
+        typename CharT, typename TokenType, bool MayThrow = true, size_t UID = 0,
+        bool AllowStringLiterals = true, bool AllowComments = true,
+        size_t MaxTerminals = 128, size_t MaxSize4Terminals = 4>
     struct LexicalAnalyzer
     {
         using item_t = DotItem<
-            CharT,
-            TokenType,
-            MayThrow,
-            UID,
-            AllowStringLiterals,
-            AllowComments,
-            MaxTerminals,
-            MaxSize4Terminals>;
+            CharT, TokenType, MayThrow, UID, AllowStringLiterals, AllowComments,
+            MaxTerminals, MaxSize4Terminals>;
 
         using token_t          = typename item_t::token_t;
         using result_t         = typename item_t::result_t;
@@ -102,8 +69,10 @@ namespace cerb::lex::experimental {
 
     public:
         constexpr virtual void yield(size_t, size_t) = 0;
-        constexpr virtual void
-            error(const position_t &pos, const string_view_t &repr) = 0;
+        constexpr virtual void error(
+            const position_t &pos,
+            const string_view_t &line,
+            const string_view_t &repr) = 0;
 
     public:
         constexpr auto
@@ -154,6 +123,7 @@ namespace cerb::lex::experimental {
                     if (times > 1) {
                         error(
                             m_items.begin()->get_token_pos(),
+                            m_items.begin()->get_line(),
                             m_items.begin()->isolate_token());
                     }
                 }

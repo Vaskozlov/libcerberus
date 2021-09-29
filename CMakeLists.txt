@@ -61,6 +61,8 @@ target_compile_options(
         -Wall ${EXTRA_FLAGS} -I ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
+find_package(fmt CONFIG REQUIRED)
+
 if (USE_STATIC)
     add_library(
             ${PROJECT_NAME}
@@ -76,7 +78,7 @@ if (USE_STATIC)
 
     target_link_libraries(
             example
-            ${PROJECT_NAME}
+            ${PROJECT_NAME} fmt::fmt-header-only
     )
 else ()
     target_compile_options(
@@ -93,7 +95,7 @@ else ()
 
     target_link_libraries(
             example
-            ${PROJECT_NAME}
+            ${PROJECT_NAME} fmt::fmt
     )
 
 endif ()
