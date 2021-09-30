@@ -10,39 +10,46 @@ namespace cerb::lex {
         return ch == static_cast<CharT>(0);
     }
 
-    constexpr auto is_layout(char ch) -> bool
+    template<typename CharT>
+    constexpr auto is_layout(CharT ch) -> bool
     {
-        return !is_end_of_input(ch) && ch <= ' ';
+        return !is_end_of_input(ch) && ch <= static_cast<CharT>(' ');
     }
 
-    constexpr auto is_uc_letter(char ch) -> bool
+    template<typename CharT>
+    constexpr auto is_uc_letter(CharT ch) -> bool
     {
-        return ch >= 'A' && ch <= 'Z';
+        return ch >= static_cast<CharT>('A') && ch <= static_cast<CharT>('Z');
     }
 
-    constexpr auto is_lc_letter(char ch) -> bool
+    template<typename CharT>
+    constexpr auto is_lc_letter(CharT ch) -> bool
     {
-        return ch >= 'a' && ch <= 'z';
+        return ch >= static_cast<CharT>('a') && ch <= static_cast<CharT>('z');
     }
 
-    constexpr auto is_letter(char ch) -> bool
+    template<typename CharT>
+    constexpr auto is_letter(CharT ch) -> bool
     {
-        return is_lc_letter(ch) || is_uc_letter(ch);
+        return is_lc_letter<CharT>(ch) || is_uc_letter<CharT>(ch);
     }
 
-    constexpr auto is_digit(char ch) -> bool
+    template<typename CharT>
+    constexpr auto is_digit(CharT ch) -> bool
     {
-        return ch >= '0' && ch <= '9';
+        return ch >= static_cast<CharT>('0') && ch <= static_cast<CharT>('9');
     }
 
-    constexpr auto is_letter_or_digit(char ch) -> bool
+    template<typename CharT>
+    constexpr auto is_letter_or_digit(CharT ch) -> bool
     {
-        return is_letter(ch) || is_digit(ch);
+        return is_letter<CharT>(ch) || is_digit<CharT>(ch);
     }
 
-    constexpr auto is_underscore(char ch) -> bool
+    template<typename CharT>
+    constexpr auto is_underscore(CharT ch) -> bool
     {
-        return ch == '_';
+        return ch == static_cast<CharT>('_');
     }
 }// namespace cerb::lex
 

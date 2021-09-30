@@ -111,7 +111,8 @@ struct Lex : public CERBERUS_LEX_PARENT_CLASS
             putchar(' ');
         }
         fmt::print(fmt::fg(fmt::color::red), "^\n");
-        fmt::print("Representation of token: {}\n", repr.to_string());
+        fmt::print("Representation of token: {}", repr.to_string());
+        std::cout << std::endl;
         throw std::runtime_error("");
     }
 
@@ -232,7 +233,8 @@ struct Calculator : public CERBERUS_LEX_PARENT_CLASS
             putchar(' ');
         }
         fmt::print(fmt::fg(fmt::color::red), "^\n");
-        fmt::print("Representation of token: {}\n", repr.to_string());
+        fmt::print("Representation of token: {}", repr.to_string());
+        std::cout << std::endl << std::endl;
         throw std::runtime_error("");
     }
 
@@ -309,6 +311,7 @@ Calculator<char, int> calculator(
 auto main(int argc, char *argv[]) -> int
 {
     static const char *input = R"(
+
     int main(int argc, char **argv) {
         int a = 10;
         int b = 20;
@@ -322,8 +325,8 @@ auto main(int argc, char *argv[]) -> int
     }
 )";
 
-    // controller.scan(input, "stdio");
-    calculator.scan("sin(50) + tg(50 + 20)", "stdio");
+    controller.scan(input, "stdio");
+    //calculator.scan("sin(50) + tg(50 + 20)", "stdio");
     // calculator.input();
 
     return 0;
