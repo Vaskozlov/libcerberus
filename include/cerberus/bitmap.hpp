@@ -236,7 +236,8 @@ namespace cerb::PRIVATE {
     [[nodiscard]] constexpr auto
         find_if(size_t limit, u32 times, T iterator) noexcept -> size_t
     {
-        if (times > bitsizeof(value_type)) [[unlikely]] {
+        if (times > bitsizeof(value_type)) {
+            [[unlikely]];
             return long_find_if<Values...>(limit, times, iterator);
         }
 
@@ -309,7 +310,7 @@ namespace cerb::PRIVATE {
 
             times -= before_alignment;
 
-            before_alignment = pow2<size_t>(before_alignment) - 1;
+            before_alignment = pow2<size_t>(static_cast<u32>(before_alignment)) - 1U;
             before_alignment = before_alignment << bits_to_align;
 
             if ((reverse<Values..., T>(index++, iterator) & before_alignment) !=
@@ -330,7 +331,8 @@ namespace cerb::PRIVATE {
             return true;
         }
 
-        size_t after_alignment = pow2<size_t>(times) - 1;
+        size_t after_alignment =
+            pow2<size_t>(static_cast<u32>(after_alignment)) - 1U;
         return (reverse<Values..., T>(index, iterator) & after_alignment) ==
                after_alignment;
     }
@@ -547,6 +549,10 @@ namespace cerb {
     public:
         constexpr auto operator=(const ConstBitmap &other) noexcept -> ConstBitmap &
         {
+            if (&other == this) {
+                [[unlikely]];
+                return *this;
+            }
             copyFrom(other.m_data);
             return *this;
         }
@@ -772,9 +778,11 @@ namespace cerb {
         {
             static_assert(!Freestanding);
 
-            if (other.lengthOfAxisArray() > lengthOfAxisArray()) [[unlikely]] {
+            if (other.lengthOfAxisArray() > lengthOfAxisArray()) {
+                [[unlikely]];
+
                 m_size = other.m_size;
-                value_type *newBuffer =
+                auto *newBuffer =
                     new value_type[other.lengthOfAxisArray() * axis()]();
 
                 delete[] m_data[0];
@@ -786,7 +794,9 @@ namespace cerb {
                         m_data[i], other.m_data[i], lengthOfAxisArray());
                     newBuffer += lengthOfAxisArray();
                 }
-            } else [[likely]] {
+            } else {
+                [[likely]];
+
                 m_size = other.m_size;
                 memcpy<value_type>(
                     m_data[0], other.m_data[0], lengthOfAxisArray() * axis());

@@ -3,6 +3,7 @@
 
 #include <cerberus/types.h>
 #include <cerberus/string.hpp>
+#include <cerberus/pair.hpp>
 
 namespace cerb {
     template<typename T>

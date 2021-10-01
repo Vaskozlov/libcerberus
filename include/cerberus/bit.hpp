@@ -28,7 +28,7 @@ namespace cerb {
         std::array<u64, sizeof(T) / sizeof(u64)> mask_u64;
 
     public:
-        constexpr auto &getAsIntegral() noexcept
+        constexpr decltype(auto) getAsIntegral() noexcept
         {
             static_assert(sizeof(T) < sizeof(u64) && isPowerOf2(sizeof(T)));
 
@@ -44,7 +44,8 @@ namespace cerb {
         }
 
     public:
-        explicit constexpr ByteMask(T t_value) : value(t_value) {}
+        explicit constexpr ByteMask(T t_value) : value(t_value)
+        {}
     };
 
     /**

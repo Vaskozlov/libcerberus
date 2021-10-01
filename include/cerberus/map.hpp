@@ -26,7 +26,6 @@ namespace cerb {
             using parent           = PRIVATE::gl::BasicSet<map_elem, Size, MayThrow>;
 
         public:
-            using parent::search;
             using parent::begin;
             using parent::cbegin;
             using parent::cend;
@@ -43,6 +42,7 @@ namespace cerb {
             using parent::last;
             using parent::rbegin;
             using parent::rend;
+            using parent::search;
             using parent::self;
             using parent::show;
             using parent::size;
@@ -86,7 +86,8 @@ namespace cerb {
                 return elem->second;
             }
 
-            constexpr auto operator[](const_key_type &key) const -> const value_type &
+            constexpr auto operator[](const_key_type &key) const
+                -> const value_type &
             {
                 return at(key);
             }
@@ -142,7 +143,8 @@ namespace cerb {
         constexpr auto erase(const T1 &key) noexcept(!MayThrow)
         {
             if constexpr (MayThrow) {
-                if (!RBTreeErase(key)) [[unlikely]] {
+                if (!RBTreeErase(key)) {
+                    [[unlikely]];
                     throw std::out_of_range("Unable to erase elem from cerb::Set");
                 }
                 return true;

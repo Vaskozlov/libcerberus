@@ -90,8 +90,8 @@ namespace cerb {
     public:
         class iterator
         {
-            NodePtr m_node;
-            u8 m_index;
+            NodePtr m_node{};
+            u8 m_index{};
 
         public:
             using value_type        = T;
@@ -202,7 +202,7 @@ namespace cerb {
         size_t m_size{ 0 };
 
     public:
-        constexpr auto size() const -> size_t
+        [[nodiscard]] constexpr auto size() const -> size_t
         {
             return m_size;
         }
@@ -210,7 +210,8 @@ namespace cerb {
     private:
         constexpr auto get_back() -> NodePtr
         {
-            if (m_end->last == Size) [[unlikely]] {
+            if (m_end->last == Size) {
+                [[unlikely]];
                 NodePtr new_node = NodeTraits::allocate(m_allocator, 1);
 
                 if (std::is_constant_evaluated()) {
@@ -322,7 +323,8 @@ namespace cerb {
         constexpr auto back() -> T &
         {
             if constexpr (MayThrow) {
-                if (m_size == 0) [[unlikely]] {
+                if (m_size == 0) {
+                    [[unlikely]];
                     throw std::out_of_range("cerb::Deque does not have back elem");
                 }
             }
@@ -332,7 +334,8 @@ namespace cerb {
         constexpr auto back() const -> T &
         {
             if constexpr (MayThrow) {
-                if (m_size == 0) [[unlikely]] {
+                if (m_size == 0) {
+                    [[unlikely]];
                     throw std::out_of_range("cerb::Deque does not have back elem");
                 }
             }
@@ -342,7 +345,8 @@ namespace cerb {
         constexpr auto front() -> T &
         {
             if constexpr (MayThrow) {
-                if (m_size == 0) [[unlikely]] {
+                if (m_size == 0) {
+                    [[unlikely]];
                     throw std::out_of_range("cerb::Deque does not have back elem");
                 }
             }
@@ -352,7 +356,8 @@ namespace cerb {
         constexpr auto front() const -> T &
         {
             if constexpr (MayThrow) {
-                if (m_size == 0) [[unlikely]] {
+                if (m_size == 0) {
+                    [[unlikely]];
                     throw std::out_of_range("cerb::Deque does not have back elem");
                 }
             }
@@ -362,7 +367,8 @@ namespace cerb {
         constexpr auto at(size_t index) const -> T &
         {
             if constexpr (MayThrow) {
-                if (index >= m_size) [[unlikely]] {
+                if (index >= m_size) {
+                    [[unlikely]];
                     throw std::out_of_range(
                         "cerb::Deque does not have item at given index");
                 }
@@ -387,7 +393,8 @@ namespace cerb {
         constexpr auto operator[](size_t index) -> T &
         {
             if constexpr (MayThrow) {
-                if (index >= m_size) [[unlikely]] {
+                if (index >= m_size) {
+                    [[unlikely]];
                     throw std::out_of_range(
                         "cerb::Deque does not have item at given index");
                 }

@@ -13,10 +13,6 @@
 
 namespace cerb::lex {
     constexpr size_t MAX_RANGES = 4;
-    constexpr gl::Map<char, char, 8> UnprintableChars{ { 't', '\t' },
-                                                       { 'n', '\n' },
-                                                       { 'r', '\r' },
-                                                       { 't', '\t' } };
 
     enum ItemRule : u16
     {
@@ -78,7 +74,7 @@ namespace cerb::lex {
 
             constexpr DotItemInitializer(
                 TokenType type_, const string_view_t &rule_) noexcept
-              : word(false), type(type_), rule(rule_)
+              : type(type_), rule(rule_)
             {}
 
             constexpr auto operator     =(DotItemInitializer &&) noexcept
@@ -261,9 +257,14 @@ namespace cerb::lex {
             return m_input[m_dot + offset];
         }
 
-        static constexpr auto get_line() -> const string_view_t
+        static constexpr auto get_line() -> string_view_t
         {
             return m_current_line;
+        }
+
+        static constexpr auto get_input() -> const string_view_t &
+        {
+            return m_input;
         }
 
         [[nodiscard]] constexpr auto isolate_token() const -> string_view_t

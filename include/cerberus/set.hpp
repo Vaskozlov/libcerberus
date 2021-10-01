@@ -30,12 +30,12 @@ namespace cerb {
             using parent::hidden;
             using parent::hide;
             using parent::insert;
+            using parent::last;
             using parent::rbegin;
             using parent::rend;
             using parent::self;
             using parent::show;
             using parent::size;
-            using parent::last;
 
             using iterator               = typename parent::iterator;
             using const_iterator         = typename parent::const_iterator;
@@ -67,9 +67,9 @@ namespace cerb {
         using Node      = typename BasicTree::Node;
 
         using BasicTree::RBTreeEmplace;
+        using BasicTree::RBTreeEmplaceKey;
         using BasicTree::RBTreeErase;
         using BasicTree::search;
-        using BasicTree::RBTreeEmplaceKey;
 
     public:
         constexpr auto count(const T &key) const
@@ -89,25 +89,25 @@ namespace cerb {
         }
 
         template<typename... Ts>
-        constexpr auto emplace(Ts&&... values) noexcept -> T&
+        constexpr auto emplace(Ts &&...values) noexcept -> T &
         {
             return RBTreeEmplace(values...)->value;
         }
 
         template<typename U>
-        constexpr auto insert(const U& key, T &&value) noexcept
+        constexpr auto insert(const U &key, T &&value) noexcept
         {
             RBTreeEmplaceKey(key, value);
         }
 
         template<typename U>
-        constexpr auto insert(const U& key, const T &value) noexcept
+        constexpr auto insert(const U &key, const T &value) noexcept
         {
             RBTreeEmplaceKey(key, value);
         }
 
         template<typename U, typename... Ts>
-        constexpr auto emplaceKey(const U& key, Ts&&... values) -> T&
+        constexpr auto emplaceKey(const U &key, Ts &&...values) -> T &
         {
             return RBTreeEmplaceKey(key, values...)->value;
         }
@@ -115,7 +115,8 @@ namespace cerb {
         constexpr auto erase(const T &key) noexcept(!MayThrow)
         {
             if constexpr (MayThrow) {
-                if (!RBTreeErase(key)) [[unlikely]] {
+                if (!RBTreeErase(key)) {
+                    [[unlikely]];
                     throw std::out_of_range("Unable to erase elem from cerb::Set");
                 }
                 return true;

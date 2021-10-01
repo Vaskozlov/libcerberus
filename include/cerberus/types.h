@@ -256,7 +256,7 @@ namespace cerb {
             function(std::integral_constant<decltype(Begin), Begin>());
             constexprFor<Begin + Inc, End, Inc>(function);
         }
-    };
+    }
 
     /**
      * @brief short form of conditional ? lhs : rhs

@@ -1,9 +1,9 @@
 #ifndef CERBERUS_BASIC_VECTOR_HPP
 #define CERBERUS_BASIC_VECTOR_HPP
 
-
 #include <memory>
 #include <cerberus/types.h>
+#include <cerberus/math.hpp>
 #include <cerberus/algorithms.hpp>
 
 namespace cerb::PRIVATE {
@@ -169,12 +169,12 @@ namespace cerb::PRIVATE {
 
         [[nodiscard]] constexpr auto cbegin() const noexcept -> const_iterator
         {
-            return data();
+            return const_iterator(data());
         }
 
         [[nodiscard]] constexpr auto cend() const noexcept -> const_iterator
         {
-            return data() + size();
+            return const_iterator(data() + size());
         }
 
         [[nodiscard]] constexpr auto crbegin() const noexcept
@@ -232,7 +232,7 @@ namespace cerb::PRIVATE {
 
             if (size() > 0) {
                 CERBLIB_UNROLL_N(2)
-                for (long long i = size(); i > index; --i) {
+                for (long long i = size(); i > static_cast<long long>(index); --i) {
                     if constexpr (std::is_nothrow_move_constructible_v<T>) {
                         m_data[i] = cerb::move(m_data[i - 1]);
                     } else {
@@ -300,7 +300,8 @@ namespace cerb::PRIVATE {
         {
             size_type i = static_cast<ptrdiff_t>(first - m_data);
 
-            if (i >= size() || size() == 0) [[unlikely]] {
+            if (i >= size() || size() == 0) {
+                [[unlikely]];
                 return;
             }
 
@@ -449,7 +450,7 @@ namespace cerb::PRIVATE {
                 return *this;
             }
 
-            std::destroy(cbegin(), cend());
+            std::destroy(m_data, m_data + m_size);
             m_size = other.size();
 
             if (capacity() < other.size()) {
@@ -458,7 +459,7 @@ namespace cerb::PRIVATE {
                 m_data     = ValueTraits::allocate(m_allocator, m_capacity);
             }
 
-            raw_copy(m_data, other.cbegin(), other.cend());
+            raw_copy(m_data, other.data(), other.data() + other.size());
             return *this;
         }
 
@@ -499,7 +500,7 @@ namespace cerb::PRIVATE {
             m_allocator(other.m_allocator)
         {
             m_data = ValueTraits::allocate(m_allocator, m_capacity);
-            raw_copy(m_data, other.cbegin(), other.cend());
+            raw_copy<T>(m_data, other.data(), other.data() + other.size());
         }
 
         constexpr BasicVector(BasicVector &&other) noexcept
@@ -515,7 +516,8 @@ namespace cerb::PRIVATE {
           : m_size(args.size()), m_capacity(args.size()), m_allocator(),
             m_data(nullptr)
         {
-            if (m_capacity == 0) [[unlikely]] {
+            if (m_capacity == 0) {
+                [[unlikely]];
                 m_capacity = 2;
             }
             m_data = ValueTraits::allocate(m_allocator, m_capacity);

@@ -5,22 +5,6 @@
 #include <cerberus/bit.hpp>
 #include <cerberus/literals.hpp>
 
-#ifndef isinf
-#    define isinf(x) __builtin_isinf(x)
-#endif
-
-#ifndef isnan
-#    define isnan(x) __builtin_isnan(x)
-#endif
-
-#ifndef INFINITY
-#    define INFINITY (__builtin_inff())
-#endif
-
-#ifndef NAN
-#    define NAN (__builtin_nanf(""))
-#endif
-
 #if defined(_MSC_VER)
 namespace cerb::PRIVATE {
     template<unsigned Value>
@@ -114,9 +98,9 @@ namespace cerb {
             ByteMask<T> mask{ static_cast<T>(1.0) };
 
             if constexpr (sizeof(T) == sizeof(u32)) {
-                mask.getAsIntegral() += "x80 0000"_2val * power;
+                mask.getAsIntegral() += 0x80'0000 * power;
             } else {
-                mask.getAsIntegral() += "x10 0000 0000 0000"_2val * power;
+                mask.getAsIntegral() += 0x10'0000'0000'0000 * power;
             }
 
             return mask.value;
@@ -210,7 +194,7 @@ namespace cerb {
         }
 
 #if defined(__clang__) || defined(__GNUC__)
-        return __builtin_clzl(value);
+        return static_cast<u64>(__builtin_clzl(value));
 #elif defined(_MSC_VER)
         if (std::is_constant_evaluated()) {
             return PRIVATE::findBitForward<1>(value);
@@ -255,9 +239,9 @@ namespace cerb {
             ByteMask<T> mask(value);
 
             if constexpr (sizeof(T) == sizeof(u32)) {
-                return ((mask.getAsIntegral() & "xFF80 0000"_2val) >> 23) - 0x7fu;
+                return ((mask.getAsIntegral() & 0xFF80'0000) >> 23) - 0x7fu;
             } else {
-                return ((mask.getAsIntegral() & "xFFF0 0000 0000 0000"_2val) >> 52) -
+                return ((mask.getAsIntegral() & 0xFFF0'0000'0000'0000) >> 52) -
                        0x3ffu;
             }
         }

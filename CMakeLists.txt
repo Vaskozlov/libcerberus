@@ -12,7 +12,9 @@ message(STATUS "CXX " ${CMAKE_CXX_COMPILER})
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
 
 if (UNIX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion -Wnull-dereference -Wdouble-promotion -Wformat=2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -Wall -Wextra -Wshadow -Wnon-virtual-dtor \
+        -Wold-style-cast -Wcast-align -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion \
+        -Wnull-dereference -Wdouble-promotion -Wformat=2")
 else ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest /W4 /Zc:__cplusplus")
 endif ()
@@ -45,7 +47,7 @@ add_library(
 if (UNIX)
     set(EXTRA_FLAGS "-Wextra")
 else ()
-    set(EXTRA_FLAGS "")
+    set(EXTRA_FLAGS " ")
 endif ()
 
 target_compile_options(

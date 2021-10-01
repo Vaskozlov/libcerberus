@@ -13,6 +13,7 @@ namespace cerb {
         using parent::capacity;
         using parent::cbegin;
         using parent::cend;
+        using parent::clear;
         using parent::data;
         using parent::emplace_back;
         using parent::end;
@@ -23,7 +24,6 @@ namespace cerb {
         using parent::rbegin;
         using parent::rend;
         using parent::size;
-        using parent::clear;
 
         using typename parent::const_reference;
         using typename parent::iterator;
@@ -84,8 +84,9 @@ namespace cerb {
 
     public:
         constexpr Vector()  = default;
+        constexpr ~Vector() = default;
 
-        constexpr Vector(const Vector &) = default;
+        constexpr Vector(const Vector &)     = default;
         constexpr Vector(Vector &&) noexcept = default;
 
         constexpr Vector(const std::initializer_list<T> &args) : parent(args)

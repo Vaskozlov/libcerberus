@@ -37,57 +37,6 @@ namespace cerb::literals {
         }
         }
     }
-
-    consteval auto operator"" _2val(const char *str, size_t len)
-    {
-        uintmax_t result   = 0;
-        uintmax_t modifier = 10;
-
-        switch (str[0]) {
-        case 'b':
-            modifier = 2;
-            break;
-
-        case '0':
-            modifier = 8;
-            break;
-
-        case 'x':
-        case 'X':
-            modifier = 16;
-            break;
-
-        default:
-            break;
-        }
-
-        if (modifier != 10) {
-            ++str;
-            --len;
-        }
-
-        auto getValue = [](char repr) {
-            if (repr <= '9') {
-                return repr - '0';
-            } else if (repr >= 'a' && repr <= 'z') {
-                return repr - 'a' + 10;
-            } else if (repr >= 'A' && repr <= 'Z') {
-                return repr - 'A' + 10;
-            }
-            return 0;
-        };
-
-        CERBLIB_UNROLL_N(2)
-        for (size_t i = 0; i < len; i++) {
-            if (str[i] == ' ') {
-                continue;
-            }
-
-            result = result * modifier + static_cast<uintmax_t>(getValue(str[i]));
-        }
-
-        return result;
-    }
 }// namespace cerb::literals
 
 #endif /* CERBERUS_LITERALS_HPP */

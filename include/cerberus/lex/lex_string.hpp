@@ -12,17 +12,13 @@ namespace cerb::lex {
 
         if constexpr (std::is_unsigned_v<CharT>) {
             return value;
-        }
-        if constexpr (sizeof(CharT) == sizeof(u8)) {
+        } else if constexpr (sizeof(CharT) == sizeof(u8)) {
             return bit_cast<u8>(value);
-        }
-        if constexpr (sizeof(CharT) == sizeof(u16)) {
+        } else if constexpr (sizeof(CharT) == sizeof(u16)) {
             return bit_cast<u16>(value);
-        }
-        if constexpr (sizeof(CharT) == sizeof(u32)) {
+        } else if constexpr (sizeof(CharT) == sizeof(u32)) {
             return bit_cast<u32>(value);
-        }
-        if constexpr (sizeof(CharT) == sizeof(u64)) {
+        } else if constexpr (sizeof(CharT) == sizeof(u64)) {
             return bit_cast<u64>(value);
         }
     }
