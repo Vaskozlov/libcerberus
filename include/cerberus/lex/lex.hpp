@@ -264,7 +264,7 @@ namespace cerb::lex::experimental {
                 if constexpr (AllowStringLiterals) {
                     if (head.get_char() == item_t::char_cast('"')) {
                         auto result = process_string(head);
-                        m_strings.push_back(std::move(result.second));
+                        m_strings.emplace_back(result.second);
                         auto &str = m_strings.back();
                         token_t token{ { str.data(), str.size() },
                                        static_cast<TokenType>(100),
