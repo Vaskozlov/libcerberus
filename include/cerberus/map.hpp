@@ -124,14 +124,14 @@ namespace cerb {
         using BasicTree::search;
 
     public:
-        constexpr auto insert(value_type &&value) noexcept
+        constexpr auto insert(value_type &&value) noexcept -> T2 &
         {
-            this->template RBTreeEmplace<true, true>(value);
+            return this->template RBTreeEmplace<true, true>(value)->value.second;
         }
 
-        constexpr auto insert(const value_type &value) noexcept
+        constexpr auto insert(value_type &value) -> T2 &
         {
-            this->template RBTreeEmplace<true, true>(value);
+            return this->template RBTreeEmplace<true, true>(value)->value.second;
         }
 
         constexpr auto count(const T1 &key) const noexcept -> size_t

@@ -6,10 +6,11 @@
 #include <cerberus/string_view.hpp>
 #include <fmt/format.h>
 #include <fmt/color.h>
+#include "lexical_generator.hpp"
 
 using namespace cerb::literals;
 using namespace std::string_view_literals;
-
+/*
 enum TokenType : u32
 {
     PLUS,
@@ -290,26 +291,28 @@ Lex<char, TokenType> controller{ { { FOR, "for"_sv },
                                        { OR_EQ, "|="_sv },
                                        { XOR_EQ, "^="_sv },
                                    } } };
-
+                                   */
+/*
 
 Calculator<char, int> calculator(
     { { 0, "sin"_sv }, { 1, "cos"_sv } }, { { 2, "[0-9]+" } },
-    { { { 3, '+' }, { 4, '-' }, { 5, '(' }, { 6, ')' } }, { { 7, ">>"_sv } } }, "//",
-    "/*", "*/");
+    { { { 3, '+' }, { 4, '-' }, { 5, '(' }, { 6, ')' } }, { { 7, ">>"_sv } } });
 
 Calculator<char16_t, int> calculator_u16(
     { { 0, u"sin"_sv }, { 1, u"cos"_sv } }, { { 2, u"[0-9]+" } },
     { { { 3, u'+' }, { 4, u'-' }, { 5, u'(' }, { 6, u')' } }, { { 7, u">>"_sv } } },
-    u"//", u"/*", u"*/");
+    u"//", u"", u"");
+*/
 
-auto main(int /*argc*/, char ** /*argv*/) -> int
+auto main(int argc, char *argv[]) -> int
 {
     static const char *input = R"(
 
     int main(int argc, char **argv) {
         int a = 10;
         int b = 20;
-        char *c = "Hello, World!\u00ff"
+        char *c = "Hello, World!\xff";
+        char d = 'x';
 
         float a2 = 20.0f;
 
@@ -320,10 +323,12 @@ auto main(int /*argc*/, char ** /*argv*/) -> int
     }
 )";
 
-    // controller.scan(input, "stdio");
-    calculator.scan("\"Hello!\" sin(50) + cos(50 + 20)", "stdio");
-    calculator_u16.scan(u"\"Hello!\" sin(50) + cos(50 + 20)", u"stdio");
+    //controller.scan(input, "stdio");
+    //calculator.scan("\"Hello!\" sin(50) + cos(50 + 20)", "stdio");
+    //calculator_u16.scan(u"\"Hello!\" sin(50) + cos(50 + 20)", u"stdio");
     //    calculator.input();
+
+    main2(argc, argv);
 
     return 0;
 }

@@ -114,6 +114,109 @@ namespace cerb::lex::experimental {
             { static_cast<CharT>('E'), 14 }, { static_cast<CharT>('F'), 15 }
         };
 
+    private:
+        template<auto Separator>
+        constexpr auto
+            process_char(size_t index, item_t &item, Vector<CharT> &result)
+                -> Pair<bool, size_t>
+        {
+            switch (item.get_char(index)) {
+            case item_t::char_cast('\\'):
+                switch (item_t::char_cast(item.get_char(index + 1))) {
+                case item_t::char_cast('0'): {
+                    index += 2;
+                    ByteMask<CharT> mask{ 0 };
+
+                    CERBLIB_UNROLL_N(2) for (size_t j = 0; j < 2; ++j)
+                    {
+                        if (item.get_char(index) >= item_t::char_cast('0') &&
+                            item.get_char(index) <= item_t::char_cast('7')) {
+                            mask.getAsIntegral() <<= 3;
+                            mask.getAsIntegral() +=
+                                item.get_char() - item_t::char_cast('0');
+                        } else {
+                            if (j == 1 && mask.getAsIntegral() == 0) {
+                                break;
+                            }
+                            throw_if_can(false, "Unable to recognize char!");
+                        }
+                        index++;
+                    }
+                    result.push_back(mask.getAsIntegral());
+                } break;
+
+                case item_t::char_cast('x'): {
+                    index += 2;
+                    ByteMask<CharT> mask{ 0 };
+
+                    CERBLIB_UNROLL_N(2)
+                    for (size_t j = 0; j < 2; ++j) {
+                        if (hex_chars.contains(item.get_char(index))) {
+                            mask.getAsIntegral() <<= 4;
+                            mask.getAsIntegral() += hex_chars[item.get_char(index)];
+                        } else {
+                            throw_if_can(false, "Unable to recognize char!");
+                        }
+                        index++;
+                    }
+                    result.push_back(mask.getAsIntegral());
+                } break;
+
+                case item_t::char_cast('u'): {
+                    index += 2;
+                    ByteMask<CharT> mask{ 0 };
+
+                    CERBLIB_UNROLL_N(2)
+                    for (size_t j = 0; j < 4; ++j) {
+                        if (hex_chars.contains(item.get_char(index))) {
+                            mask.getAsIntegral() <<= 4;
+                            mask.getAsIntegral() +=
+                                (hex_chars[item.get_char(index)]);
+                        } else {
+                            throw_if_can(false, "Unable to recognize char!");
+                        }
+                        index++;
+                    }
+                    result.push_back(mask.getAsIntegral());
+                } break;
+
+                case item_t::char_cast('n'):
+                    index += 2;
+                    result.push_back(item_t::char_cast('\n'));
+                    break;
+
+                case item_t::char_cast('r'):
+                    index += 2;
+                    result.push_back(item_t::char_cast('\r'));
+                    break;
+
+                case item_t::char_cast('t'):
+                    index += 2;
+                    result.push_back(item_t::char_cast('\t'));
+                    break;
+
+                case item_t::char_cast('\\'):
+                    index += 2;
+                    result.push_back(item_t::char_cast('\\'));
+                    break;
+
+                default:
+                    throw_if_can(
+                        false,
+                        "Unable to recognize action after '\\' in string token");
+                }
+                break;
+
+            case item_t::char_cast(Separator):
+                return { true, index + 1 };
+
+            default:
+                result.push_back(item.get_char(index++));
+                break;
+            }
+            return { false, index };
+        }
+
     public:
         static constexpr auto throw_if_can(bool condition, const char *message)
             -> void
@@ -125,11 +228,12 @@ namespace cerb::lex::experimental {
             }
         }
 
-        constexpr virtual void yield(const token_t &token) = 0;
+        constexpr virtual bool yield(const token_t &token) = 0;
         constexpr virtual void error(
             const position_t &pos,
             const string_view_t &line,
             const string_view_t &repr) = 0;
+
         constexpr virtual auto process_string(item_t &item)
             -> Pair<size_t, Vector<CharT>>
         {
@@ -150,95 +254,11 @@ namespace cerb::lex::experimental {
                       item.get_char(index - 1) == item_t::char_cast('\\')),
                     "String hasn't been closed on a line");
 
-                switch (item.get_char(index)) {
-                case item_t::char_cast('\\'):
-                    switch (item_t::char_cast(item.get_char(index + 1))) {
-                    case item_t::char_cast('0'): {
-                        index += 2;
-                        ByteMask<CharT> mask{ 0 };
+                auto result_of_process = process_char<'"'>(index, item, result);
+                index                  = result_of_process.second;
 
-                        CERBLIB_UNROLL_N(2) for (size_t j = 0; j < 2; ++j)
-                        {
-                            if (item.get_char(index) >= item_t::char_cast('0') &&
-                                item.get_char(index) <= item_t::char_cast('7')) {
-                                mask.getAsIntegral() +=
-                                    item.get_char() - item_t::char_cast('0');
-                            } else {
-                                if (j == 1 && mask.getAsIntegral() == 0) {
-                                    break;
-                                }
-                                throw_if_can(false, "Unable to recognize char!");
-                            }
-                            index++;
-                        }
-                    } break;
-
-                    case item_t::char_cast('x'): {
-                        index += 2;
-                        ByteMask<CharT> mask{ 0 };
-
-                        CERBLIB_UNROLL_N(2)
-                        for (size_t j = 0; j < 2; ++j) {
-                            if (hex_chars.contains(item.get_char(index))) {
-                                mask.getAsIntegral() +=
-                                    hex_chars[item.get_char(index)];
-                            } else {
-                                throw_if_can(false, "Unable to recognize char!");
-                            }
-                            index++;
-                        }
-                    } break;
-
-                    case item_t::char_cast('u'): {
-                        index += 2;
-                        ByteMask<CharT> mask{ 0 };
-
-                        CERBLIB_UNROLL_N(2)
-                        for (size_t j = 0; j < 4; ++j) {
-                            if (hex_chars.contains(item.get_char(index))) {
-                                mask.getAsIntegral() <<= 4;
-                                mask.getAsIntegral() +=
-                                    (hex_chars[item.get_char(index)]);
-                            } else {
-                                throw_if_can(false, "Unable to recognize char!");
-                            }
-                            index++;
-                        }
-                        result.push_back(mask.getAsIntegral());
-                    } break;
-
-                    case item_t::char_cast('n'):
-                        index += 2;
-                        result.push_back(item_t::char_cast('\n'));
-                        break;
-
-                    case item_t::char_cast('r'):
-                        index += 2;
-                        result.push_back(item_t::char_cast('\r'));
-                        break;
-
-                    case item_t::char_cast('t'):
-                        index += 2;
-                        result.push_back(item_t::char_cast('\t'));
-                        break;
-
-                    case item_t::char_cast('\\'):
-                        index += 2;
-                        result.push_back(item_t::char_cast('\\'));
-                        break;
-
-                    default:
-                        throw_if_can(
-                            false,
-                            "Unable to recognize action after '\\' in string token");
-                    }
-
-                case item_t::char_cast('"'):
+                if (result_of_process.first) {
                     return { index + 1, std::move(result) };
-
-                default:
-                    result.push_back(item.get_char(index++));
-                    break;
                 }
             }
 
@@ -269,8 +289,36 @@ namespace cerb::lex::experimental {
                         token_t token{ { str.data(), str.size() },
                                        static_cast<TokenType>(100),
                                        head.get_token_pos() };
-                        yield(token);
+
+                        if (!yield(token)) {
+                            return;
+                        }
+
                         head.add2input(result.first);
+                        head.skip_comments_and_layout();
+                        head.dump();
+                        times = 0;
+                        continue;
+                    }
+                    if (head.get_char() == item_t::char_cast('\'')) {
+                        Vector<CharT> chars;
+                        auto result = process_char<'\''>(1, head, chars);
+                        throw_if_can(
+                            head.get_char(result.second) + 1 !=
+                                item_t::char_cast('\''),
+                            "Char can contain only one elem");
+
+                        m_strings.emplace_back(chars);
+                        auto &str = m_strings.back();
+                        token_t token{ { str.data(), str.size() },
+                                       static_cast<TokenType>(101),
+                                       head.get_token_pos() };
+
+                        if (!yield(token)) {
+                            return;
+                        }
+
+                        head.add2input(result.second + 1);
                         head.skip_comments_and_layout();
                         head.dump();
                         times = 0;
@@ -296,7 +344,9 @@ namespace cerb::lex::experimental {
                 if (item != nullptr) {
                     CERBLIB_UNROLL_N(1)
                     for (auto &result : item->result()) {
-                        yield(result);
+                        if (!yield(result)) {
+                            return;
+                        }
                     }
 
                     item->add2input(item->dot());

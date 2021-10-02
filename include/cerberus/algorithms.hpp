@@ -38,7 +38,10 @@ namespace cerb {
     {
         if (!std::is_constant_evaluated()) {
             if constexpr (std::is_trivial_v<T>) {
-                return memcpy(dest, begin, static_cast<ptrdiff_t>(end - begin));
+                return memcpy(
+                    dest,
+                    begin,
+                    static_cast<size_t>(static_cast<ptrdiff_t>(end - begin)));
             }
         }
 
