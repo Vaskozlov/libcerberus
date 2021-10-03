@@ -2,7 +2,8 @@
 #define CERBERUS_LEX_HPP
 
 #include <cerberus/deque.hpp>
-#include <cerberus/lex/dot_item.hpp>
+#include <cerberus/analyzation/lex/dot_item.hpp>
+#include <cerberus/analyzation/exceptions.hpp>
 
 #define CERBERUS_LEX_TEMPLATES                                                      \
     template<                                                                       \
@@ -37,6 +38,9 @@
         MaxTerminals,                                                               \
         MaxSize4Terminals>;                                                         \
     using parent::m_items;                                                          \
+    using parent::head;                                                             \
+    using item_t           = typename parent::item_t;                               \
+    using storage_t        = typename parent::storage_t;                            \
     using token_t          = typename parent::token_t;                              \
     using result_t         = typename parent::result_t;                             \
     using position_t       = typename parent::position_t;                           \
@@ -83,6 +87,7 @@ namespace cerb::lex::experimental {
             MaxTerminals,
             MaxSize4Terminals>;
 
+        using storage_t        = Set<item_t, MayThrow, greater<void>>;
         using token_t          = typename item_t::token_t;
         using result_t         = typename item_t::result_t;
         using position_t       = typename item_t::position_t;
@@ -97,7 +102,8 @@ namespace cerb::lex::experimental {
             HIGH   = 0
         };
 
-        Set<item_t, MayThrow> m_items{};
+        storage_t m_items{};
+        typename storage_t::iterator m_head{ nullptr };
         Deque<Vector<CharT>, 8, MayThrow> m_strings{};
 
         static constexpr gl::Map<CharT, u16, 22, MayThrow> hex_chars{
@@ -217,7 +223,6 @@ namespace cerb::lex::experimental {
             return { false, index };
         }
 
-    public:
         static constexpr auto throw_if_can(bool condition, const char *message)
             -> void
         {
@@ -228,11 +233,16 @@ namespace cerb::lex::experimental {
             }
         }
 
+    public:
+        constexpr virtual void finish()                    = 0;
         constexpr virtual bool yield(const token_t &token) = 0;
-        constexpr virtual void error(
-            const position_t &pos,
-            const string_view_t &line,
-            const string_view_t &repr) = 0;
+        constexpr virtual void
+            error(const item_t &item, const string_view_t &repr) = 0;
+
+        [[nodiscard]] constexpr auto head() const noexcept
+        {
+            return m_head;
+        }
 
         constexpr virtual auto process_string(item_t &item)
             -> Pair<size_t, Vector<CharT>>
@@ -291,6 +301,7 @@ namespace cerb::lex::experimental {
                                        head.get_token_pos() };
 
                         if (!yield(token)) {
+                            finish();
                             return;
                         }
 
@@ -315,6 +326,7 @@ namespace cerb::lex::experimental {
                                        head.get_token_pos() };
 
                         if (!yield(token)) {
+                            finish();
                             return;
                         }
 
@@ -345,6 +357,7 @@ namespace cerb::lex::experimental {
                     CERBLIB_UNROLL_N(1)
                     for (auto &result : item->result()) {
                         if (!yield(result)) {
+                            finish();
                             return;
                         }
                     }
@@ -359,14 +372,12 @@ namespace cerb::lex::experimental {
                     ++times;
 
                     if (times > 1) {
-                        error(
-                            head.get_token_pos(),
-                            head.get_line(),
-                            head.isolate_token());
+                        error(head, head.isolate_token());
                     }
                 }
                 item = nullptr;
             }
+            finish();
         }
 
     public:
@@ -384,10 +395,7 @@ namespace cerb::lex::experimental {
         {
             CERBLIB_UNROLL_N(2)
             for (auto &elem : keywords) {
-                item_initilizer item = elem;
-                item.word            = true;
-                item.priority        = HIGH;
-                m_items.emplace(item);
+                m_items.emplace(elem);
             }
 
             CERBLIB_UNROLL_N(2)
@@ -395,6 +403,7 @@ namespace cerb::lex::experimental {
                 m_items.emplace(elem);
             }
 
+            m_head = m_items.begin();
             item_t::set_terminals(terminals);
             item_t::set_comments(
                 single_line_comment, multiline_comment_begin, multiline_comment_end);

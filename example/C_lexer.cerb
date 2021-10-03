@@ -1,0 +1,30 @@
+#ifndef CERBERUS_LEXER_C
+#define CERBERUS_LEXER_C
+
+#include <iostream>
+#include <cerberus/analyzation/lex/lex.hpp>
+
+// clang-format off
+
+%%
+CLASS_NAME = TestLexC
+
+[keywords]
+SIN: |"sin"
+COS: |"cos"
+
+[operators]
+ADD: '+'
+SUB: '-'
+MUL: '*'
+DIV: '/'
+
+[general]
+INT: "[0-9]+"
+
+%%
+
+%%
+// clang-format on
+
+#endif /* CERBERUS_LEXER_C */

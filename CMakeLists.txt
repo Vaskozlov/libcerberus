@@ -30,12 +30,24 @@ file(
 file(
         GLOB_RECURSE
         EXAMPLE_OBJS
-        "example/*.cpp" "example/*.s"
+        "example/main.cpp"
 )
+
+file(
+        GLOB_RECURSE
+        CERB2LEX_OBJS
+        "programs/cerb2lex.cpp"
+)
+
 
 add_executable(
         example
         ${EXAMPLE_OBJS}
+)
+
+add_executable(
+        cerb2lex
+        ${CERB2LEX_OBJS}
 )
 
 add_library(
@@ -63,6 +75,12 @@ target_compile_options(
         -Wall ${EXTRA_FLAGS} -I ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
+target_compile_options(
+        cerb2lex
+        PRIVATE
+        -Wall ${EXTRA_FLAGS} -I ${CMAKE_CURRENT_LIST_DIR}/include
+)
+
 find_package(fmt CONFIG REQUIRED)
 
 if (USE_STATIC)
@@ -82,21 +100,37 @@ if (USE_STATIC)
             example
             ${PROJECT_NAME} fmt::fmt-header-only
     )
-else ()
-    target_compile_options(
-            library-objs
+
+    target_link_options(
+            cerb2lex
             PRIVATE
-            -fpic
+            -static
     )
 
+    target_link_libraries(
+            cerb2lex
+            ${PROJECT_NAME} fmt::fmt-header-only
+    )
+else ()
     add_library(
             ${PROJECT_NAME}
             SHARED
             $<TARGET_OBJECTS:library-objs>
     )
 
+    target_compile_options(
+            library-objs
+            PRIVATE
+            -fpic
+    )
+
     target_link_libraries(
             example
+            ${PROJECT_NAME} fmt::fmt
+    )
+
+    target_link_libraries(
+            cerb2lex
             ${PROJECT_NAME} fmt::fmt
     )
 

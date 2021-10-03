@@ -2,14 +2,15 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
-#include <cerberus/lex/lex.hpp>
+#include <cerberus/analyzation/lex/lex.hpp>
 #include <cerberus/string_view.hpp>
 #include <fmt/format.h>
 #include <fmt/color.h>
-#include "lexical_generator.hpp"
+#include "C_lexer.hpp"
 
 using namespace cerb::literals;
 using namespace std::string_view_literals;
+
 /*
 enum TokenType : u32
 {
@@ -293,7 +294,6 @@ Lex<char, TokenType> controller{ { { FOR, "for"_sv },
                                    } } };
                                    */
 /*
-
 Calculator<char, int> calculator(
     { { 0, "sin"_sv }, { 1, "cos"_sv } }, { { 2, "[0-9]+" } },
     { { { 3, '+' }, { 4, '-' }, { 5, '(' }, { 6, ')' } }, { { 7, ">>"_sv } } });
@@ -303,6 +303,7 @@ Calculator<char16_t, int> calculator_u16(
     { { { 3, u'+' }, { 4, u'-' }, { 5, u'(' }, { 6, u')' } }, { { 7, u">>"_sv } } },
     u"//", u"", u"");
 */
+
 
 auto main(int argc, char *argv[]) -> int
 {
@@ -323,12 +324,11 @@ auto main(int argc, char *argv[]) -> int
     }
 )";
 
-    //controller.scan(input, "stdio");
-    //calculator.scan("\"Hello!\" sin(50) + cos(50 + 20)", "stdio");
-    //calculator_u16.scan(u"\"Hello!\" sin(50) + cos(50 + 20)", u"stdio");
-    //    calculator.input();
+    // controller.scan(input, "stdio");
+    // calculator.scan("\"Hello!\" sin(50) + cos(50 + 20)", "stdio");
+    // calculator_u16.scan(u"\"Hello!\" sin(50) + cos(50 + 20)", u"stdio");
+    //     calculator.input();
 
-    main2(argc, argv);
 
     return 0;
 }

@@ -496,16 +496,16 @@ namespace cerb::PRIVATE {
         }
 
         constexpr BasicVector(const BasicVector &other)
-          : m_size(other.size()), m_capacity(other.capacity()),
-            m_allocator(other.m_allocator)
+          : m_allocator(other.m_allocator), m_size(other.size()),
+            m_capacity(other.capacity())
         {
             m_data = ValueTraits::allocate(m_allocator, m_capacity);
             raw_copy<T>(m_data, other.data(), other.data() + other.size());
         }
 
         constexpr BasicVector(BasicVector &&other) noexcept
-          : m_size(other.size()), m_capacity(other.capacity()),
-            m_allocator(cerb::move(other.m_allocator)), m_data(other.m_data)
+          : m_allocator(cerb::move(other.m_allocator)), m_data(other.m_data),
+            m_size(other.size()), m_capacity(other.capacity())
         {
             other.m_size     = 0;
             other.m_capacity = 4;
@@ -513,8 +513,8 @@ namespace cerb::PRIVATE {
         }
 
         constexpr BasicVector(const std::initializer_list<T> &args)
-          : m_size(args.size()), m_capacity(args.size()), m_allocator(),
-            m_data(nullptr)
+          : m_allocator(), m_data(nullptr), m_size(args.size()),
+            m_capacity(args.size())
         {
             if (m_capacity == 0) {
                 [[unlikely]];

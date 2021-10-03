@@ -187,6 +187,17 @@ namespace cerb {
             return size() <=> other.size();
         }
 
+        [[nodiscard]] constexpr auto contains(CharT elem) const noexcept -> size_t
+        {
+            CERBLIB_UNROLL_N(4)
+            for (size_t i = 0; i < size(); ++i) {
+                if (m_str[i] == elem) {
+                    return i;
+                }
+            }
+            return std::numeric_limits<size_t>::max();
+        }
+
     private:
         size_t m_len{};
         const CharT *m_str{ nullptr };

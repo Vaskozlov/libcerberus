@@ -5,11 +5,11 @@
 #include <cerberus/set.hpp>
 #include <cerberus/vector.hpp>
 #include <cerberus/bitmap.hpp>
-#include <cerberus/lex/file.hpp>
-#include <cerberus/lex/token.hpp>
-#include <cerberus/lex/char.hpp>
+#include <cerberus/analyzation/lex/file.hpp>
+#include <cerberus/analyzation/lex/token.hpp>
+#include <cerberus/analyzation/lex/char.hpp>
 #include <cerberus/string_view.hpp>
-#include <cerberus/lex/lex_string.hpp>
+#include <cerberus/analyzation/lex/lex_string.hpp>
 
 namespace cerb::lex {
     constexpr size_t MAX_RANGES = 4;
@@ -241,25 +241,31 @@ namespace cerb::lex {
             return result_of_check;
         }
 
-        constexpr auto get_token_pos() -> position_t &
+        [[nodiscard]] constexpr auto get_token_pos() const noexcept
+            -> const position_t &
         {
-            return m_current_pos;
+            return static_cast<const position_t &>(m_current_pos);
         }
 
         template<size_t Offset = 0>
-        constexpr auto get_char() -> CharT
+        constexpr auto get_char() const -> CharT
         {
             return m_input[m_dot + Offset];
         }
 
-        constexpr auto get_char(size_t offset) -> CharT
+        constexpr auto get_char(size_t offset) const -> CharT
         {
             return m_input[m_dot + offset];
         }
 
         static constexpr auto get_line() -> string_view_t
         {
-            return m_current_line;
+            const auto &line = m_current_line;
+            const auto pos   = line.contains('\n');
+            return { line.begin(),
+                     line.begin() + cmov(
+                                        pos == std::numeric_limits<size_t>::max(),
+                                        line.size(), pos) };
         }
 
         static constexpr auto get_input() -> const string_view_t &

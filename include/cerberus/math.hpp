@@ -228,9 +228,13 @@ namespace cerb {
         if constexpr (std::is_integral_v<T>) {
 #if defined(__clang__) || defined(__GNUC__)
             if constexpr (sizeof(T) <= sizeof(u32)) {
-                return (bitsizeof(u32) - 1) - __builtin_clz(value);
+                return static_cast<T>(
+                    (bitsizeof(u32) - 1U) -
+                    static_cast<unsigned long>(__builtin_clz(value)));
             } else {
-                return (bitsizeof(u64) - 1) - __builtin_clzl(value);
+                return static_cast<T>(
+                    (bitsizeof(u64) - 1U) -
+                    static_cast<unsigned long>(__builtin_clzl(value)));
             }
 #else
             return findSetBitReverse(static_cast<u64>(value));

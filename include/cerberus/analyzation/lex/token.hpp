@@ -1,7 +1,7 @@
 #ifndef CERBERUS_TOKEN_HPP
 #define CERBERUS_TOKEN_HPP
 
-#include <cerberus/lex/file.hpp>
+#include <cerberus/analyzation/lex/file.hpp>
 
 namespace cerb::lex {
     template<typename CharT, typename Repr, typename TokenType>
