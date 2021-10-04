@@ -50,15 +50,12 @@
 
 #define CERBERUS_LEX_INITIALIZER(class_name)                                        \
     class_name(                                                                     \
-        const std::initializer_list<const item_initilizer> keywords,                \
-        const std::initializer_list<const item_initilizer>                          \
-            rules,                                                                  \
+        const std::initializer_list<const item_initilizer> rules,                   \
         const string_checker_t &terminals,                                          \
         const string_view_t &single_line_comment     = "//",                        \
         const string_view_t &multiline_comment_begin = "/*",                        \
         const string_view_t &multiline_comment_end   = "*/")                        \
       : parent(                                                                     \
-            keywords,                                                               \
             rules,                                                                  \
             terminals,                                                              \
             single_line_comment,                                                    \
@@ -87,7 +84,7 @@ namespace cerb::lex::experimental {
             MaxTerminals,
             MaxSize4Terminals>;
 
-        using storage_t        = Set<item_t, MayThrow, greater<void>>;
+        using storage_t        = Set<item_t, MayThrow, less<void>>;
         using token_t          = typename item_t::token_t;
         using result_t         = typename item_t::result_t;
         using position_t       = typename item_t::position_t;
@@ -104,7 +101,7 @@ namespace cerb::lex::experimental {
 
         storage_t m_items{};
         typename storage_t::iterator m_head{ nullptr };
-        Deque<Vector<CharT>, 8, MayThrow> m_strings{};
+        Deque<std::basic_string<CharT>, 8, MayThrow> m_strings{};
 
         static constexpr gl::Map<CharT, u16, 22, MayThrow> hex_chars{
             { static_cast<CharT>('0'), 0 },  { static_cast<CharT>('1'), 1 },
@@ -122,9 +119,10 @@ namespace cerb::lex::experimental {
 
     private:
         template<auto Separator>
-        constexpr auto
-            process_char(size_t index, item_t &item, Vector<CharT> &result)
-                -> Pair<bool, size_t>
+        constexpr auto process_char(
+            size_t index,
+            item_t &item,
+            std::basic_string<CharT> &result) -> Pair<bool, size_t>
         {
             switch (item.get_char(index)) {
             case item_t::char_cast('\\'):
@@ -245,7 +243,7 @@ namespace cerb::lex::experimental {
         }
 
         constexpr virtual auto process_string(item_t &item)
-            -> Pair<size_t, Vector<CharT>>
+            -> Pair<size_t, std::basic_string<CharT>>
         {
             throw_if_can(
                 item.get_char() == item_t::char_cast('"'),
@@ -253,7 +251,7 @@ namespace cerb::lex::experimental {
                 "strings");
 
             size_t index = 1U;
-            Vector<CharT> result;
+            std::basic_string<CharT> result;
 
             while (item.get_char(index) != item_t::char_cast('"')) {
                 throw_if_can(
@@ -312,7 +310,7 @@ namespace cerb::lex::experimental {
                         continue;
                     }
                     if (head.get_char() == item_t::char_cast('\'')) {
-                        Vector<CharT> chars;
+                        std::basic_string<CharT> chars;
                         auto result = process_char<'\''>(1, head, chars);
                         throw_if_can(
                             head.get_char(result.second) + 1 !=
@@ -385,19 +383,12 @@ namespace cerb::lex::experimental {
 
         constexpr LexicalAnalyzer(
             const std::initializer_list<const item_initilizer>
-                keywords,
-            const std::initializer_list<const item_initilizer>
                 rules,
             const string_checker_t &terminals,
             const string_view_t &single_line_comment     = "//",
             const string_view_t &multiline_comment_begin = "/*",
             const string_view_t &multiline_comment_end   = "*/")
         {
-            CERBLIB_UNROLL_N(2)
-            for (auto &elem : keywords) {
-                m_items.emplace(elem);
-            }
-
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : rules) {
                 m_items.emplace(elem);

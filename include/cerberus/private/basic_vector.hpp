@@ -516,12 +516,17 @@ namespace cerb::PRIVATE {
           : m_allocator(), m_data(nullptr), m_size(args.size()),
             m_capacity(args.size())
         {
-            if (m_capacity == 0) {
-                [[unlikely]];
-                m_capacity = 2;
-            }
+            m_capacity = cmov<size_t>(m_capacity == 0, 1, m_capacity);
+
             m_data = ValueTraits::allocate(m_allocator, m_capacity);
             raw_copy(m_data, args.begin(), args.end());
+        }
+
+        constexpr BasicVector(size_t t_capacity)
+          : m_allocator(), m_data(nullptr), m_capacity(t_capacity)
+        {
+            m_capacity = cmov<size_t>(m_capacity == 0, 1, m_capacity);
+            m_data     = ValueTraits::allocate(m_allocator, m_capacity);
         }
     };
 }// namespace cerb::PRIVATE

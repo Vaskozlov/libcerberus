@@ -304,6 +304,10 @@ Calculator<char16_t, int> calculator_u16(
     u"//", u"", u"");
 */
 
+struct TestImpl : TestLexC<>
+{
+};
+
 
 auto main(int argc, char *argv[]) -> int
 {
@@ -323,6 +327,7 @@ auto main(int argc, char *argv[]) -> int
         return a + b;
     }
 )";
+
 
     // controller.scan(input, "stdio");
     // calculator.scan("\"Hello!\" sin(50) + cos(50 + 20)", "stdio");

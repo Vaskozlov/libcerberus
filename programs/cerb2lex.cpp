@@ -1,9 +1,9 @@
 #include <fstream>
 #include <sstream>
-#include <iomanip>
 #include <iostream>
 #include <fmt/format.h>
 #include <fmt/color.h>
+#include <fmt/ranges.h>
 #include <cerberus/analyzation/lex/lex.hpp>
 
 using namespace cerb::literals;
@@ -12,7 +12,6 @@ using namespace std::string_literals;
 enum Lex4LexTypes : u32
 {
     IDENTIFIER,
-    CLASS_NAME,       // "CLASS_NAME"
     ASSIGN,           // '='
     CURLY_OPENING,    // '{'
     CURLY_CLOSING,    // '}'
@@ -65,15 +64,32 @@ private:
     State sub_state{ State::ZERO };
     BlockOfItems *current_block{ nullptr };
     string_view_t identifier{};
-    string_view_t name_of_class{};
 
     size_t m_current_index{};
     size_t m_strength{ 64 };
     token_t m_token{};
     cerb::Deque<token_t> m_tokens{};
     cerb::Map<string_view_t, BlockOfItems> m_blocks{};
+    string_view_t m_directive{};
+    cerb::gl::Map<string_view_t, string_view_t, 14> m_directives{
+        { "CHAR_TYPE"_sv, "char" },
+        { "CLASS_NAME"_sv, ""_sv },
+        { "MAY_THROW"_sv, "true"_sv },
+        { "STRING_PREFIX"_sv, ""_sv },
+        { "STRING_POSTFIX"_sv, ""_sv },
+        { "CHAR_PREFIX"_sv, ""_sv },
+        { "CHAR_POSTFIX"_sv, ""_sv },
+        { "ALLOW_COMMENTS"_sv, "true" },
+        { "MAX_TERMINALS"_sv, "128"_sv },
+        { "MAX_SIZE_FOR_TERMINAL"_sv, "4"_sv },
+        { "SINGLE_LINE_COMMENT"_sv, "//"_sv },
+        { "MULTILINE_COMMENT_BEGIN"_sv, "/*"_sv },
+        { "MULTILINE_COMMENT_END"_sv, "*/"_sv },
+        { "ALLOW_STRING_LITERALS"_sv, "true"_sv }
+    };
 
     std::string generated_string{};
+    static constexpr size_t MaxPriority = 64;
 
 private:
     static constexpr auto check_token(const string_view_t &token) -> bool
@@ -87,7 +103,6 @@ private:
         return false;
     }
 
-public:
     constexpr auto throw_if_can(bool condition, const char *message) -> void
     {
         if (!condition) {
@@ -104,6 +119,7 @@ public:
         }
     }
 
+public:
     [[nodiscard]] constexpr auto get_result() const noexcept -> const std::string &
     {
         return generated_string;
@@ -155,9 +171,19 @@ public:
             identifier    = token.repr;
             sub_state     = State::ONE;
             current_state = ELEM_DECLARATION;
+            m_directive   = token.repr;
             break;
 
         case State::ONE:
+            if (token.type == ASSIGN) {
+                throw_if_can(
+                    m_directives.contains(m_directive),
+                    "Unable to recognize directive.");
+                sub_state     = State::TWO;
+                current_state = CLASS_DECLARATION;
+                break;
+            }
+
             throw_if_can(
                 token.type == COLON,
                 token,
@@ -202,35 +228,23 @@ public:
     constexpr auto process_class(const token_t &token) -> void
     {
         switch (sub_state) {
-        case State::ZERO:
-            throw_if_can(
-                token.type == CLASS_NAME,
-                token,
-                "process_class has been called, but no class name declaration "
-                "found.");
-            current_state = CLASS_DECLARATION;
-            sub_state     = State::ONE;
-            break;
-
-        case State::ONE:
-            throw_if_can(
-                token.type == ASSIGN, token,
-                "Unable to find assignment operator for class name.");
-            sub_state = State::TWO;
-            break;
-
         case State::TWO:
             throw_if_can(
-                token.type == IDENTIFIER, token,
+                token.type == 100 || token.type == 101, token,
                 "Unable to find name for CLASS_NAME.");
-            sub_state     = State::ZERO;
             current_state = NIL;
-            name_of_class = token.repr;
+            sub_state     = State::ZERO;
+
+            m_directives[m_directive] = token.repr;
+            m_directive               = { m_directive.begin(), m_directive.begin() };
             break;
+
+        default:
+            throw_if_can(false, "Unable to process directive.");
         }
     }
 
-    constexpr bool yield(const token_t &token) override
+    constexpr auto yield(const token_t &token) -> bool override
     {
         m_tokens.emplace_back(token);
 
@@ -243,10 +257,6 @@ public:
 
             case IDENTIFIER:
                 process_declaration(token);
-                break;
-
-            case CLASS_NAME:
-                process_class(token);
                 break;
 
             case EoF:
@@ -294,11 +304,16 @@ public:
 
     constexpr void finish() override
     {
+        constexpr unsigned long MinimumPower = 6;
         cerb::gl::Set<u16, bitsizeof(uintmax_t)> taken_powers{};
+
+        if (m_directives["CLASS_NAME"].size() == 0) {
+            throw std::logic_error("CLASS_NAME directive must be used.");
+        }
 
         for (auto &elem : m_blocks) {
             auto power = cerb::max<unsigned long>(
-                4,
+                MinimumPower,
                 cerb::log2(
                     elem.second.words.size() + elem.second.rules.size() +
                     elem.second.operators.size()) +
@@ -317,29 +332,18 @@ public:
         }
 
         generated_string = fmt::format(
-            R"(
-CERBERUS_LEX_TEMPLATES
-struct {}: public CERBERUS_LEX_PARENT_CLASS
-{{
-    CERBERUS_LEX_PARENT_CLASS_ACCESS
-
-    enum Blocks : u32
-    {{
-)",
-            name_of_class.to_string());
+            "enum {}Blocks : size_t\n{{\n", m_directives["CLASS_NAME"].to_string());
 
         CERBLIB_UNROLL_N(2)
         for (auto &elem : m_blocks) {
             generated_string += fmt::format(
-                "        {:<16} = {},\n", elem.first.to_string(),
+                "    {:<16} = {}UL,\n", elem.first.to_string(),
                 (1UL << elem.second.power));// std::string(elem.first.to_string());
         }
 
-        generated_string += "    ";
-        generated_string.push_back('}');
-        generated_string.push_back(';');
-
-        generated_string += "\n\n    enum Items : u32\n    {\n";
+        generated_string += fmt::format(
+            "}};\n\nenum {}Items : size_t\n{{\n",
+            m_directives["CLASS_NAME"].to_string());
 
         for (auto &elem : m_blocks) {
             size_t j = 0;
@@ -347,58 +351,73 @@ struct {}: public CERBERUS_LEX_PARENT_CLASS
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.words) {
                 generated_string += fmt::format(
-                    "        {:<16} = {},\n", i.first.to_string(),
-                    (1UL << elem.second.power) + j);
-                ++j;
+                    "    {:<16} = static_cast<size_t>({}) + {}UL,\n",
+                    i.first.to_string(), elem.first.to_string(), j++);
             }
 
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.rules) {
                 generated_string += fmt::format(
-                    "        {:<16} = {},\n", i.first.to_string(),
-                    (1UL << elem.second.power) + j);
-                ++j;
+                    "    {:<16} = static_cast<size_t>({}) + {}UL,\n",
+                    i.first.to_string(), elem.first.to_string(), j++);
             }
 
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.operators) {
                 generated_string += fmt::format(
-                    "        {:<16} = {},\n", i.first.to_string(),
-                    (1UL << elem.second.power) + j);
-                ++j;
+                    "    {:<16} = static_cast<size_t>({}) + {}UL,\n",
+                    i.first.to_string(), elem.first.to_string(), j++);
             }
         }
 
-        generated_string += "    ";
-        generated_string.push_back('}');
-        generated_string.push_back(';');
+        generated_string += fmt::format(
+            R"(}};
+
+template<
+    typename CharT = {1},
+    typename TokenType = {0}Items,
+    bool MayThrow = {2},
+    size_t UID = 0,
+    bool AllowStringLiterals = {3},
+    bool AllowComments = {4},
+    size_t MaxTerminals = {5},
+    size_t MaxSize4Terminals = {6}>
+struct {0}: public CERBERUS_LEX_PARENT_CLASS
+{{
+    CERBERUS_LEX_PARENT_CLASS_ACCESS
+)",
+            m_directives["CLASS_NAME"].to_string(),
+            m_directives["CHAR_TYPE"].to_string(),
+            m_directives["MAY_THROW"].to_string(),
+            m_directives["ALLOW_STRING_LITERALS"].to_string(),
+            m_directives["ALLOW_COMMENTS"].to_string(),
+            m_directives["MAX_TERMINALS"].to_string(),
+            m_directives["MAX_SIZE_FOR_TERMINAL"].to_string());
 
         generated_string += fmt::format(
             R"(
-
     constexpr {}()
     : parent(
     {{)",
-            name_of_class.to_string());
+            m_directives["CLASS_NAME"].to_string());
 
         for (auto &elem : m_blocks) {
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.words) {
                 generated_string += fmt::format(
-                    "\n        {{ {}, \"{}\" }},", i.first.to_string(),
-                    i.second.to_string());
+                    "\n        {{ {}, {}\"{}\"{}, true, {} }},", i.first.to_string(),
+                    m_directives["STRING_PREFIX"].to_string(), i.second.to_string(),
+                    m_directives["STRING_POSTFIX"].to_string(), MinimumPower - 1);
             }
         }
-
-        generated_string.pop_back();
-        generated_string += "\n    },\n    {";
 
         for (auto &elem : m_blocks) {
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.rules) {
                 generated_string += fmt::format(
-                    "\n        {{ {}, \"{}\" }},", i.first.to_string(),
-                    i.second.to_string());
+                    "\n        {{ {}, {}\"{}\"{} }},", i.first.to_string(),
+                    m_directives["STRING_PREFIX"].to_string(), i.second.to_string(),
+                    m_directives["STRING_POSTFIX"].to_string());
             }
         }
 
@@ -410,8 +429,10 @@ struct {}: public CERBERUS_LEX_PARENT_CLASS
             for (const auto &i : elem.second.operators) {
                 if (i.second.size() == 1) {
                     generated_string += fmt::format(
-                        "\n            {{ {}, \'{}\' }},", i.first.to_string(),
-                        i.second.to_string());
+                        "\n            {{ {}, {}\'{}\'{} }},", i.first.to_string(),
+                        m_directives["CHAR_PREFIX"].to_string(),
+                        i.second.to_string(),
+                        m_directives["CHAR_POSTFIX"].to_string());
                 }
             }
         }
@@ -422,15 +443,15 @@ struct {}: public CERBERUS_LEX_PARENT_CLASS
             for (const auto &i : elem.second.operators) {
                 if (i.second.size() > 1) {
                     generated_string += fmt::format(
-                        "\n            {{ {}, \"{}\" }},", i.first.to_string(),
-                        i.second.to_string());
+                        "\n            {{ {}, {}\"{}\"{} }},", i.first.to_string(),
+                        m_directives["STRING_PREFIX"].to_string(),
+                        i.second.to_string(),
+                        m_directives["STRING_POSTFIX"].to_string());
                 }
             }
         }
 
-        generated_string += "\n       }\n";
-
-        generated_string.pop_back();
+        generated_string += "\n       }";
         generated_string += "\n    }\n    )\n    {}";
     }
 
@@ -438,8 +459,7 @@ struct {}: public CERBERUS_LEX_PARENT_CLASS
     {}
 };
 
-Lex4Lex<char, Lex4LexTypes> lex{ { { CLASS_NAME, "CLASS_NAME"_sv, true, 3 } },
-                                 { { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*" } },
+Lex4Lex<char, Lex4LexTypes> lex{ { { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*" } },
                                  { { { ANGLE_OPENING, '[' },
                                      { ANGLE_CLOSING, ']' },
                                      { COLON, ':' },

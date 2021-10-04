@@ -4,6 +4,8 @@
 #include <utility>
 #include <stdexcept>
 #include <cerberus/types.h>
+#include <fmt/format.h>
+#include <fmt/color.h>
 
 using namespace cerb::literals;
 using namespace std::string_literals;
@@ -30,7 +32,7 @@ namespace cerb::analysis {
 
         ~lexical_analysis_error() override = default;
 
-        [[nodiscard]] virtual const char *what() const noexcept
+        [[nodiscard]] auto what() const noexcept -> const char * override
         {
             return message.c_str();
         }
@@ -57,7 +59,7 @@ namespace cerb::analysis {
         auto operator                  =(const syntax_analysis_error &) noexcept
             -> syntax_analysis_error & = default;
 
-        [[nodiscard]] virtual const char *what() const noexcept
+        [[nodiscard]] auto what() const noexcept -> const char * override
         {
             return message.c_str();
         }
