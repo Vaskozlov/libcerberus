@@ -306,8 +306,23 @@ Calculator<char16_t, int> calculator_u16(
 
 struct TestImpl : TestLexC<>
 {
+    constexpr auto yield(const token_t &token) -> bool override
+    {
+        return true;
+    }
+
+    constexpr auto error(const item_t &item, const string_view_t &repr)
+        -> void override
+    {
+        cerb::analysis::basic_lexical_error(item, repr, "lexical analysis error");
+    }
+
+    constexpr auto finish() -> void override
+    {}
 };
 
+
+TestImpl test{};
 
 auto main(int argc, char *argv[]) -> int
 {
@@ -329,6 +344,8 @@ auto main(int argc, char *argv[]) -> int
 )";
 
 
+
+
     // controller.scan(input, "stdio");
     // calculator.scan("\"Hello!\" sin(50) + cos(50 + 20)", "stdio");
     // calculator_u16.scan(u"\"Hello!\" sin(50) + cos(50 + 20)", u"stdio");
@@ -339,5 +356,7 @@ auto main(int argc, char *argv[]) -> int
 }
 
 /*
- * TODO: if string is to long print half on it on error
+ * TODO:
+ *  1) if string is to long print half on it on error
+ *  2) add an opportunity to set block for char, string (and make them optional!)
  */

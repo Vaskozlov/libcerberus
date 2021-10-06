@@ -2,6 +2,7 @@
 #define CERBERUS_STRING_VIEW_HPP
 
 #include <cerberus/types.h>
+#include <cerberus/math.hpp>
 
 namespace cerb {
     template<typename CharT>

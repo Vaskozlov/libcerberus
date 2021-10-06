@@ -100,8 +100,12 @@ namespace cerb::lex::experimental {
         };
 
         storage_t m_items{};
-        typename storage_t::iterator m_head{ nullptr };
         Deque<std::basic_string<CharT>, 8, MayThrow> m_strings{};
+        typename storage_t::iterator m_head{ nullptr };
+        const TokenType m_string_type{};
+        const TokenType m_char_type{};
+        const CharT m_string_separator{};
+        const CharT m_char_separator{};
 
         static constexpr gl::Map<CharT, u16, 22, MayThrow> hex_chars{
             { static_cast<CharT>('0'), 0 },  { static_cast<CharT>('1'), 1 },
@@ -118,8 +122,8 @@ namespace cerb::lex::experimental {
         };
 
     private:
-        template<auto Separator>
         constexpr auto process_char(
+            CharT separator,
             size_t index,
             item_t &item,
             std::basic_string<CharT> &result) -> Pair<bool, size_t>
@@ -199,6 +203,16 @@ namespace cerb::lex::experimental {
                     result.push_back(item_t::char_cast('\t'));
                     break;
 
+                case item_t::char_cast('\''):
+                    index += 2;
+                    result.push_back(item_t::char_cast('\''));
+                    break;
+
+                case item_t::char_cast('\"'):
+                    index += 2;
+                    result.push_back(item_t::char_cast('\"'));
+                    break;
+
                 case item_t::char_cast('\\'):
                     index += 2;
                     result.push_back(item_t::char_cast('\\'));
@@ -211,10 +225,11 @@ namespace cerb::lex::experimental {
                 }
                 break;
 
-            case item_t::char_cast(Separator):
-                return { true, index + 1 };
-
             default:
+                if (item.get_char(index) == separator) {
+                    return { true, index + 1 };
+                }
+
                 result.push_back(item.get_char(index++));
                 break;
             }
@@ -262,8 +277,9 @@ namespace cerb::lex::experimental {
                       item.get_char(index - 1) == item_t::char_cast('\\')),
                     "String hasn't been closed on a line");
 
-                auto result_of_process = process_char<'"'>(index, item, result);
-                index                  = result_of_process.second;
+                auto result_of_process =
+                    process_char(m_string_separator, index, item, result);
+                index = result_of_process.second;
 
                 if (result_of_process.first) {
                     return { index + 1, std::move(result) };
@@ -274,6 +290,12 @@ namespace cerb::lex::experimental {
         }
 
     public:
+        [[nodiscard]] constexpr auto get_input() const noexcept
+            -> const string_view_t &
+        {
+            return head()->get_input();
+        }
+
         constexpr auto
             scan(const string_view_t &input, const string_view_t &filename)
         {
@@ -290,12 +312,13 @@ namespace cerb::lex::experimental {
                 head.rebind();
 
                 if constexpr (AllowStringLiterals) {
-                    if (head.get_char() == item_t::char_cast('"')) {
+                    if (m_string_separator != item_t::char_cast(0) &&
+                        head.get_char() == m_string_separator) {
                         auto result = process_string(head);
                         m_strings.emplace_back(result.second);
                         auto &str = m_strings.back();
                         token_t token{ { str.data(), str.size() },
-                                       static_cast<TokenType>(100),
+                                       m_string_type,
                                        head.get_token_pos() };
 
                         if (!yield(token)) {
@@ -309,9 +332,10 @@ namespace cerb::lex::experimental {
                         times = 0;
                         continue;
                     }
-                    if (head.get_char() == item_t::char_cast('\'')) {
+                    if (m_char_separator != item_t::char_cast(0) &&
+                        head.get_char() == m_char_separator) {
                         std::basic_string<CharT> chars;
-                        auto result = process_char<'\''>(1, head, chars);
+                        auto result = process_char(m_char_separator, 1, head, chars);
                         throw_if_can(
                             head.get_char(result.second) + 1 !=
                                 item_t::char_cast('\''),
@@ -320,7 +344,7 @@ namespace cerb::lex::experimental {
                         m_strings.emplace_back(chars);
                         auto &str = m_strings.back();
                         token_t token{ { str.data(), str.size() },
-                                       static_cast<TokenType>(101),
+                                       m_char_type,
                                        head.get_token_pos() };
 
                         if (!yield(token)) {
@@ -382,19 +406,25 @@ namespace cerb::lex::experimental {
         constexpr virtual ~LexicalAnalyzer() = default;
 
         constexpr LexicalAnalyzer(
+            const CharT string_separator,
+            const CharT char_separator,
+            const TokenType string_type,
+            const TokenType char_type,
             const std::initializer_list<const item_initilizer>
                 rules,
             const string_checker_t &terminals,
             const string_view_t &single_line_comment     = "//",
             const string_view_t &multiline_comment_begin = "/*",
             const string_view_t &multiline_comment_end   = "*/")
+          : m_head(m_items.begin()), m_string_separator(string_separator),
+            m_char_separator(char_separator), m_string_type(string_type),
+            m_char_type(char_type)
         {
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : rules) {
                 m_items.emplace(elem);
             }
 
-            m_head = m_items.begin();
             item_t::set_terminals(terminals);
             item_t::set_comments(
                 single_line_comment, multiline_comment_begin, multiline_comment_end);

@@ -4,29 +4,41 @@
 #include <fmt/format.h>
 #include <fmt/color.h>
 #include <fmt/ranges.h>
+#include <cerberus/string_view.hpp>
 #include <cerberus/analyzation/lex/lex.hpp>
 
 using namespace cerb::literals;
 using namespace std::string_literals;
 
-enum Lex4LexTypes : u32
+enum Lex4LexBlocks : size_t
 {
-    IDENTIFIER,
-    ASSIGN,           // '='
-    CURLY_OPENING,    // '{'
-    CURLY_CLOSING,    // '}'
-    LEFT_PARENTHESIS, // '('
-    RIGHT_PARENTHESIS,// ')'
-    ANGLE_OPENING,    // '['
-    ANGLE_CLOSING,    // ']'
-    COMMA,            // ','
-    SEPARATOR,        // ';'
-    PREPROCESSOR,     // '#'
-    COLON,            // ':'
-    WORD,             // '|'
-    EoF               // "%%"
+    GENERAL   = 64UL,
+    OPERATORS = 128UL,
 };
 
+enum Lex4LexItems : size_t
+{
+    TRUE          = static_cast<size_t>(GENERAL) + 0UL,
+    FALSE         = static_cast<size_t>(GENERAL) + 1UL,
+    INT           = static_cast<size_t>(GENERAL) + 2UL,
+    IDENTIFIER    = static_cast<size_t>(GENERAL) + 3UL,
+    STRING        = static_cast<size_t>(GENERAL) + 4UL,
+    CHAR          = static_cast<size_t>(GENERAL) + 5UL,
+    ANGLE_OPENING = static_cast<size_t>(OPERATORS) + 0UL,
+    ASSIGN        = static_cast<size_t>(OPERATORS) + 1UL,
+    ANGLE_CLOSING = static_cast<size_t>(OPERATORS) + 2UL,
+    COLON         = static_cast<size_t>(OPERATORS) + 3UL,
+    WORD          = static_cast<size_t>(OPERATORS) + 4UL,
+    EoF           = static_cast<size_t>(OPERATORS) + 5UL,
+};
+
+
+constexpr cerb::gl::Map<Lex4LexItems, cerb::string_view, 7> Lex4LexTypesRepr{
+    { IDENTIFIER, ""_sv },   { INT, "INT"_sv },
+    { ASSIGN, "ASSIGN"_sv }, { ANGLE_OPENING, "ANGLE_OPENING"_sv },
+    { COLON, "COLON"_sv },   { WORD, "WORD"_sv },
+    { EoF, "EoF"_sv }
+};
 
 CERBERUS_LEX_TEMPLATES
 struct Lex4Lex : public CERBERUS_LEX_PARENT_CLASS
@@ -71,8 +83,11 @@ private:
     cerb::Deque<token_t> m_tokens{};
     cerb::Map<string_view_t, BlockOfItems> m_blocks{};
     string_view_t m_directive{};
-    cerb::gl::Map<string_view_t, string_view_t, 14> m_directives{
-        { "CHAR_TYPE"_sv, "char" },
+
+    cerb::gl::Map<string_view_t, string_view_t, 16> m_directives{
+        { "STRING"_sv, "\\0" },
+        { "CHAR"_sv, "\\0" },
+        { "CHAR_TYPE"_sv, "char"_sv },
         { "CLASS_NAME"_sv, ""_sv },
         { "MAY_THROW"_sv, "true"_sv },
         { "STRING_PREFIX"_sv, ""_sv },
@@ -132,7 +147,8 @@ public:
             throw_if_can(
                 token.type == ANGLE_OPENING,
                 token,
-                "process_block has been called, but parser can't find '[' to start "
+                "process_block has been called, but parser can't find '[' to "
+                "start "
                 "BLOCK!");
             sub_state     = State::ONE;
             current_state = BLOCK;
@@ -142,7 +158,8 @@ public:
             throw_if_can(
                 token.type == IDENTIFIER,
                 token,
-                "Parser error! Unable to find IDENTIFIER for BLOCK declaration!");
+                "Parser error! Unable to find IDENTIFIER for BLOCK "
+                "declaration!");
             auto &block    = m_blocks.insert({ token.repr, {} });
             current_block  = &block;
             sub_state      = State::TWO;
@@ -167,7 +184,8 @@ public:
             throw_if_can(
                 token.type == IDENTIFIER,
                 token,
-                "Parser error! Unable to find IDENTIFIER to process declaration!");
+                "Parser error! Unable to find IDENTIFIER to process "
+                "declaration!");
             identifier    = token.repr;
             sub_state     = State::ONE;
             current_state = ELEM_DECLARATION;
@@ -207,10 +225,18 @@ public:
                 "<declarations>");
 
             throw_if_can(
-                token.type == static_cast<TokenType>(100) ||
-                    token.type == static_cast<TokenType>(101),
+                (static_cast<size_t>(token.type) & static_cast<size_t>(GENERAL)) ==
+                    static_cast<size_t>(GENERAL),
                 token,
-                "Rule must be string or char");
+                "Rule must be a string, a char or a identifier");
+
+            if (m_directive == "STRING" || m_directive == "CHAR") {
+                throw_if_can(
+                    token.type == CHAR || token.type == STRING,
+                    "STRING and CHAR are unique directives. They can accept only "
+                    "character");
+                m_directives[m_directive] = token.repr;
+            }
 
             if (check_token(token.repr)) {
                 current_block->rules.emplace_back(identifier, token.repr);
@@ -230,8 +256,9 @@ public:
         switch (sub_state) {
         case State::TWO:
             throw_if_can(
-                token.type == 100 || token.type == 101, token,
-                "Unable to find name for CLASS_NAME.");
+                (static_cast<size_t>(token.type) & static_cast<size_t>(GENERAL)) ==
+                    static_cast<size_t>(GENERAL),
+                token, "Unable to match type for directive.");
             current_state = NIL;
             sub_state     = State::ZERO;
 
@@ -311,6 +338,17 @@ public:
             throw std::logic_error("CLASS_NAME directive must be used.");
         }
 
+        string_view_t char_enum_name   = "CHAR";
+        string_view_t string_enum_name = "STRING";
+
+        if (m_directives["CHAR"] == "\\0") {
+            char_enum_name = "UNDEFINED";
+        }
+
+        if (m_directives["STRING"] == "\\0") {
+            string_enum_name = "UNDEFINED";
+        }
+
         for (auto &elem : m_blocks) {
             auto power = cerb::max<unsigned long>(
                 MinimumPower,
@@ -332,7 +370,8 @@ public:
         }
 
         generated_string = fmt::format(
-            "enum {}Blocks : size_t\n{{\n", m_directives["CLASS_NAME"].to_string());
+            "enum {}Blocks : size_t\n{{\n    {:<16} = 3UL,\n",
+            m_directives["CLASS_NAME"].to_string(), "RESERVED");
 
         CERBLIB_UNROLL_N(2)
         for (auto &elem : m_blocks) {
@@ -342,8 +381,9 @@ public:
         }
 
         generated_string += fmt::format(
-            "}};\n\nenum {}Items : size_t\n{{\n",
-            m_directives["CLASS_NAME"].to_string());
+            "}};\n\nenum {}Items : size_t\n{{\n    {:<16} = "
+            "static_cast<size_t>(RESERVED) + 0UL,\n",
+            m_directives["CLASS_NAME"].to_string(), "UNDEFINED");
 
         for (auto &elem : m_blocks) {
             size_t j = 0;
@@ -396,18 +436,29 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
 
         generated_string += fmt::format(
             R"(
-    constexpr {}()
+    constexpr {0}()
     : parent(
-    {{)",
-            m_directives["CLASS_NAME"].to_string());
+        {3}'{1}'{4},
+        {3}'{2}'{4},
+        {5},
+        {6},
+        {{)",
+            m_directives["CLASS_NAME"].to_string(),
+            m_directives["STRING"].to_string(), m_directives["CHAR"].to_string(),
+            m_directives["CHAR_PREFIX"].to_string(),
+            m_directives["CHAR_POSTFIX"].to_string(), string_enum_name.to_string(),
+            char_enum_name.to_string());
 
         for (auto &elem : m_blocks) {
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.words) {
                 generated_string += fmt::format(
-                    "\n        {{ {}, {}\"{}\"{}, true, {} }},", i.first.to_string(),
-                    m_directives["STRING_PREFIX"].to_string(), i.second.to_string(),
-                    m_directives["STRING_POSTFIX"].to_string(), MinimumPower - 1);
+                    "\n            {{ {}, {}\"{}\"{}, true, {} }},",
+                    i.first.to_string(),
+                    m_directives["STRING_PREFIX"].to_string(),
+                    i.second.to_string(),
+                    m_directives["STRING_POSTFIX"].to_string(),
+                    MinimumPower - 1);
             }
         }
 
@@ -415,21 +466,26 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.rules) {
                 generated_string += fmt::format(
-                    "\n        {{ {}, {}\"{}\"{} }},", i.first.to_string(),
+                    "\n            {{ {}, {}\"{}\"{} }},", i.first.to_string(),
                     m_directives["STRING_PREFIX"].to_string(), i.second.to_string(),
                     m_directives["STRING_POSTFIX"].to_string());
             }
         }
 
         generated_string.pop_back();
-        generated_string += "\n    },\n    {\n        { ";
+        generated_string += "\n        },\n        {\n            { ";
 
         for (auto &elem : m_blocks) {
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.operators) {
                 if (i.second.size() == 1) {
+                    if (i.first == "STRING" || i.first == "CHAR") {
+                        continue;
+                    }
+
                     generated_string += fmt::format(
-                        "\n            {{ {}, {}\'{}\'{} }},", i.first.to_string(),
+                        "\n                {{ {}, {}\'{}\'{} }},",
+                        i.first.to_string(),
                         m_directives["CHAR_PREFIX"].to_string(),
                         i.second.to_string(),
                         m_directives["CHAR_POSTFIX"].to_string());
@@ -437,13 +493,14 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
             }
         }
 
-        generated_string += "\n        },\n       {";
+        generated_string += "\n            },\n           {";
         for (auto &elem : m_blocks) {
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.operators) {
                 if (i.second.size() > 1) {
                     generated_string += fmt::format(
-                        "\n            {{ {}, {}\"{}\"{} }},", i.first.to_string(),
+                        "\n                {{ {}, {}\"{}\"{} }},",
+                        i.first.to_string(),
                         m_directives["STRING_PREFIX"].to_string(),
                         i.second.to_string(),
                         m_directives["STRING_POSTFIX"].to_string());
@@ -451,15 +508,24 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
             }
         }
 
-        generated_string += "\n       }";
-        generated_string += "\n    }\n    )\n    {}";
+        generated_string += "\n           }";
+        generated_string += "\n        }\n    )\n    {}";
     }
 
-    constexpr CERBERUS_LEX_INITIALIZER(Lex4Lex)
+    constexpr Lex4Lex(
+        const std::initializer_list<const item_initilizer>
+            rules,
+        const string_checker_t &terminals,
+        const string_view_t &single_line_comment     = "//",
+        const string_view_t &multiline_comment_begin = "/*",
+        const string_view_t &multiline_comment_end   = "*/")
+      : parent(
+            '\"', '\'', STRING, CHAR, rules, terminals, single_line_comment,
+            multiline_comment_begin, multiline_comment_end)
     {}
 };
 
-Lex4Lex<char, Lex4LexTypes> lex{ { { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*" } },
+Lex4Lex<char, Lex4LexItems> lex{ { { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*" } },
                                  { { { ANGLE_OPENING, '[' },
                                      { ANGLE_CLOSING, ']' },
                                      { COLON, ':' },
@@ -478,17 +544,18 @@ auto main(int argc, char *argv[]) -> int
     buffer << t.rdbuf();
     t.close();
 
-    std::string data       = buffer.str();
-    size_t offset          = data.find_first_of("%%") + 2;
-    std::string rest_class = data.substr(data.find("%%", offset) + 2);
-    std::string rest       = rest_class.substr(rest_class.find("%%") + 2);
-    rest_class.erase(rest_class.find("%%"));
-
+    std::string data = buffer.str();
+    size_t offset    = data.find_first_of("%%") + 2;
     lex.scan(data.c_str() + offset, argv[1]);
+
+    std::string rest_class = data.substr(
+        static_cast<unsigned long>(lex.get_input().data() - data.c_str()));
+    std::string rest = rest_class.substr(rest_class.find_last_of("%%") + 2);
+
+    rest_class.erase(rest_class.find("%%"));
     data.erase(offset - 2);
 
-    data += lex.get_result() + rest_class + "};\n" + rest;
-
+    data += lex.get_result() + rest_class + "\n};\n" + rest;
     filename.erase(filename.find_last_of('.'));
     filename += ".hpp";
 

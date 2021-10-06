@@ -105,6 +105,10 @@ namespace cerb {
             constexpr Map(const std::initializer_list<const_map_elem> &args)
               : parent(args)
             {}
+
+            consteval Map(bool, const std::initializer_list<const_map_elem> &args)
+              : parent(args)
+            {}
         };
     }// namespace gl
 
@@ -177,6 +181,14 @@ namespace cerb {
         constexpr Map(Map &&) noexcept = default;
 
         constexpr Map(const std::initializer_list<value_type> &values) noexcept
+        {
+            CERBLIB_UNROLL_N(2)
+            for (const auto &elem : values) {
+                insert(elem);
+            }
+        }
+
+        consteval Map(bool, const std::initializer_list<value_type> &values) noexcept
         {
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : values) {
