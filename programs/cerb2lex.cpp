@@ -70,6 +70,36 @@ struct Lex4Lex : public CERBERUS_LEX_PARENT_CLASS
         TWO
     };
 
+    struct Directive
+    {
+        string_view_t repr{};
+        cerb::gl::Set<Lex4LexItems, 4> allowed_types{};
+
+    public:
+        constexpr auto check_type(Lex4LexItems token) const noexcept -> bool
+        {
+            return allowed_types.contains(token);
+        }
+
+        constexpr auto operator==(const Directive& other) const noexcept -> bool
+        {
+            return repr == other.repr;
+        }
+
+        constexpr auto operator<=>(const Directive &other) const noexcept
+        {
+            return repr <=> other.repr;
+        }
+
+    public:
+        constexpr Directive() noexcept = default;
+
+        constexpr Directive(
+            string_view_t repr_, const std::initializer_list<const Lex4LexItems> &types)
+          : repr(repr_), allowed_types(types)
+        {}
+    };
+
 private:
     bool is_word{ false };
     RuleState current_state{ NIL };
@@ -84,23 +114,23 @@ private:
     cerb::Map<string_view_t, BlockOfItems> m_blocks{};
     string_view_t m_directive{};
 
-    cerb::gl::Map<string_view_t, string_view_t, 16> m_directives{
-        { "STRING"_sv, "\\0" },
-        { "CHAR"_sv, "\\0" },
-        { "CHAR_TYPE"_sv, "char"_sv },
-        { "CLASS_NAME"_sv, ""_sv },
-        { "MAY_THROW"_sv, "true"_sv },
-        { "STRING_PREFIX"_sv, ""_sv },
-        { "STRING_POSTFIX"_sv, ""_sv },
-        { "CHAR_PREFIX"_sv, ""_sv },
-        { "CHAR_POSTFIX"_sv, ""_sv },
-        { "ALLOW_COMMENTS"_sv, "true" },
-        { "MAX_TERMINALS"_sv, "128"_sv },
-        { "MAX_SIZE_FOR_TERMINAL"_sv, "4"_sv },
-        { "SINGLE_LINE_COMMENT"_sv, "//"_sv },
-        { "MULTILINE_COMMENT_BEGIN"_sv, "/*"_sv },
-        { "MULTILINE_COMMENT_END"_sv, "*/"_sv },
-        { "ALLOW_STRING_LITERALS"_sv, "true"_sv }
+    cerb::gl::Map<string_view_t, Directive, 16> m_directives{
+        {"STRING"_sv, Directive("\\0"_sv, {CHAR, STRING})},
+        {"CHAR"_sv, Directive("\\0"_sv, {CHAR, STRING})},
+        {"CHAR_TYPE"_sv, Directive("char"_sv, {CHAR, STRING})},
+        {"CLASS_NAME"_sv, Directive(""_sv, {IDENTIFIER})},
+        {"MAY_THROW"_sv, Directive(""_sv, {IDENTIFIER})},
+        {"STRING_PREFIX"_sv, Directive(""_sv, {CHAR, STRING, IDENTIFIER})},
+        {"STRING_POSTFIX"_sv, Directive(""_sv, {CHAR, STRING, IDENTIFIER})},
+        {"CHAR_PREFIX"_sv, Directive(""_sv, {CHAR, STRING, IDENTIFIER})},
+        {"CHAR_POSTFIX"_sv, Directive(""_sv, {CHAR, STRING, IDENTIFIER})},
+        {"ALLOW_COMMENTS"_sv, Directive(""_sv, {TRUE, FALSE})},
+        {"MAX_TERMINALS"_sv, Directive("128"_sv, {INT})},
+        {"MAX_SIZE_FOR_TERMINAL"_sv, Directive("4"_sv, {INT})},
+        {"SINGLE_LINE_COMMENT"_sv, Directive("//"_sv, {CHAR, STRING})},
+        {"MULTILINE_COMMENT_BEGIN"_sv, Directive("/*"_sv, {CHAR, STRING})},
+        {"MULTILINE_COMMENT_END"_sv, Directive("*/"_sv, {CHAR, STRING})},
+        {"ALLOW_STRING_LITERALS"_sv, Directive(""_sv, {TRUE, FALSE})}
     };
 
     std::string generated_string{};
@@ -235,7 +265,7 @@ public:
                     token.type == CHAR || token.type == STRING,
                     "STRING and CHAR are unique directives. They can accept only "
                     "character");
-                m_directives[m_directive] = token.repr;
+                m_directives[m_directive].repr = token.repr;
             }
 
             if (check_token(token.repr)) {
@@ -253,16 +283,17 @@ public:
 
     constexpr auto process_class(const token_t &token) -> void
     {
+        Directive &current_directive = m_directives[m_directive];
+
         switch (sub_state) {
         case State::TWO:
             throw_if_can(
-                (static_cast<size_t>(token.type) & static_cast<size_t>(GENERAL)) ==
-                    static_cast<size_t>(GENERAL),
+                current_directive.check_type(token.type),
                 token, "Unable to match type for directive.");
             current_state = NIL;
             sub_state     = State::ZERO;
 
-            m_directives[m_directive] = token.repr;
+            current_directive.repr = token.repr;
             m_directive               = { m_directive.begin(), m_directive.begin() };
             break;
 
@@ -334,18 +365,18 @@ public:
         constexpr unsigned long MinimumPower = 6;
         cerb::gl::Set<u16, bitsizeof(uintmax_t)> taken_powers{};
 
-        if (m_directives["CLASS_NAME"].size() == 0) {
+        if (m_directives["CLASS_NAME"].repr.size() == 0) {
             throw std::logic_error("CLASS_NAME directive must be used.");
         }
 
         string_view_t char_enum_name   = "CHAR";
         string_view_t string_enum_name = "STRING";
 
-        if (m_directives["CHAR"] == "\\0") {
+        if (m_directives["CHAR"].repr == "\\0") {
             char_enum_name = "UNDEFINED";
         }
 
-        if (m_directives["STRING"] == "\\0") {
+        if (m_directives["STRING"].repr == "\\0") {
             string_enum_name = "UNDEFINED";
         }
 
@@ -370,8 +401,8 @@ public:
         }
 
         generated_string = fmt::format(
-            "enum {}Blocks : size_t\n{{\n    {:<16} = 3UL,\n",
-            m_directives["CLASS_NAME"].to_string(), "RESERVED");
+            "enum {}Blocks : size_t\n{{\n    {:<16} = 8UL,\n",
+            m_directives["CLASS_NAME"].repr.to_string(), "RESERVED");
 
         CERBLIB_UNROLL_N(2)
         for (auto &elem : m_blocks) {
@@ -383,7 +414,7 @@ public:
         generated_string += fmt::format(
             "}};\n\nenum {}Items : size_t\n{{\n    {:<16} = "
             "static_cast<size_t>(RESERVED) + 0UL,\n",
-            m_directives["CLASS_NAME"].to_string(), "UNDEFINED");
+            m_directives["CLASS_NAME"].repr.to_string(), "UNDEFINED");
 
         for (auto &elem : m_blocks) {
             size_t j = 0;
@@ -426,13 +457,13 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
 {{
     CERBERUS_LEX_PARENT_CLASS_ACCESS
 )",
-            m_directives["CLASS_NAME"].to_string(),
-            m_directives["CHAR_TYPE"].to_string(),
-            m_directives["MAY_THROW"].to_string(),
-            m_directives["ALLOW_STRING_LITERALS"].to_string(),
-            m_directives["ALLOW_COMMENTS"].to_string(),
-            m_directives["MAX_TERMINALS"].to_string(),
-            m_directives["MAX_SIZE_FOR_TERMINAL"].to_string());
+            m_directives["CLASS_NAME"].repr.to_string(),
+            m_directives["CHAR_TYPE"].repr.to_string(),
+            m_directives["MAY_THROW"].repr.to_string(),
+            m_directives["ALLOW_STRING_LITERALS"].repr.to_string(),
+            m_directives["ALLOW_COMMENTS"].repr.to_string(),
+            m_directives["MAX_TERMINALS"].repr.to_string(),
+            m_directives["MAX_SIZE_FOR_TERMINAL"].repr.to_string());
 
         generated_string += fmt::format(
             R"(
@@ -443,10 +474,10 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
         {5},
         {6},
         {{)",
-            m_directives["CLASS_NAME"].to_string(),
-            m_directives["STRING"].to_string(), m_directives["CHAR"].to_string(),
-            m_directives["CHAR_PREFIX"].to_string(),
-            m_directives["CHAR_POSTFIX"].to_string(), string_enum_name.to_string(),
+            m_directives["CLASS_NAME"].repr.to_string(),
+            m_directives["STRING"].repr.to_string(), m_directives["CHAR"].repr.to_string(),
+            m_directives["CHAR_PREFIX"].repr.to_string(),
+            m_directives["CHAR_POSTFIX"].repr.to_string(), string_enum_name.to_string(),
             char_enum_name.to_string());
 
         for (auto &elem : m_blocks) {
@@ -455,9 +486,9 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
                 generated_string += fmt::format(
                     "\n            {{ {}, {}\"{}\"{}, true, {} }},",
                     i.first.to_string(),
-                    m_directives["STRING_PREFIX"].to_string(),
+                    m_directives["STRING_PREFIX"].repr.to_string(),
                     i.second.to_string(),
-                    m_directives["STRING_POSTFIX"].to_string(),
+                    m_directives["STRING_POSTFIX"].repr.to_string(),
                     MinimumPower - 1);
             }
         }
@@ -467,8 +498,8 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
             for (const auto &i : elem.second.rules) {
                 generated_string += fmt::format(
                     "\n            {{ {}, {}\"{}\"{} }},", i.first.to_string(),
-                    m_directives["STRING_PREFIX"].to_string(), i.second.to_string(),
-                    m_directives["STRING_POSTFIX"].to_string());
+                    m_directives["STRING_PREFIX"].repr.to_string(), i.second.to_string(),
+                    m_directives["STRING_POSTFIX"].repr.to_string());
             }
         }
 
@@ -486,9 +517,9 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
                     generated_string += fmt::format(
                         "\n                {{ {}, {}\'{}\'{} }},",
                         i.first.to_string(),
-                        m_directives["CHAR_PREFIX"].to_string(),
+                        m_directives["CHAR_PREFIX"].repr.to_string(),
                         i.second.to_string(),
-                        m_directives["CHAR_POSTFIX"].to_string());
+                        m_directives["CHAR_POSTFIX"].repr.to_string());
                 }
             }
         }
@@ -501,9 +532,9 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
                     generated_string += fmt::format(
                         "\n                {{ {}, {}\"{}\"{} }},",
                         i.first.to_string(),
-                        m_directives["STRING_PREFIX"].to_string(),
+                        m_directives["STRING_PREFIX"].repr.to_string(),
                         i.second.to_string(),
-                        m_directives["STRING_POSTFIX"].to_string());
+                        m_directives["STRING_POSTFIX"].repr.to_string());
                 }
             }
         }
@@ -525,7 +556,8 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
     {}
 };
 
-Lex4Lex<char, Lex4LexItems> lex{ { { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*" } },
+Lex4Lex<char, Lex4LexItems> lex{ { { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*" },
+                                   { INT, "[0-9]+" } },
                                  { { { ANGLE_OPENING, '[' },
                                      { ANGLE_CLOSING, ']' },
                                      { COLON, ':' },

@@ -4,7 +4,6 @@
 #include <iostream>
 #include <cerberus/analyzation/lex/lex.hpp>
 
-
 using namespace cerb::literals;
 
 // clang-format off
@@ -12,6 +11,8 @@ using namespace cerb::literals;
 %%
 CLASS_NAME = TestLexC
 STRING_POSTFIX = "_sv"
+MAX_TERMINALS = 64
+MAY_THROW = false
 
 [GENERAL]
 STRING: "\\\""
@@ -33,6 +34,5 @@ EoF:            "%%"
 
 %%
 // clang-format on
-
 
 #endif /* CERBERUS_LEXER_C */
