@@ -143,6 +143,15 @@ namespace cerb {
                 insert(elem);
             }
         }
+
+        template<typename U>
+        constexpr Set(const std::initializer_list<U> &values) noexcept
+        {
+            CERBLIB_UNROLL_N(2)
+            for (const auto &elem : values) {
+                emplace(elem);
+            }
+        }
     };
 
     template<

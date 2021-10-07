@@ -7,8 +7,8 @@
 
 #define CERBERUS_LEX_TEMPLATES                                                      \
     template<                                                                       \
-        typename CharT,                                                             \
-        typename TokenType,                                                         \
+        typename CharT           = char,                                            \
+        typename TokenType       = unsigned,                                        \
         bool MayThrow            = true,                                            \
         size_t UID               = 0,                                               \
         bool AllowStringLiterals = true,                                            \
@@ -48,19 +48,6 @@
     using string_checker_t = typename parent::string_checker_t;                     \
     using item_initilizer  = typename parent::item_initilizer;
 
-#define CERBERUS_LEX_INITIALIZER(class_name)                                        \
-    class_name(                                                                     \
-        const std::initializer_list<const item_initilizer> rules,                   \
-        const string_checker_t &terminals,                                          \
-        const string_view_t &single_line_comment     = "//",                        \
-        const string_view_t &multiline_comment_begin = "/*",                        \
-        const string_view_t &multiline_comment_end   = "*/")                        \
-      : parent(                                                                     \
-            rules,                                                                  \
-            terminals,                                                              \
-            single_line_comment,                                                    \
-            multiline_comment_begin,                                                \
-            multiline_comment_end)
 
 namespace cerb::lex::experimental {
     template<
@@ -135,8 +122,8 @@ namespace cerb::lex::experimental {
                     index += 2;
                     ByteMask<CharT> mask{ 0 };
 
-                    CERBLIB_UNROLL_N(2) for (size_t j = 0; j < 2; ++j)
-                    {
+                    CERBLIB_UNROLL_N(2)
+                    for (size_t j = 0; j < 2; ++j) {
                         if (item.get_char(index) >= item_t::char_cast('0') &&
                             item.get_char(index) <= item_t::char_cast('7')) {
                             mask.getAsIntegral() <<= 3;
@@ -268,6 +255,7 @@ namespace cerb::lex::experimental {
             size_t index = 1U;
             std::basic_string<CharT> result;
 
+            CERBLIB_UNROLL_N(2)
             while (item.get_char(index) != item_t::char_cast('"')) {
                 throw_if_can(
                     item.get_char(index) != item_t::char_cast('\0'),
@@ -337,8 +325,7 @@ namespace cerb::lex::experimental {
                         std::basic_string<CharT> chars;
                         auto result = process_char(m_char_separator, 1, head, chars);
                         throw_if_can(
-                            head.get_char(result.second) + 1 !=
-                                item_t::char_cast('\''),
+                            head.get_char(result.second) + 1 != m_char_separator,
                             "Char can contain only one elem");
 
                         m_strings.emplace_back(chars);
@@ -413,18 +400,13 @@ namespace cerb::lex::experimental {
             const std::initializer_list<const item_initilizer>
                 rules,
             const string_checker_t &terminals,
-            const string_view_t &single_line_comment     = "//",
-            const string_view_t &multiline_comment_begin = "/*",
-            const string_view_t &multiline_comment_end   = "*/")
-          : m_head(m_items.begin()), m_string_separator(string_separator),
-            m_char_separator(char_separator), m_string_type(string_type),
-            m_char_type(char_type)
+            const string_view_t &single_line_comment,
+            const string_view_t &multiline_comment_begin,
+            const string_view_t &multiline_comment_end)
+          : m_items(rules), m_head(m_items.begin()), m_string_type(string_type),
+            m_char_type(char_type), m_string_separator(string_separator),
+            m_char_separator(char_separator)
         {
-            CERBLIB_UNROLL_N(2)
-            for (const auto &elem : rules) {
-                m_items.emplace(elem);
-            }
-
             item_t::set_terminals(terminals);
             item_t::set_comments(
                 single_line_comment, multiline_comment_begin, multiline_comment_end);

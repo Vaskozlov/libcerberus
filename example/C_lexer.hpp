@@ -8,14 +8,14 @@ using namespace cerb::literals;
 
 // clang-format off
 
-enum TestLexCBlocks : size_t
+enum Lex4LexParentBlocks : size_t
 {
     RESERVED         = 8UL,
     GENERAL          = 64UL,
     OPERATORS        = 128UL,
 };
 
-enum TestLexCItems : size_t
+enum Lex4LexParentItems : size_t
 {
     UNDEFINED        = static_cast<size_t>(RESERVED) + 0UL,
     TRUE             = static_cast<size_t>(GENERAL) + 0UL,
@@ -24,8 +24,8 @@ enum TestLexCItems : size_t
     IDENTIFIER       = static_cast<size_t>(GENERAL) + 3UL,
     STRING           = static_cast<size_t>(GENERAL) + 4UL,
     CHAR             = static_cast<size_t>(GENERAL) + 5UL,
-    ANGLE_OPENING    = static_cast<size_t>(OPERATORS) + 0UL,
-    ASSIGN           = static_cast<size_t>(OPERATORS) + 1UL,
+    ASSIGN           = static_cast<size_t>(OPERATORS) + 0UL,
+    ANGLE_OPENING    = static_cast<size_t>(OPERATORS) + 1UL,
     ANGLE_CLOSING    = static_cast<size_t>(OPERATORS) + 2UL,
     COLON            = static_cast<size_t>(OPERATORS) + 3UL,
     WORD             = static_cast<size_t>(OPERATORS) + 4UL,
@@ -34,40 +34,38 @@ enum TestLexCItems : size_t
 
 template<
     typename CharT = char,
-    typename TokenType = TestLexCItems,
+    typename TokenType = Lex4LexParentItems,
     bool MayThrow = true,
     size_t UID = 0,
-    bool AllowStringLiterals = ,
-    bool AllowComments = ,
+    bool AllowStringLiterals = true,
+    bool AllowComments = true,
     size_t MaxTerminals = 64,
     size_t MaxSize4Terminals = 4>
-struct TestLexC: public CERBERUS_LEX_PARENT_CLASS
+struct Lex4LexParent: public CERBERUS_LEX_PARENT_CLASS
 {
     CERBERUS_LEX_PARENT_CLASS_ACCESS
 
-    constexpr TestLexC()
+    constexpr Lex4LexParent()
     : parent(
         '\"',
         '\'',
         STRING,
         CHAR,
         {
-            { TRUE, "true"_sv, true, 5 },
-            { FALSE, "false"_sv, true, 5 },
-            { INT, "[0-9]+"_sv },
-            { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*"_sv },
-            { ANGLE_OPENING, "["_sv }
+            { TRUE, "true"_sv, true, 2 },
+            { FALSE, "false"_sv, true, 2 },
+            { INT, "[0-9]+"_sv, false, 6 },
+            { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*"_sv, false, 6 }
         },
         {
             { 
                 { ASSIGN, '=' },
+                { ANGLE_OPENING, '[' },
                 { ANGLE_CLOSING, ']' },
                 { COLON, ':' },
                 { WORD, '|' },
             },
            {
-                { STRING, "\""_sv },
-                { CHAR, "\'"_sv },
                 { EoF, "%%"_sv },
            }
         }

@@ -60,8 +60,9 @@ namespace cerb::lex {
             string_view_t rule{};
 
         public:
-            constexpr DotItemInitializer()                               = default;
-            constexpr ~DotItemInitializer()                              = default;
+            constexpr DotItemInitializer()  = default;
+            constexpr ~DotItemInitializer() = default;
+
             constexpr DotItemInitializer(DotItemInitializer &&) noexcept = default;
             constexpr DotItemInitializer(const DotItemInitializer &) noexcept =
                 default;

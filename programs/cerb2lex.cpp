@@ -10,14 +10,16 @@
 using namespace cerb::literals;
 using namespace std::string_literals;
 
-enum Lex4LexBlocks : size_t
+enum Lex4LexParentBlocks : size_t
 {
+    RESERVED  = 8UL,
     GENERAL   = 64UL,
     OPERATORS = 128UL,
 };
 
-enum Lex4LexItems : size_t
+enum Lex4LexParentItems : size_t
 {
+    UNDEFINED     = static_cast<size_t>(RESERVED) + 0UL,
     TRUE          = static_cast<size_t>(GENERAL) + 0UL,
     FALSE         = static_cast<size_t>(GENERAL) + 1UL,
     INT           = static_cast<size_t>(GENERAL) + 2UL,
@@ -32,8 +34,37 @@ enum Lex4LexItems : size_t
     EoF           = static_cast<size_t>(OPERATORS) + 5UL,
 };
 
+template<
+    typename CharT = char, typename TokenType = Lex4LexParentItems,
+    bool MayThrow = true, size_t UID = 0, bool AllowStringLiterals = true,
+    bool AllowComments = true, size_t MaxTerminals = 64,
+    size_t MaxSize4Terminals = 4>
+struct Lex4LexParent : public CERBERUS_LEX_PARENT_CLASS
+{
+    CERBERUS_LEX_PARENT_CLASS_ACCESS
 
-constexpr cerb::gl::Map<Lex4LexItems, cerb::string_view, 7> Lex4LexTypesRepr{
+    constexpr Lex4LexParent()
+      : parent(
+            '\"', '\'', STRING, CHAR,
+            { { TRUE, "true"_sv, true, 2 },
+              { FALSE, "false"_sv, true, 2 },
+              { INT, "[0-9]+"_sv, false, 6 },
+              { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*"_sv, false, 6 } },
+            { {
+                  { ASSIGN, '=' },
+                  { ANGLE_OPENING, '[' },
+                  { ANGLE_CLOSING, ']' },
+                  { COLON, ':' },
+                  { WORD, '|' },
+              },
+              {
+                  { EoF, "%%"_sv },
+              } },
+            "//", "/*", "*/")
+    {}
+};
+
+constexpr cerb::gl::Map<Lex4LexParentItems, cerb::string_view, 7> Lex4LexTypesRepr{
     { IDENTIFIER, ""_sv },   { INT, "INT"_sv },
     { ASSIGN, "ASSIGN"_sv }, { ANGLE_OPENING, "ANGLE_OPENING"_sv },
     { COLON, "COLON"_sv },   { WORD, "WORD"_sv },
@@ -41,9 +72,18 @@ constexpr cerb::gl::Map<Lex4LexItems, cerb::string_view, 7> Lex4LexTypesRepr{
 };
 
 CERBERUS_LEX_TEMPLATES
-struct Lex4Lex : public CERBERUS_LEX_PARENT_CLASS
+struct Lex4Lex : Lex4LexParent<>
 {
-    CERBERUS_LEX_PARENT_CLASS_ACCESS
+    using Lex4LexParent<>::parent;
+    using parent::head;
+    using item_t           = typename parent::item_t;
+    using storage_t        = typename parent::storage_t;
+    using token_t          = typename parent::token_t;
+    using result_t         = typename parent::result_t;
+    using position_t       = typename parent::position_t;
+    using string_view_t    = typename parent::string_view_t;
+    using string_checker_t = typename parent::string_checker_t;
+    using item_initilizer  = typename parent::item_initilizer;
 
     struct BlockOfItems
     {
@@ -72,16 +112,17 @@ struct Lex4Lex : public CERBERUS_LEX_PARENT_CLASS
 
     struct Directive
     {
+        cerb::gl::Set<TokenType, 4> allowed_types{};
         string_view_t repr{};
-        cerb::gl::Set<Lex4LexItems, 4> allowed_types{};
 
     public:
-        constexpr auto check_type(Lex4LexItems token) const noexcept -> bool
+        [[nodiscard]] constexpr auto check_type(TokenType token) const noexcept
+            -> bool
         {
             return allowed_types.contains(token);
         }
 
-        constexpr auto operator==(const Directive& other) const noexcept -> bool
+        constexpr auto operator==(const Directive &other) const noexcept -> bool
         {
             return repr == other.repr;
         }
@@ -95,7 +136,8 @@ struct Lex4Lex : public CERBERUS_LEX_PARENT_CLASS
         constexpr Directive() noexcept = default;
 
         constexpr Directive(
-            string_view_t repr_, const std::initializer_list<const Lex4LexItems> &types)
+            string_view_t repr_,
+            const std::initializer_list<const TokenType> &types)
           : repr(repr_), allowed_types(types)
         {}
     };
@@ -115,22 +157,22 @@ private:
     string_view_t m_directive{};
 
     cerb::gl::Map<string_view_t, Directive, 16> m_directives{
-        {"STRING"_sv, Directive("\\0"_sv, {CHAR, STRING})},
-        {"CHAR"_sv, Directive("\\0"_sv, {CHAR, STRING})},
-        {"CHAR_TYPE"_sv, Directive("char"_sv, {CHAR, STRING})},
-        {"CLASS_NAME"_sv, Directive(""_sv, {IDENTIFIER})},
-        {"MAY_THROW"_sv, Directive(""_sv, {IDENTIFIER})},
-        {"STRING_PREFIX"_sv, Directive(""_sv, {CHAR, STRING, IDENTIFIER})},
-        {"STRING_POSTFIX"_sv, Directive(""_sv, {CHAR, STRING, IDENTIFIER})},
-        {"CHAR_PREFIX"_sv, Directive(""_sv, {CHAR, STRING, IDENTIFIER})},
-        {"CHAR_POSTFIX"_sv, Directive(""_sv, {CHAR, STRING, IDENTIFIER})},
-        {"ALLOW_COMMENTS"_sv, Directive(""_sv, {TRUE, FALSE})},
-        {"MAX_TERMINALS"_sv, Directive("128"_sv, {INT})},
-        {"MAX_SIZE_FOR_TERMINAL"_sv, Directive("4"_sv, {INT})},
-        {"SINGLE_LINE_COMMENT"_sv, Directive("//"_sv, {CHAR, STRING})},
-        {"MULTILINE_COMMENT_BEGIN"_sv, Directive("/*"_sv, {CHAR, STRING})},
-        {"MULTILINE_COMMENT_END"_sv, Directive("*/"_sv, {CHAR, STRING})},
-        {"ALLOW_STRING_LITERALS"_sv, Directive(""_sv, {TRUE, FALSE})}
+        { "STRING", { "\\0", { CHAR, STRING } } },
+        { "CHAR", { "\\0", { CHAR, STRING } } },
+        { "CHAR_TYPE", { "char", { CHAR, STRING } } },
+        { "CLASS_NAME", { "", { IDENTIFIER } } },
+        { "MAY_THROW", { "true", { TRUE, FALSE } } },
+        { "STRING_PREFIX", { "", { CHAR, STRING, IDENTIFIER } } },
+        { "STRING_POSTFIX", { "", { CHAR, STRING, IDENTIFIER } } },
+        { "CHAR_PREFIX", { "", { CHAR, STRING, IDENTIFIER } } },
+        { "CHAR_POSTFIX", { "", { CHAR, STRING, IDENTIFIER } } },
+        { "ALLOW_COMMENTS", { "true", { TRUE, FALSE } } },
+        { "MAX_TERMINALS", { "128", { INT } } },
+        { "MAX_SIZE_FOR_TERMINAL", { "4", { INT } } },
+        { "SINGLE_LINE_COMMENT", { "//", { CHAR, STRING } } },
+        { "MULTILINE_COMMENT_BEGIN", { "/*", { CHAR, STRING } } },
+        { "MULTILINE_COMMENT_END", { "*/", { CHAR, STRING } } },
+        { "ALLOW_STRING_LITERALS", { "true", { TRUE, FALSE } } }
     };
 
     std::string generated_string{};
@@ -139,13 +181,7 @@ private:
 private:
     static constexpr auto check_token(const string_view_t &token) -> bool
     {
-        CERBLIB_UNROLL_N(4)
-        for (size_t i = 0; i < token.size(); ++i) {
-            if (token[i] == '[' && token[i + 1] != '[') {// it is rule
-                return true;
-            }
-        }
-        return false;
+        return token.contains('[') != std::numeric_limits<size_t>::max();
     }
 
     constexpr auto throw_if_can(bool condition, const char *message) -> void
@@ -178,8 +214,7 @@ public:
                 token.type == ANGLE_OPENING,
                 token,
                 "process_block has been called, but parser can't find '[' to "
-                "start "
-                "BLOCK!");
+                "start BLOCK!");
             sub_state     = State::ONE;
             current_state = BLOCK;
             return;
@@ -226,6 +261,7 @@ public:
             if (token.type == ASSIGN) {
                 throw_if_can(
                     m_directives.contains(m_directive),
+                    token,
                     "Unable to recognize directive.");
                 sub_state     = State::TWO;
                 current_state = CLASS_DECLARATION;
@@ -263,12 +299,13 @@ public:
             if (m_directive == "STRING" || m_directive == "CHAR") {
                 throw_if_can(
                     token.type == CHAR || token.type == STRING,
+                    token,
                     "STRING and CHAR are unique directives. They can accept only "
                     "character");
                 m_directives[m_directive].repr = token.repr;
             }
 
-            if (check_token(token.repr)) {
+            if (check_token(token.repr) && token.type == STRING) {
                 current_block->rules.emplace_back(identifier, token.repr);
             } else if (is_word) {
                 current_block->words.emplace_back(identifier, token.repr);
@@ -288,13 +325,13 @@ public:
         switch (sub_state) {
         case State::TWO:
             throw_if_can(
-                current_directive.check_type(token.type),
-                token, "Unable to match type for directive.");
+                current_directive.check_type(token.type), token,
+                "Unable to match type for directive.");
             current_state = NIL;
             sub_state     = State::ZERO;
 
             current_directive.repr = token.repr;
-            m_directive               = { m_directive.begin(), m_directive.begin() };
+            m_directive            = { m_directive.begin(), m_directive.begin() };
             break;
 
         default:
@@ -308,6 +345,8 @@ public:
 
         switch (current_state) {
         case NIL:
+            is_word = false;
+
             switch (token.type) {
             case ANGLE_OPENING:
                 process_block(token);
@@ -348,19 +387,20 @@ public:
         return token.type != EoF;
     }
 
-    constexpr void syntax_error(
-        const item_t &item, const string_view_t &repr, const char *message)
+    constexpr auto syntax_error(
+        const item_t &item, const string_view_t &repr, const char *message) -> void
     {
         cerb::analysis::basic_syntax_error(item, repr, message);
     }
 
-    constexpr void error(const item_t &item, const string_view_t &repr) override
+    constexpr auto error(const item_t &item, const string_view_t &repr)
+        -> void override
     {
         cerb::analysis::basic_lexical_error(
             item, repr, "Unable to find suitable dot item for: ");
     }
 
-    constexpr void finish() override
+    constexpr auto finish() -> void override
     {
         constexpr unsigned long MinimumPower = 6;
         cerb::gl::Set<u16, bitsizeof(uintmax_t)> taken_powers{};
@@ -475,21 +515,21 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
         {6},
         {{)",
             m_directives["CLASS_NAME"].repr.to_string(),
-            m_directives["STRING"].repr.to_string(), m_directives["CHAR"].repr.to_string(),
+            m_directives["STRING"].repr.to_string(),
+            m_directives["CHAR"].repr.to_string(),
             m_directives["CHAR_PREFIX"].repr.to_string(),
-            m_directives["CHAR_POSTFIX"].repr.to_string(), string_enum_name.to_string(),
-            char_enum_name.to_string());
+            m_directives["CHAR_POSTFIX"].repr.to_string(),
+            string_enum_name.to_string(), char_enum_name.to_string());
 
         for (auto &elem : m_blocks) {
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.words) {
                 generated_string += fmt::format(
-                    "\n            {{ {}, {}\"{}\"{}, true, {} }},",
+                    "\n            {{ {}, {}\"{}\"{}, true, 2 }},",
                     i.first.to_string(),
                     m_directives["STRING_PREFIX"].repr.to_string(),
                     i.second.to_string(),
-                    m_directives["STRING_POSTFIX"].repr.to_string(),
-                    MinimumPower - 1);
+                    m_directives["STRING_POSTFIX"].repr.to_string());
             }
         }
 
@@ -497,9 +537,12 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.rules) {
                 generated_string += fmt::format(
-                    "\n            {{ {}, {}\"{}\"{} }},", i.first.to_string(),
-                    m_directives["STRING_PREFIX"].repr.to_string(), i.second.to_string(),
-                    m_directives["STRING_POSTFIX"].repr.to_string());
+                    "\n            {{ {}, {}\"{}\"{}, false, {} }},",
+                    i.first.to_string(),
+                    m_directives["STRING_PREFIX"].repr.to_string(),
+                    i.second.to_string(),
+                    m_directives["STRING_POSTFIX"].repr.to_string(),
+                    elem.second.power);
             }
         }
 
@@ -529,6 +572,10 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.operators) {
                 if (i.second.size() > 1) {
+                    if (i.first == "STRING" || i.first == "CHAR") {
+                        continue;
+                    }
+
                     generated_string += fmt::format(
                         "\n                {{ {}, {}\"{}\"{} }},",
                         i.first.to_string(),
@@ -543,30 +590,10 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
         generated_string += "\n        }\n    )\n    {}";
     }
 
-    constexpr Lex4Lex(
-        const std::initializer_list<const item_initilizer>
-            rules,
-        const string_checker_t &terminals,
-        const string_view_t &single_line_comment     = "//",
-        const string_view_t &multiline_comment_begin = "/*",
-        const string_view_t &multiline_comment_end   = "*/")
-      : parent(
-            '\"', '\'', STRING, CHAR, rules, terminals, single_line_comment,
-            multiline_comment_begin, multiline_comment_end)
-    {}
+    constexpr Lex4Lex() = default;
 };
 
-Lex4Lex<char, Lex4LexItems> lex{ { { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*" },
-                                   { INT, "[0-9]+" } },
-                                 { { { ANGLE_OPENING, '[' },
-                                     { ANGLE_CLOSING, ']' },
-                                     { COLON, ':' },
-                                     { ASSIGN, '=' },
-                                     { WORD, '|' } },
-                                   {
-                                       { EoF, "%%" },
-                                   } } };
-
+Lex4Lex lex{};
 
 auto main(int argc, char *argv[]) -> int
 {
