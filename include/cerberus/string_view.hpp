@@ -49,12 +49,11 @@ namespace cerb {
           : m_len(len), m_str(str)
         {}
 
-        template<int Size>
+        template<unsigned long Size>
         constexpr basic_string_view(const CharT (&str)[Size]) noexcept
           : m_len(Size), m_str(str)
         {
             return;
-            ;
         }
 
         constexpr basic_string_view(
@@ -211,7 +210,7 @@ namespace cerb {
     using u32string_view = basic_string_view<char32_t>;
 
     namespace literals {
-        constexpr auto operator"" _sv(const char *str, size_t len) -> string_view
+        consteval auto operator"" _sv(const char *str, size_t len) -> string_view
         {
             return { str, len };
         }

@@ -11,13 +11,6 @@
 using namespace cerb::literals;
 using namespace std::string_literals;
 
-constexpr cerb::gl::Map<Lex4LexItems, cerb::string_view, 7> Lex4LexTypesRepr{
-    { IDENTIFIER, ""_sv },   { INT, "INT"_sv },
-    { ASSIGN, "ASSIGN"_sv }, { ANGLE_OPENING, "ANGLE_OPENING"_sv },
-    { COLON, "COLON"_sv },   { WORD, "WORD"_sv },
-    { EoF, "EoF"_sv }
-};
-
 Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
 {
     using Lex4Lex<>::parent;
@@ -27,9 +20,16 @@ Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
     using token_t          = typename parent::token_t;
     using result_t         = typename parent::result_t;
     using position_t       = typename parent::position_t;
+    using string_t         = typename parent::string_t;
     using string_view_t    = typename parent::string_view_t;
     using string_checker_t = typename parent::string_checker_t;
     using item_initilizer  = typename parent::item_initilizer;
+
+    template<typename T>
+    static constexpr auto char_cast(T chr) noexcept -> CharT
+    {
+        return static_cast<CharT>(chr);
+    }
 
     struct BlockOfItems
     {
@@ -394,7 +394,7 @@ public:
         for (auto &elem : m_blocks) {
             generated_string += fmt::format(
                 "    {:<16} = {}UL,\n", elem.first.to_string(),
-                (1UL << elem.second.power));// std::string(elem.first.to_string());
+                (1UL << elem.second.power));
         }
 
         generated_string += fmt::format(

@@ -5,17 +5,6 @@
 #include <cerberus/analyzation/lex/dot_item.hpp>
 #include <cerberus/analyzation/exceptions.hpp>
 
-#define CERBERUS_LEX_TEMPLATES                                                      \
-    template<                                                                       \
-        typename CharT           = char,                                            \
-        typename TokenType       = unsigned,                                        \
-        bool MayThrow            = true,                                            \
-        size_t UID               = 0,                                               \
-        bool AllowStringLiterals = true,                                            \
-        bool AllowComments       = true,                                            \
-        size_t MaxTerminals      = 128,                                             \
-        size_t MaxSize4Terminals = 8>
-
 #define CERBERUS_LEX_PARENT_CLASS                                                   \
     cerb::lex::experimental::LexicalAnalyzer<                                       \
         CharT,                                                                      \
@@ -39,15 +28,16 @@
         MaxSize4Terminals>;                                                         \
     using parent::m_items;                                                          \
     using parent::head;                                                             \
-    using item_t           = typename parent::item_t;                               \
-    using storage_t        = typename parent::storage_t;                            \
-    using token_t          = typename parent::token_t;                              \
-    using result_t         = typename parent::result_t;                             \
-    using position_t       = typename parent::position_t;                           \
-    using string_view_t    = typename parent::string_view_t;                        \
-    using string_checker_t = typename parent::string_checker_t;                     \
-    using item_initilizer  = typename parent::item_initilizer;
-
+    using item_t             = typename parent::item_t;                             \
+    using storage_t          = typename parent::storage_t;                          \
+    using token_t            = typename parent::token_t;                            \
+    using result_t           = typename parent::result_t;                           \
+    using position_t         = typename parent::position_t;                         \
+    using string_t           = typename parent::string_t;                           \
+    using string_view_t      = typename parent::string_view_t;                      \
+    using string_checker_t   = typename parent::string_checker_t;                   \
+    using item_initilizer    = typename parent::item_initilizer;                    \
+    using string_container_t = typename parent::string_container_t;
 
 namespace cerb::lex::experimental {
     template<
@@ -61,6 +51,12 @@ namespace cerb::lex::experimental {
         size_t MaxSize4Terminals = 4>
     struct LexicalAnalyzer
     {
+        template<typename T>
+        static constexpr auto char_cast(T chr) noexcept -> CharT
+        {
+            return static_cast<CharT>(chr);
+        }
+
         using item_t = DotItem<
             CharT,
             TokenType,
@@ -71,13 +67,16 @@ namespace cerb::lex::experimental {
             MaxTerminals,
             MaxSize4Terminals>;
 
-        using storage_t        = Set<item_t, MayThrow, less<void>>;
-        using token_t          = typename item_t::token_t;
-        using result_t         = typename item_t::result_t;
-        using position_t       = typename item_t::position_t;
-        using string_view_t    = typename item_t::string_view_t;
-        using string_checker_t = typename item_t::string_checker_t;
-        using item_initilizer  = typename item_t::DotItemInitializer;
+        using storage_t          = Set<item_t, MayThrow, less<void>>;
+        using token_t            = typename item_t::token_t;
+        using result_t           = typename item_t::result_t;
+        using position_t         = typename item_t::position_t;
+        using string_view_t      = typename item_t::string_view_t;
+        using string_checker_t   = typename item_t::string_checker_t;
+        using item_initilizer    = typename item_t::DotItemInitializer;
+        using storage_iterator   = typename storage_t::iterator;
+        using string_t           = std::basic_string<CharT>;
+        using string_container_t = Deque<string_t, 8, MayThrow>;
 
         enum PriorityLevel
         {
@@ -87,25 +86,22 @@ namespace cerb::lex::experimental {
         };
 
         storage_t m_items{};
-        Deque<std::basic_string<CharT>, 8, MayThrow> m_strings{};
-        typename storage_t::iterator m_head{ nullptr };
+        string_container_t m_strings{};
+        storage_iterator m_head{ nullptr };
         const TokenType m_string_type{};
         const TokenType m_char_type{};
         const CharT m_string_separator{};
         const CharT m_char_separator{};
 
-        static constexpr gl::Map<CharT, u16, 22, MayThrow> hex_chars{
-            { static_cast<CharT>('0'), 0 },  { static_cast<CharT>('1'), 1 },
-            { static_cast<CharT>('2'), 2 },  { static_cast<CharT>('3'), 3 },
-            { static_cast<CharT>('4'), 4 },  { static_cast<CharT>('5'), 5 },
-            { static_cast<CharT>('6'), 6 },  { static_cast<CharT>('7'), 7 },
-            { static_cast<CharT>('8'), 8 },  { static_cast<CharT>('9'), 9 },
-            { static_cast<CharT>('a'), 10 }, { static_cast<CharT>('b'), 11 },
-            { static_cast<CharT>('c'), 12 }, { static_cast<CharT>('d'), 13 },
-            { static_cast<CharT>('e'), 14 }, { static_cast<CharT>('f'), 15 },
-            { static_cast<CharT>('A'), 10 }, { static_cast<CharT>('B'), 11 },
-            { static_cast<CharT>('C'), 12 }, { static_cast<CharT>('D'), 13 },
-            { static_cast<CharT>('E'), 14 }, { static_cast<CharT>('F'), 15 }
+        static constexpr gl::Map<CharT, u8, 22, MayThrow> hex_chars{
+            { char_cast('0'), 0 },  { char_cast('1'), 1 },  { char_cast('2'), 2 },
+            { char_cast('3'), 3 },  { char_cast('4'), 4 },  { char_cast('5'), 5 },
+            { char_cast('6'), 6 },  { char_cast('7'), 7 },  { char_cast('8'), 8 },
+            { char_cast('9'), 9 },  { char_cast('a'), 10 }, { char_cast('b'), 11 },
+            { char_cast('c'), 12 }, { char_cast('d'), 13 }, { char_cast('e'), 14 },
+            { char_cast('f'), 15 }, { char_cast('A'), 10 }, { char_cast('B'), 11 },
+            { char_cast('C'), 12 }, { char_cast('D'), 13 }, { char_cast('E'), 14 },
+            { char_cast('F'), 15 }
         };
 
     private:
@@ -113,22 +109,22 @@ namespace cerb::lex::experimental {
             CharT separator,
             size_t index,
             item_t &item,
-            std::basic_string<CharT> &result) -> Pair<bool, size_t>
+            string_t &result) -> Pair<bool, size_t>
         {
             switch (item.get_char(index)) {
-            case item_t::char_cast('\\'):
-                switch (item_t::char_cast(item.get_char(index + 1))) {
-                case item_t::char_cast('0'): {
+            case char_cast('\\'):
+                switch (char_cast(item.get_char(index + 1))) {
+                case char_cast('0'): {
                     index += 2;
-                    ByteMask<CharT> mask{ 0 };
+                    ByteMask<CharT> mask{ char_cast('\0') };
 
                     CERBLIB_UNROLL_N(2)
                     for (size_t j = 0; j < 2; ++j) {
-                        if (item.get_char(index) >= item_t::char_cast('0') &&
-                            item.get_char(index) <= item_t::char_cast('7')) {
+                        if (item.get_char(index) >= char_cast('0') &&
+                            item.get_char(index) <= char_cast('7')) {
                             mask.getAsIntegral() <<= 3;
-                            mask.getAsIntegral() +=
-                                item.get_char() - item_t::char_cast('0');
+                            mask.getAsIntegral() += static_cast<unsigned char>(
+                                to_unsigned(item.get_char() - char_cast('0')));
                         } else {
                             if (j == 1 && mask.getAsIntegral() == 0) {
                                 break;
@@ -137,7 +133,7 @@ namespace cerb::lex::experimental {
                         }
                         index++;
                     }
-                    result.push_back(mask.getAsIntegral());
+                    result.push_back(bit_cast<CharT>(mask.getAsIntegral()));
                 } break;
 
                 case item_t::char_cast('x'): {
@@ -148,13 +144,14 @@ namespace cerb::lex::experimental {
                     for (size_t j = 0; j < 2; ++j) {
                         if (hex_chars.contains(item.get_char(index))) {
                             mask.getAsIntegral() <<= 4;
-                            mask.getAsIntegral() += hex_chars[item.get_char(index)];
+                            mask.getAsIntegral() +=
+                                to_unsigned(hex_chars[item.get_char(index)]);
                         } else {
                             throw_if_can(false, "Unable to recognize char!");
                         }
                         index++;
                     }
-                    result.push_back(mask.getAsIntegral());
+                    result.push_back(bit_cast<CharT>(mask.getAsIntegral()));
                 } break;
 
                 case item_t::char_cast('u'): {
@@ -166,13 +163,13 @@ namespace cerb::lex::experimental {
                         if (hex_chars.contains(item.get_char(index))) {
                             mask.getAsIntegral() <<= 4;
                             mask.getAsIntegral() +=
-                                (hex_chars[item.get_char(index)]);
+                                to_unsigned((hex_chars[item.get_char(index)]));
                         } else {
                             throw_if_can(false, "Unable to recognize char!");
                         }
                         index++;
                     }
-                    result.push_back(mask.getAsIntegral());
+                    result.push_back(bit_cast<CharT>(mask.getAsIntegral()));
                 } break;
 
                 case item_t::char_cast('n'):
@@ -233,6 +230,17 @@ namespace cerb::lex::experimental {
             }
         }
 
+        constexpr auto
+            throw_if_can(bool condition, const token_t &token, const char *message)
+                -> void
+        {
+            if constexpr (MayThrow) {
+                if (!condition) {
+                    analysis::basic_syntax_error(*head(), token.repr, message);
+                }
+            }
+        }
+
     public:
         constexpr virtual void finish()                    = 0;
         constexpr virtual bool yield(const token_t &token) = 0;
@@ -244,8 +252,8 @@ namespace cerb::lex::experimental {
             return m_head;
         }
 
-        constexpr virtual auto
-            process_string(item_t &item, std::basic_string<CharT> &result) -> size_t
+        constexpr virtual auto process_string(item_t &item, string_t &result)
+            -> size_t
         {
             throw_if_can(
                 item.get_char() == item_t::char_cast('"'),
@@ -286,65 +294,66 @@ namespace cerb::lex::experimental {
         constexpr auto
             scan(const string_view_t &input, const string_view_t &filename)
         {
-            auto &head = *m_items.begin();
-            head.set_input(input, filename);
-            head.skip_comments_and_layout();
-            head.dump();
+            head()->set_input(input, filename);
+            head()->skip_comments_and_layout();
+            head()->dump();
 
             size_t times = 0;
             item_t *item = nullptr;
 
             while (!item_t::empty()) {
                 ItemState state = UNABLE_TO_MATCH;
-                head.rebind();
+                head()->rebind();
 
                 if constexpr (AllowStringLiterals) {
                     if (m_string_separator != item_t::char_cast(0) &&
-                        head.get_char() == m_string_separator) {
+                        head()->get_char() == m_string_separator) {
                         m_strings.emplace_back();
                         auto &str   = m_strings.back();
-                        auto result = process_string(head, str);
+                        auto result = process_string(*head(), str);
                         token_t token{ { str.data(), str.size() },
                                        cmov(
                                            m_char_separator == m_string_separator &&
                                                str.size() == 1,
                                            m_char_type,
                                            m_string_type),
-                                       head.get_token_pos() };
+                                       head()->get_token_pos() };
 
                         if (!yield(token)) {
                             finish();
                             return;
                         }
 
-                        head.add2input(result);
-                        head.skip_comments_and_layout();
-                        head.dump();
+                        head()->add2input(result);
+                        head()->skip_comments_and_layout();
+                        head()->dump();
                         times = 0;
                         continue;
                     }
                     if (m_char_separator != item_t::char_cast(0) &&
-                        head.get_char() == m_char_separator) {
+                        head()->get_char() == m_char_separator) {
                         m_strings.emplace_back();
                         auto result = process_char(
-                            m_char_separator, 1, head, m_strings.back());
-                        throw_if_can(
-                            head.get_char(result.second) + 1 != m_char_separator,
-                            "Char can contain only one elem");
+                            m_char_separator, 1, *head(), m_strings.back());
 
                         auto &str = m_strings.back();
                         token_t token{ { str.data(), str.size() },
                                        m_char_type,
-                                       head.get_token_pos() };
+                                       head()->get_token_pos() };
+
+                        throw_if_can(
+                            head()->get_char(result.second) == m_char_separator,
+                            token,
+                            "Char can contain only one elem");
 
                         if (!yield(token)) {
                             finish();
                             return;
                         }
 
-                        head.add2input(result.second + 1);
-                        head.skip_comments_and_layout();
-                        head.dump();
+                        head()->add2input(result.second + 1);
+                        head()->skip_comments_and_layout();
+                        head()->dump();
                         times = 0;
                         continue;
                     }
@@ -379,12 +388,12 @@ namespace cerb::lex::experimental {
                     item->dump();
                     times = 0;
                 } else {
-                    head.skip_comments_and_layout();
-                    head.dump();
+                    head()->skip_comments_and_layout();
+                    head()->dump();
                     ++times;
 
                     if (times > 1) {
-                        error(head, head.isolate_token());
+                        error(*head(), head()->isolate_token());
                     }
                 }
                 item = nullptr;

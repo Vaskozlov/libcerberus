@@ -101,8 +101,9 @@ namespace cerb {
 
         CERBLIB_UNROLL_N(4)
         for (size_t i = 0; i < sizeof(T); i++) {
-            result |= static_cast<T>(bit_cast<unsigned char>(str[i]))
-                      << (i * bitsizeof(char));
+            result |= static_cast<T>(
+                static_cast<T>(bit_cast<unsigned char>(str[i]))
+                << (i * bitsizeof(char)));
         }
 
         return result;

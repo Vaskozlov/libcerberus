@@ -19,7 +19,7 @@ namespace cerb::analysis {
         explicit lexical_analysis_error(std::string str) : message(std::move(str))
         {}
 
-        explicit lexical_analysis_error(const char *message) : message(message)
+        explicit lexical_analysis_error(const char *t_message) : message(t_message)
         {}
 
         lexical_analysis_error(lexical_analysis_error &&) noexcept      = default;
@@ -46,7 +46,7 @@ namespace cerb::analysis {
         explicit syntax_analysis_error(std::string str) : message(std::move(str))
         {}
 
-        explicit syntax_analysis_error(const char *message) : message(message)
+        explicit syntax_analysis_error(const char *t_message) : message(t_message)
         {}
 
         syntax_analysis_error(syntax_analysis_error &&) noexcept      = default;
