@@ -211,7 +211,7 @@ namespace cerb {
     using u32string_view = basic_string_view<char32_t>;
 
     namespace literals {
-        consteval auto operator"" _sv(const char *str, size_t len) -> string_view
+        constexpr auto operator"" _sv(const char *str, size_t len) -> string_view
         {
             return { str, len };
         }

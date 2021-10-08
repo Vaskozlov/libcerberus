@@ -244,8 +244,8 @@ namespace cerb::lex::experimental {
             return m_head;
         }
 
-        constexpr virtual auto process_string(item_t &item)
-            -> Pair<size_t, std::basic_string<CharT>>
+        constexpr virtual auto
+            process_string(item_t &item, std::basic_string<CharT> &result) -> size_t
         {
             throw_if_can(
                 item.get_char() == item_t::char_cast('"'),
@@ -253,7 +253,6 @@ namespace cerb::lex::experimental {
                 "strings");
 
             size_t index = 1U;
-            std::basic_string<CharT> result;
 
             CERBLIB_UNROLL_N(2)
             while (item.get_char(index) != item_t::char_cast('"')) {
@@ -270,11 +269,11 @@ namespace cerb::lex::experimental {
                 index = result_of_process.second;
 
                 if (result_of_process.first) {
-                    return { index + 1, std::move(result) };
+                    return index + 1;
                 }
             }
 
-            return { index + 1, std::move(result) };
+            return index + 1;
         }
 
     public:
@@ -302,11 +301,15 @@ namespace cerb::lex::experimental {
                 if constexpr (AllowStringLiterals) {
                     if (m_string_separator != item_t::char_cast(0) &&
                         head.get_char() == m_string_separator) {
-                        auto result = process_string(head);
-                        m_strings.emplace_back(result.second);
-                        auto &str = m_strings.back();
+                        m_strings.emplace_back();
+                        auto &str   = m_strings.back();
+                        auto result = process_string(head, str);
                         token_t token{ { str.data(), str.size() },
-                                       m_string_type,
+                                       cmov(
+                                           m_char_separator == m_string_separator &&
+                                               str.size() == 1,
+                                           m_char_type,
+                                           m_string_type),
                                        head.get_token_pos() };
 
                         if (!yield(token)) {
@@ -314,7 +317,7 @@ namespace cerb::lex::experimental {
                             return;
                         }
 
-                        head.add2input(result.first);
+                        head.add2input(result);
                         head.skip_comments_and_layout();
                         head.dump();
                         times = 0;
@@ -322,13 +325,13 @@ namespace cerb::lex::experimental {
                     }
                     if (m_char_separator != item_t::char_cast(0) &&
                         head.get_char() == m_char_separator) {
-                        std::basic_string<CharT> chars;
-                        auto result = process_char(m_char_separator, 1, head, chars);
+                        m_strings.emplace_back();
+                        auto result = process_char(
+                            m_char_separator, 1, head, m_strings.back());
                         throw_if_can(
                             head.get_char(result.second) + 1 != m_char_separator,
                             "Char can contain only one elem");
 
-                        m_strings.emplace_back(chars);
                         auto &str = m_strings.back();
                         token_t token{ { str.data(), str.size() },
                                        m_char_type,

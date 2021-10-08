@@ -1,21 +1,22 @@
-#ifndef CERBERUS_LEXER_C
-#define CERBERUS_LEXER_C
+#ifndef LEX4LEX_HPP
+#define LEX4LEX_HPP
 
 #include <iostream>
+#include <cerberus/map.hpp>
 #include <cerberus/analyzation/lex/lex.hpp>
 
 using namespace cerb::literals;
 
 // clang-format off
 
-enum Lex4LexParentBlocks : size_t
+enum Lex4LexBlocks : size_t
 {
     RESERVED         = 8UL,
     GENERAL          = 64UL,
     OPERATORS        = 128UL,
 };
 
-enum Lex4LexParentItems : size_t
+enum Lex4LexItems : size_t
 {
     UNDEFINED        = static_cast<size_t>(RESERVED) + 0UL,
     TRUE             = static_cast<size_t>(GENERAL) + 0UL,
@@ -32,14 +33,14 @@ enum Lex4LexParentItems : size_t
     EoF              = static_cast<size_t>(OPERATORS) + 5UL,
 };
 
-constexpr cerb::gl::Map<Lex4LexParentBlocks, cerb::string_view, 2> Lex4LexParentBlockNames{
+constexpr cerb::gl::Map<Lex4LexBlocks, cerb::string_view, 2> Lex4LexBlockNames{
     true, {
         { GENERAL, "GENERAL"_sv },
         { OPERATORS, "OPERATORS"_sv },
     }
 };
 
-constexpr cerb::gl::Map<Lex4LexParentItems, cerb::string_view, 12> Lex4LexParentItemsNames{
+constexpr cerb::gl::Map<Lex4LexItems, cerb::string_view, 12> Lex4LexItemsNames{
     true, {
         { TRUE, "TRUE"_sv },
         { FALSE, "FALSE"_sv },
@@ -57,10 +58,10 @@ constexpr cerb::gl::Map<Lex4LexParentItems, cerb::string_view, 12> Lex4LexParent
 };
 
 
-#define Lex4LexParentTemplate                             \
+#define Lex4LexTemplate                             \
     template<                                   \
         typename CharT = char,                       \
-        typename TokenType = Lex4LexParentItems,              \
+        typename TokenType = Lex4LexItems,              \
         bool MayThrow = true,                        \
         size_t UID = 0,                             \
         bool AllowStringLiterals = true,             \
@@ -68,12 +69,12 @@ constexpr cerb::gl::Map<Lex4LexParentItems, cerb::string_view, 12> Lex4LexParent
         size_t MaxTerminals = 64,                  \
         size_t MaxSize4Terminals = 4>
 
-Lex4LexParentTemplate
-struct Lex4LexParent: public CERBERUS_LEX_PARENT_CLASS
+Lex4LexTemplate
+struct Lex4Lex: public CERBERUS_LEX_PARENT_CLASS
 {
     CERBERUS_LEX_PARENT_CLASS_ACCESS
 
-    constexpr Lex4LexParent()
+    constexpr Lex4Lex()
     : parent(
         '\"',
         '\'',
@@ -105,4 +106,4 @@ struct Lex4LexParent: public CERBERUS_LEX_PARENT_CLASS
 };
 // clang-format on
 
-#endif /* CERBERUS_LEXER_C */
+#endif /* LEX4LEX_HPP */

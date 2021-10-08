@@ -6,75 +6,21 @@
 #include <fmt/ranges.h>
 #include <cerberus/string_view.hpp>
 #include <cerberus/analyzation/lex/lex.hpp>
+#include "Lex4Lex.hpp"
 
 using namespace cerb::literals;
 using namespace std::string_literals;
 
-enum Lex4LexParentBlocks : size_t
-{
-    RESERVED  = 8UL,
-    GENERAL   = 64UL,
-    OPERATORS = 128UL,
-};
-
-enum Lex4LexParentItems : size_t
-{
-    UNDEFINED     = static_cast<size_t>(RESERVED) + 0UL,
-    TRUE          = static_cast<size_t>(GENERAL) + 0UL,
-    FALSE         = static_cast<size_t>(GENERAL) + 1UL,
-    INT           = static_cast<size_t>(GENERAL) + 2UL,
-    IDENTIFIER    = static_cast<size_t>(GENERAL) + 3UL,
-    STRING        = static_cast<size_t>(GENERAL) + 4UL,
-    CHAR          = static_cast<size_t>(GENERAL) + 5UL,
-    ANGLE_OPENING = static_cast<size_t>(OPERATORS) + 0UL,
-    ASSIGN        = static_cast<size_t>(OPERATORS) + 1UL,
-    ANGLE_CLOSING = static_cast<size_t>(OPERATORS) + 2UL,
-    COLON         = static_cast<size_t>(OPERATORS) + 3UL,
-    WORD          = static_cast<size_t>(OPERATORS) + 4UL,
-    EoF           = static_cast<size_t>(OPERATORS) + 5UL,
-};
-
-template<
-    typename CharT = char, typename TokenType = Lex4LexParentItems,
-    bool MayThrow = true, size_t UID = 0, bool AllowStringLiterals = true,
-    bool AllowComments = true, size_t MaxTerminals = 64,
-    size_t MaxSize4Terminals = 4>
-struct Lex4LexParent : public CERBERUS_LEX_PARENT_CLASS
-{
-    CERBERUS_LEX_PARENT_CLASS_ACCESS
-
-    constexpr Lex4LexParent()
-      : parent(
-            '\"', '\'', STRING, CHAR,
-            { { TRUE, "true"_sv, true, 2 },
-              { FALSE, "false"_sv, true, 2 },
-              { INT, "[0-9]+"_sv, false, 6 },
-              { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*"_sv, false, 6 } },
-            { {
-                  { ASSIGN, '=' },
-                  { ANGLE_OPENING, '[' },
-                  { ANGLE_CLOSING, ']' },
-                  { COLON, ':' },
-                  { WORD, '|' },
-              },
-              {
-                  { EoF, "%%"_sv },
-              } },
-            "//", "/*", "*/")
-    {}
-};
-
-constexpr cerb::gl::Map<Lex4LexParentItems, cerb::string_view, 7> Lex4LexTypesRepr{
+constexpr cerb::gl::Map<Lex4LexItems, cerb::string_view, 7> Lex4LexTypesRepr{
     { IDENTIFIER, ""_sv },   { INT, "INT"_sv },
     { ASSIGN, "ASSIGN"_sv }, { ANGLE_OPENING, "ANGLE_OPENING"_sv },
     { COLON, "COLON"_sv },   { WORD, "WORD"_sv },
     { EoF, "EoF"_sv }
 };
 
-CERBERUS_LEX_TEMPLATES
-struct Lex4Lex : Lex4LexParent<>
+Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
 {
-    using Lex4LexParent<>::parent;
+    using Lex4Lex<>::parent;
     using parent::head;
     using item_t           = typename parent::item_t;
     using storage_t        = typename parent::storage_t;
@@ -138,7 +84,7 @@ struct Lex4Lex : Lex4LexParent<>
         constexpr Directive(
             string_view_t repr_,
             const std::initializer_list<const TokenType> &types)
-          : repr(repr_), allowed_types(types)
+          : allowed_types(types), repr(repr_)
         {}
     };
 
@@ -456,6 +402,7 @@ public:
             "static_cast<size_t>(RESERVED) + 0UL,\n",
             m_directives["CLASS_NAME"].repr.to_string(), "UNDEFINED");
 
+        size_t rules_count = 0;
         for (auto &elem : m_blocks) {
             size_t j = 0;
 
@@ -465,6 +412,7 @@ public:
                     "    {:<16} = static_cast<size_t>({}) + {}UL,\n",
                     i.first.to_string(), elem.first.to_string(), j++);
             }
+            rules_count += elem.second.words.size();
 
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.rules) {
@@ -472,6 +420,7 @@ public:
                     "    {:<16} = static_cast<size_t>({}) + {}UL,\n",
                     i.first.to_string(), elem.first.to_string(), j++);
             }
+            rules_count += elem.second.rules.size();
 
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.operators) {
@@ -479,20 +428,63 @@ public:
                     "    {:<16} = static_cast<size_t>({}) + {}UL,\n",
                     i.first.to_string(), elem.first.to_string(), j++);
             }
+
+            rules_count += elem.second.operators.size();
         }
+        generated_string += "};\n\n";
 
         generated_string += fmt::format(
-            R"(}};
+            "constexpr cerb::gl::Map<{0}Blocks, cerb::string_view, {1}> "
+            "{0}BlockNames{{\n    true, {{\n",
+            m_directives["CLASS_NAME"].repr.to_string(), m_blocks.size());
 
-template<
-    typename CharT = {1},
-    typename TokenType = {0}Items,
-    bool MayThrow = {2},
-    size_t UID = 0,
-    bool AllowStringLiterals = {3},
-    bool AllowComments = {4},
-    size_t MaxTerminals = {5},
-    size_t MaxSize4Terminals = {6}>
+        CERBLIB_UNROLL_N(2)
+        for (const auto &elem : m_blocks) {
+            generated_string += fmt::format(
+                "        {{ {0}, \"{0}\"_sv }},\n", elem.first.to_string());
+        }
+
+        generated_string += "    }\n};\n\n";
+
+        generated_string += fmt::format(
+            "constexpr cerb::gl::Map<{0}Items, cerb::string_view, {1}> "
+            "{0}ItemsNames{{\n    true, {{\n",
+            m_directives["CLASS_NAME"].repr.to_string(), rules_count);
+
+        CERBLIB_UNROLL_N(2)
+        for (const auto &elem : m_blocks) {
+            for (const auto &i : elem.second.words) {
+                generated_string += fmt::format(
+                    "        {{ {0}, \"{0}\"_sv }},\n", i.first.to_string());
+            }
+
+            for (const auto &i : elem.second.rules) {
+                generated_string += fmt::format(
+                    "        {{ {0}, \"{0}\"_sv }},\n", i.first.to_string());
+            }
+
+            for (const auto &i : elem.second.operators) {
+                generated_string += fmt::format(
+                    "        {{ {0}, \"{0}\"_sv }},\n", i.first.to_string());
+            }
+        }
+
+        generated_string += "    }\n};\n\n";
+
+        generated_string += fmt::format(
+            R"(
+#define {0}Template                             \
+    template<                                   \
+        typename CharT = {1},                       \
+        typename TokenType = {0}Items,              \
+        bool MayThrow = {2},                        \
+        size_t UID = 0,                             \
+        bool AllowStringLiterals = {3},             \
+        bool AllowComments = {4},                   \
+        size_t MaxTerminals = {5},                  \
+        size_t MaxSize4Terminals = {6}>
+
+{0}Template
 struct {0}: public CERBERUS_LEX_PARENT_CLASS
 {{
     CERBERUS_LEX_PARENT_CLASS_ACCESS
@@ -503,7 +495,8 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
             m_directives["ALLOW_STRING_LITERALS"].repr.to_string(),
             m_directives["ALLOW_COMMENTS"].repr.to_string(),
             m_directives["MAX_TERMINALS"].repr.to_string(),
-            m_directives["MAX_SIZE_FOR_TERMINAL"].repr.to_string());
+            m_directives["MAX_SIZE_FOR_TERMINAL"].repr.to_string(),
+            '/');
 
         generated_string += fmt::format(
             R"(
@@ -586,41 +579,51 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
             }
         }
 
-        generated_string += "\n           }";
-        generated_string += "\n        }\n    )\n    {}";
+        generated_string += "\n           }\n";
+        generated_string += "        },\n";
+        generated_string += fmt::format(
+            "        {3}\"{0}\",\n        {3}\"{1}\",\n        {3}\"{2}\"\n    ",
+            m_directives["SINGLE_LINE_COMMENT"].repr.to_string(),
+            m_directives["MULTILINE_COMMENT_BEGIN"].repr.to_string(),
+            m_directives["MULTILINE_COMMENT_END"].repr.to_string(),
+            m_directives["STRING_PREFIX"].repr.to_string());
+        generated_string += ")\n    {}";
     }
 
-    constexpr Lex4Lex() = default;
+    constexpr Lex4LexImpl() = default;
 };
 
-Lex4Lex lex{};
 
 auto main(int argc, char *argv[]) -> int
 {
-    std::string filename = argv[1];
-    std::ifstream t(argv[1]);
-    std::stringstream buffer{};
-    buffer << t.rdbuf();
-    t.close();
+    for (int i = 1; i < argc; ++i) {
+        Lex4LexImpl lex{};
 
-    std::string data = buffer.str();
-    size_t offset    = data.find_first_of("%%") + 2;
-    lex.scan(data.c_str() + offset, argv[1]);
+        std::string filename = argv[i];
+        std::ifstream t(argv[i]);
+        std::stringstream buffer{};
+        buffer << t.rdbuf();
+        t.close();
 
-    std::string rest_class = data.substr(
-        static_cast<unsigned long>(lex.get_input().data() - data.c_str()));
-    std::string rest = rest_class.substr(rest_class.find_last_of("%%") + 2);
+        std::string data = buffer.str();
+        size_t offset    = data.find_first_of("%%") + 2;
+        lex.scan(data.c_str() + offset, argv[i]);
 
-    rest_class.erase(rest_class.find("%%"));
-    data.erase(offset - 2);
+        std::string rest_class = data.substr(
+            static_cast<unsigned long>(lex.get_input().data() - data.c_str()));
+        std::string rest = rest_class.substr(rest_class.find_last_of("%%") + 2);
 
-    data += lex.get_result() + rest_class + "\n};\n" + rest;
-    filename.erase(filename.find_last_of('.'));
-    filename += ".hpp";
+        rest_class.erase(rest_class.find("%%"));
+        data.erase(offset - 2);
 
-    std::ofstream out(filename);
-    out << data;
-    out.close();
+        data += lex.get_result() + rest_class + "\n};\n" + rest;
+        filename.erase(filename.find_last_of('.'));
+        filename += ".hpp";
+
+        std::ofstream out(filename);
+        out << data;
+        out.close();
+    }
 
     return 0;
 }

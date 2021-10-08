@@ -1,0 +1,38 @@
+#ifndef LEX4LEX_HPP
+#define LEX4LEX_HPP
+
+#include <iostream>
+#include <cerberus/map.hpp>
+#include <cerberus/analyzation/lex/lex.hpp>
+
+using namespace cerb::literals;
+
+// clang-format off
+
+%%
+CLASS_NAME = Lex4Lex
+STRING_POSTFIX = "_sv"
+MAX_TERMINALS = 64
+
+[GENERAL]
+STRING: "\\\""
+CHAR: "\\\'"
+TRUE: |"true"
+FALSE: |"false"
+INT: "[0-9]+"
+IDENTIFIER: "[a-zA-Z_]+[a-zA-Z0-9_]*"
+
+[OPERATORS]
+ASSIGN:         '='
+ANGLE_OPENING:  '['
+ANGLE_CLOSING:  ']'
+COLON:          ':'
+WORD:           '|'
+EoF:            "%%"
+
+%%
+
+%%
+// clang-format on
+
+#endif /* LEX4LEX_HPP */
