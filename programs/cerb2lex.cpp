@@ -302,7 +302,7 @@ public:
                 process_declaration(token);
                 break;
 
-            case EoF:
+            case EoR:
                 return false;
 
             default:
@@ -330,7 +330,7 @@ public:
                 "Unable to recognize any action with this token!");
         }
 
-        return token.type != EoF;
+        return token.type != EoR;
     }
 
     constexpr auto syntax_error(

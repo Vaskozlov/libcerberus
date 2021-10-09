@@ -30,7 +30,7 @@ enum Lex4LexItems : size_t
     ANGLE_CLOSING    = static_cast<size_t>(OPERATORS) + 2UL,
     COLON            = static_cast<size_t>(OPERATORS) + 3UL,
     WORD             = static_cast<size_t>(OPERATORS) + 4UL,
-    EoF              = static_cast<size_t>(OPERATORS) + 5UL,
+    EoR              = static_cast<size_t>(OPERATORS) + 5UL,
 };
 
 constexpr cerb::gl::Map<Lex4LexBlocks, cerb::string_view, 2> Lex4LexBlockNames{
@@ -53,7 +53,7 @@ constexpr cerb::gl::Map<Lex4LexItems, cerb::string_view, 12> Lex4LexItemsNames{
         { ANGLE_CLOSING, "ANGLE_CLOSING"_sv },
         { COLON, "COLON"_sv },
         { WORD, "WORD"_sv },
-        { EoF, "EoF"_sv },
+        { EoR, "EoR"_sv },
     }
 };
 
@@ -95,7 +95,7 @@ struct Lex4Lex: public CERBERUS_LEX_PARENT_CLASS
                 { WORD, '|' },
             },
            {
-                { EoF, "%%"_sv },
+                { EoR, "%%"_sv },
            }
         },
         "//",
