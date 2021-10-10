@@ -1,0 +1,41 @@
+#ifndef CERBERUS_CALCULATOR_HPP
+#define CERBERUS_CALCULATOR_HPP
+
+#include <iostream>
+#include <cerberus/map.hpp>
+#include <cerberus/analyzation/lex/lex.hpp>
+
+using namespace cerb::literals;
+
+// clang-format off
+
+%%
+CLASS_NAME = Calculator
+STRING_POSTFIX = "_sv"
+MAX_TERMINALS = 16
+
+[FUNCTION]
+SIN: |"sin"
+COS: |"cos"
+TG:  |"tg"
+CTG: |"ctg"
+
+[VALUE]
+INT: "[0-9]+"
+
+[OPERATORS]
+ADD: '+'
+SUB: '-'
+MUL: '*'
+DIV: '/'
+
+[SEPARATOR]
+LEFT_PARENTHESIS: '('
+RIGHT_PARENTHESIS: ')'
+
+%%
+
+%%
+// clang-format on
+
+#endif /* CERBERUS_CALCULATOR_HPP */

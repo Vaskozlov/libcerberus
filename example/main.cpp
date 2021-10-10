@@ -2,11 +2,11 @@
 #include <chrono>
 #include <iomanip>
 #include <iostream>
-#include <cerberus/analyzation/lex/lex.hpp>
 #include <cerberus/string_view.hpp>
 #include <fmt/format.h>
 #include <fmt/color.h>
 #include "C_lexer.hpp"
+#include "calculator.hpp"
 
 using namespace cerb::literals;
 using namespace std::string_view_literals;
@@ -109,128 +109,6 @@ struct Lex : public CERBERUS_LEX_PARENT_CLASS
     {}
 };
 
-CERBERUS_LEX_TEMPLATES struct Calculator : public CERBERUS_LEX_PARENT_CLASS
-{
-    CERBERUS_LEX_PARENT_CLASS_ACCESS
-
-    size_t TokenIndex{};
-    token_t Token{};
-
-    void input()
-    {
-        switch (Token.type) {
-        case 2:
-        case 5:
-            expression();
-            break;
-        default:
-            error();
-        }
-    }
-
-    void expression()
-    {
-        switch (Token.type) {
-        case 2:
-        case 5:
-            term();
-            rest_expression();
-            break;
-        default:
-            error();
-        }
-    }
-
-    void term()
-    {
-        switch (Token.type) {
-        case 2:
-            token(2);
-            break;
-
-        case 5:
-            parenthesized_expression();
-            break;
-        default:
-            error();
-        }
-    }
-
-    void parenthesized_expression()
-    {
-        switch (Token.type) {
-        case 5:
-            token(5);
-            expression();
-            token(6);
-            break;
-
-        default:
-            error();
-        }
-    }
-
-    void rest_expression()
-    {
-        switch (Token.type) {
-        case 3:
-            token(3);
-            expression();
-            break;
-        case 6:
-            break;
-        default:
-            error();
-        }
-    }
-
-    void token(TokenType tk)
-    {
-        if (tk != Token.type)
-            error();
-    }
-
-    void error()
-    {
-        throw std::runtime_error("Syntax error!");
-    }
-
-    constexpr void yield(const token_t &token) override
-    {
-        if constexpr (sizeof(CharT) == 1) {
-            std::cout << std::setw(8) << std::left << token.repr << ' ' << token.type
-                      << ' ' << token.pos << std::setw(0) << std::endl;
-        }
-        return;
-    }
-
-    constexpr void error(
-        const position_t &pos, const string_view_t &line,
-        const string_view_t &repr) override
-    {
-        if constexpr (sizeof(CharT) == 1) {
-            fmt::print(
-                "Lexical analyzer error! At: file: {}, line: {}, column: {}\n",
-                pos.filename.to_string(), pos.line_number, pos.char_number);
-
-            fmt::print(fmt::emphasis::italic, "{}\n", line.to_string());
-            CERBLIB_UNROLL_N(4)
-            for (int i = 0; i < static_cast<int>(repr.begin() - line.begin()); ++i) {
-                putchar(' ');
-            }
-            fmt::print(fmt::fg(fmt::color::green), "^\n");
-            fmt::print("Representation of token: {}", repr.to_string());
-            std::cout << std::endl << std::endl;
-        }
-        throw std::runtime_error("");
-    }
-
-    constexpr CERBERUS_LEX_INITIALIZER(Calculator)
-    {}
-
-    constexpr ~Calculator() = default;
-};
-
 Lex<char, TokenType> controller{ { { FOR, "for"_sv },
                                    { WHILE, "while"_sv },
                                    { CHAR, "char"_sv },
@@ -293,41 +171,38 @@ Lex<char, TokenType> controller{ { { FOR, "for"_sv },
                                        { XOR_EQ, "^="_sv },
                                    } } };
                                    */
-/*
-Calculator<char, int> calculator(
-    { { 0, "sin"_sv }, { 1, "cos"_sv } }, { { 2, "[0-9]+" } },
-    { { { 3, '+' }, { 4, '-' }, { 5, '(' }, { 6, ')' } }, { { 7, ">>"_sv } } });
 
-Calculator<char16_t, int> calculator_u16(
-    { { 0, u"sin"_sv }, { 1, u"cos"_sv } }, { { 2, u"[0-9]+" } },
-    { { { 3, u'+' }, { 4, u'-' }, { 5, u'(' }, { 6, u')' } }, { { 7, u">>"_sv } } },
-    u"//", u"", u"");
-*/
-
-struct TestImpl : TestLexC<>
+CalculatorTemplate struct CalculatorImp final : public Calculator<>
 {
+    CalculatorAccess;
+
     constexpr auto yield(const token_t &token) -> bool override
     {
+        fmt::print(
+            "{:<16} {:<20} ", token.repr.to_string(),
+            CalculatorItemItemsNames[token.type].to_string());
+
+        std::cout << token.pos << std::endl;
+
         return true;
     }
 
     constexpr auto error(const item_t &item, const string_view_t &repr)
         -> void override
     {
-        cerb::analysis::basic_lexical_error(item, repr, "lexical analysis error");
+        cerb::analysis::basic_lexical_error(
+            item, repr, "Unable to find suitable dot item for: ");
     }
 
     constexpr auto finish() -> void override
     {}
 };
 
-
-TestImpl test{};
-
 auto main(int argc, char *argv[]) -> int
 {
-    static const char *input = R"(
+    CalculatorImp calculator{};
 
+    static const char *input = R"(
     int main(int argc, char **argv) {
         int a = 10;
         int b = 20;
@@ -344,10 +219,8 @@ auto main(int argc, char *argv[]) -> int
 )";
 
 
-
-
     // controller.scan(input, "stdio");
-    // calculator.scan("\"Hello!\" sin(50) + cos(50 + 20)", "stdio");
+    calculator.scan("sin(50) + cos(50 + 20)", "stdio");
     // calculator_u16.scan(u"\"Hello!\" sin(50) + cos(50 + 20)", u"stdio");
     //     calculator.input();
 

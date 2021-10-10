@@ -8,51 +8,55 @@ using namespace cerb::literals;
 
 // clang-format off
 
-enum Lex4LexParentBlocks : size_t
+enum struct Lex4LexParentBlock : size_t
 {
     RESERVED         = 8UL,
     GENERAL          = 64UL,
     OPERATORS        = 128UL,
 };
 
-enum Lex4LexParentItems : size_t
+enum struct Lex4LexParentItem : size_t
 {
-    UNDEFINED        = static_cast<size_t>(RESERVED) + 0UL,
-    TRUE             = static_cast<size_t>(GENERAL) + 0UL,
-    FALSE            = static_cast<size_t>(GENERAL) + 1UL,
-    INT              = static_cast<size_t>(GENERAL) + 2UL,
-    IDENTIFIER       = static_cast<size_t>(GENERAL) + 3UL,
-    STRING           = static_cast<size_t>(GENERAL) + 4UL,
-    CHAR             = static_cast<size_t>(GENERAL) + 5UL,
-    ASSIGN           = static_cast<size_t>(OPERATORS) + 0UL,
-    ANGLE_OPENING    = static_cast<size_t>(OPERATORS) + 1UL,
-    ANGLE_CLOSING    = static_cast<size_t>(OPERATORS) + 2UL,
-    COLON            = static_cast<size_t>(OPERATORS) + 3UL,
-    WORD             = static_cast<size_t>(OPERATORS) + 4UL,
-    EoF              = static_cast<size_t>(OPERATORS) + 5UL,
+    UNDEFINED        = static_cast<size_t>(Lex4LexParentBlock::RESERVED) + 0UL,
+    EoF              = static_cast<size_t>(Lex4LexParentBlock::RESERVED) + 1UL,
+    TRUE             = static_cast<size_t>(Lex4LexParentBlock::GENERAL) + 0UL,
+    FALSE            = static_cast<size_t>(Lex4LexParentBlock::GENERAL) + 1UL,
+    INT              = static_cast<size_t>(Lex4LexParentBlock::GENERAL) + 2UL,
+    IDENTIFIER       = static_cast<size_t>(Lex4LexParentBlock::GENERAL) + 3UL,
+    STRING           = static_cast<size_t>(Lex4LexParentBlock::GENERAL) + 4UL,
+    CHAR             = static_cast<size_t>(Lex4LexParentBlock::GENERAL) + 5UL,
+    ASSIGN           = static_cast<size_t>(Lex4LexParentBlock::OPERATORS) + 0UL,
+    ANGLE_OPENING    = static_cast<size_t>(Lex4LexParentBlock::OPERATORS) + 1UL,
+    ANGLE_CLOSING    = static_cast<size_t>(Lex4LexParentBlock::OPERATORS) + 2UL,
+    COLON            = static_cast<size_t>(Lex4LexParentBlock::OPERATORS) + 3UL,
+    WORD             = static_cast<size_t>(Lex4LexParentBlock::OPERATORS) + 4UL,
+    EoR              = static_cast<size_t>(Lex4LexParentBlock::OPERATORS) + 5UL,
 };
 
-constexpr cerb::gl::Map<Lex4LexParentBlocks, cerb::string_view, 2> Lex4LexParentBlockNames{
+constexpr cerb::gl::Map<Lex4LexParentBlock, cerb::string_view, 3> Lex4LexParentBlockNames{
     true, {
-        { GENERAL, "GENERAL"_sv },
-        { OPERATORS, "OPERATORS"_sv },
+        { Lex4LexParentBlock::RESERVED, "RESERVED"_sv },
+        { Lex4LexParentBlock::GENERAL, "GENERAL"_sv },
+        { Lex4LexParentBlock::OPERATORS, "OPERATORS"_sv },
     }
 };
 
-constexpr cerb::gl::Map<Lex4LexParentItems, cerb::string_view, 12> Lex4LexParentItemsNames{
+constexpr cerb::gl::Map<Lex4LexParentItem, cerb::string_view, 14> Lex4LexParentItemItemsNames{
     true, {
-        { TRUE, "TRUE"_sv },
-        { FALSE, "FALSE"_sv },
-        { INT, "INT"_sv },
-        { IDENTIFIER, "IDENTIFIER"_sv },
-        { STRING, "STRING"_sv },
-        { CHAR, "CHAR"_sv },
-        { ASSIGN, "ASSIGN"_sv },
-        { ANGLE_OPENING, "ANGLE_OPENING"_sv },
-        { ANGLE_CLOSING, "ANGLE_CLOSING"_sv },
-        { COLON, "COLON"_sv },
-        { WORD, "WORD"_sv },
-        { EoF, "EoF"_sv },
+        { Lex4LexParentItem::UNDEFINED, "UNDEFINED"_sv },
+        { Lex4LexParentItem::EoF, "EoF"_sv },
+        { Lex4LexParentItem::TRUE, "TRUE"_sv },
+        { Lex4LexParentItem::FALSE, "FALSE"_sv },
+        { Lex4LexParentItem::INT, "INT"_sv },
+        { Lex4LexParentItem::IDENTIFIER, "IDENTIFIER"_sv },
+        { Lex4LexParentItem::STRING, "STRING"_sv },
+        { Lex4LexParentItem::CHAR, "CHAR"_sv },
+        { Lex4LexParentItem::ASSIGN, "ASSIGN"_sv },
+        { Lex4LexParentItem::ANGLE_OPENING, "ANGLE_OPENING"_sv },
+        { Lex4LexParentItem::ANGLE_CLOSING, "ANGLE_CLOSING"_sv },
+        { Lex4LexParentItem::COLON, "COLON"_sv },
+        { Lex4LexParentItem::WORD, "WORD"_sv },
+        { Lex4LexParentItem::EoR, "EoR"_sv },
     }
 };
 
@@ -60,7 +64,7 @@ constexpr cerb::gl::Map<Lex4LexParentItems, cerb::string_view, 12> Lex4LexParent
 #define Lex4LexParentTemplate                             \
     template<                                   \
         typename CharT = char,                       \
-        typename TokenType = Lex4LexParentItems,              \
+        typename TokenType = Lex4LexParentItem,              \
         bool MayThrow = true,                        \
         size_t UID = 0,                             \
         bool AllowStringLiterals = true,             \
@@ -68,10 +72,26 @@ constexpr cerb::gl::Map<Lex4LexParentItems, cerb::string_view, 12> Lex4LexParent
         size_t MaxTerminals = 64,                  \
         size_t MaxSize4Terminals = 4>
 
+#define Lex4LexParentDefinition(CLASS) CalculatorTemplate struct CLASS : public Lex4LexParent<>
+
+#define Lex4LexParentAccess using Lex4LexParent<>::parent;               \
+        using parent::head;                                                         \
+        using item_t           = typename parent::item_t;                           \
+        using storage_t        = typename parent::storage_t;                        \
+        using token_t          = typename parent::token_t;                          \
+        using result_t         = typename parent::result_t;                         \
+        using position_t       = typename parent::position_t;                       \
+        using string_t         = typename parent::string_t;                         \
+        using string_view_t    = typename parent::string_view_t;                    \
+        using string_checker_t = typename parent::string_checker_t;                 \
+        using item_initializer  = typename parent::item_initializer;                \
+        using enum Lex4LexParentItem;
+
 Lex4LexParentTemplate
 struct Lex4LexParent: public CERBERUS_LEX_PARENT_CLASS
 {
     CERBERUS_LEX_PARENT_CLASS_ACCESS
+    using enum Lex4LexParentItem;
 
     constexpr Lex4LexParent()
     : parent(
@@ -94,7 +114,7 @@ struct Lex4LexParent: public CERBERUS_LEX_PARENT_CLASS
                 { WORD, '|' },
             },
            {
-                { EoF, "%%"_sv },
+                { EoR, "%%"_sv },
            }
         },
         "//",

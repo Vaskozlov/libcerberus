@@ -27,7 +27,7 @@ ANGLE_OPENING:  '['
 ANGLE_CLOSING:  ']'
 COLON:          ':'
 WORD:           '|'
-EoF:            "%%"
+EoR:            "%%"
 
 %%
 
