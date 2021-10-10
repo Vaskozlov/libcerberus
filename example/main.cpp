@@ -33,7 +33,7 @@ auto main() -> int
     CalculatorImp calculator{};
     Lex4CImp C_lexer{};
 
-    //calculator.scan("sin(50) + cos(50 + 20)", "stdio");
+    // calculator.scan("sin(50) + cos(50 + 20)", "stdio");
     C_lexer.scan(input, "stdio");
 
     return 0;
@@ -42,5 +42,4 @@ auto main() -> int
 /*
  * TODO:
  *  1) if string is to long print half on it on error
- *  2) add an opportunity to set block for char, string (and make them optional!)
  */

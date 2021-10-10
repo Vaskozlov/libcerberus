@@ -92,7 +92,7 @@ namespace cerb::lex::experimental {
         const TokenType m_char_type{};
         const CharT m_string_separator{};
         const CharT m_char_separator{};
-
+        constexpr static string_view_t repr4EoF = "$";
 
     private:
         enum StringScanState
@@ -431,7 +431,8 @@ namespace cerb::lex::experimental {
                 }
                 item = nullptr;
             }
-            yield({ {}, static_cast<TokenType>(EoF), head()->get_token_pos() });
+            yield(
+                { repr4EoF, static_cast<TokenType>(EoF), head()->get_token_pos() });
             finish();
         }
 
