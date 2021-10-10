@@ -362,7 +362,7 @@ public:
 
     constexpr auto finish() -> void override
     {
-        constexpr unsigned long MinimumPower = 6;
+        constexpr unsigned long MinimumPower = 12;
         cerb::gl::Set<u16, bitsizeof(uintmax_t)> taken_powers{};
 
         if (m_directives["CLASS_NAME"].repr.size() == 0) {

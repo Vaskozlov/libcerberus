@@ -12,10 +12,10 @@ using namespace cerb::literals;
 enum struct CalculatorBlock : size_t
 {
     RESERVED         = 8UL,
-    FUNCTION         = 64UL,
-    OPERATORS        = 128UL,
-    SEPARATOR        = 256UL,
-    VALUE            = 512UL,
+    FUNCTION         = 4096UL,
+    OPERATORS        = 8192UL,
+    SEPARATOR        = 16384UL,
+    VALUE            = 32768UL,
 };
 
 enum struct CalculatorItem : size_t
@@ -107,7 +107,7 @@ struct Calculator: public CERBERUS_LEX_PARENT_CLASS
             { COS, "cos"_sv, true, 2 },
             { TG, "tg"_sv, true, 2 },
             { CTG, "ctg"_sv, true, 2 },
-            { INT, "[0-9]+"_sv, false, 9 }
+            { INT, "[0-9]+"_sv, false, 15 }
         },
         {
             { 

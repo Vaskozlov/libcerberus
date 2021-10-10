@@ -2,6 +2,7 @@
 #define CERBERUS_LEXER_C
 
 #include <iostream>
+#include <cerberus/map.hpp>
 #include <cerberus/analyzation/lex/lex.hpp>
 
 using namespace cerb::literals;
@@ -9,25 +10,87 @@ using namespace cerb::literals;
 // clang-format off
 
 %%
-CLASS_NAME = Lex4LexParent
-STRING_POSTFIX = "_sv"
-MAX_TERMINALS = 64
+CLASS_NAME      = Lex4C
+STRING_POSTFIX  = "_sv"
 
-[GENERAL]
-STRING: "\\\""
-CHAR: "\\\'"
-TRUE: |"true"
-FALSE: |"false"
-INT: "[0-9]+"
-IDENTIFIER: "[a-zA-Z_]+[a-zA-Z0-9_]*"
+[ARITHMETIC_OPERATOR]
+ADD:    '+'
+SUB:    '-'
+MUL:    '*'
+DIV:    '/'
+MOD:    '%'
+ASSIGN: '='
 
-[OPERATORS]
-ASSIGN:         '='
-ANGLE_OPENING:  '['
-ANGLE_CLOSING:  ']'
-COLON:          ':'
-WORD:           '|'
-EoR:            "%%"
+ADD_EQ:             "+="
+SUB_EQ:             "-="
+MUL_EQ:             "*="
+DIV_EQ:             "/="
+MOD_EQ:             "%="
+
+[BIT_OPERATOR]
+OR:                 '|'
+AND:                '&'
+XOR:                '^'
+NOT:                '~'
+
+OR_EQ:              "|="
+AND_EQ:             "&="
+XOR_EQ:             "^="
+
+LEFT_SHIFT:         "<<"
+RIGHT_SHIFT:        ">>"
+LEFT_SHIFT_EQ:      "<<="
+RIGHT_SHIFT_EQ:     ">>="
+
+[LOGICAL_OPERATOR]
+LESS:           '<'
+GREATER:        '>'
+LOGICAL_NOT:    '!'
+
+LES_EQ:         "<="
+GREATER_EQ:     ">="
+
+LOGICAL_OR:         "||"
+LOGICAL_AND:        "&&"
+LOGICAL_EQUAL:      "=="
+LOGICAL_NOT_EQUAL:  "!="
+
+[KEYWORD]
+FOR:                |"for"
+WHILE:              |"while"
+RETURN:             |"return"
+CASE:               |"case"
+SWITCH:             |"switch"
+
+[TYPE]
+INT:                |"int"
+CHAR_T:             |"char"
+LONG:               |"long"
+SHORT:              |"short"
+FLOAT_T:            |"float"
+DOUBLE_T:           |"double"
+SIGNED:             |"signed"
+UNSIGNED:           |"unsigned"
+
+[OPERATOR_SEPARATOR]
+CURLY_OPENING:      '{'
+CURLY_CLOSING:      '}'
+LEFT_PARENTHESIS:   '('
+RIGHT_PARENTHESIS:  ')'
+ANGLE_OPENING:      '['
+ANGLE_CLOSING:      ']'
+COMMA:              ','
+SEPARATOR:          ';'
+PREPROCESSOR:       '#'
+QUESTION_MARK:      '?'
+
+[VALUES]
+CHAR:               "\\\'"
+STRING:             "\\\""
+INTEGER:            "[0-9]+"
+FLOAT:              "[0-9]+[.][0-9]*[f]"
+DOUBLE:             "[0-9]+[.][0-9]*"
+IDENTIFIER:         "[a-zA_Z_]+[a-zA-Z0-9_]*"
 
 %%
 

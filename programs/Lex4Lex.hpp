@@ -12,8 +12,8 @@ using namespace cerb::literals;
 enum struct Lex4LexBlock : size_t
 {
     RESERVED         = 8UL,
-    GENERAL          = 64UL,
-    OPERATORS        = 128UL,
+    GENERAL          = 4096UL,
+    OPERATORS        = 8192UL,
 };
 
 enum struct Lex4LexItem : size_t
@@ -103,8 +103,8 @@ struct Lex4Lex: public CERBERUS_LEX_PARENT_CLASS
         {
             { TRUE, "true"_sv, true, 2 },
             { FALSE, "false"_sv, true, 2 },
-            { INT, "[0-9]+"_sv, false, 6 },
-            { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*"_sv, false, 6 }
+            { INT, "[0-9]+"_sv, false, 12 },
+            { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*"_sv, false, 12 }
         },
         {
             { 
