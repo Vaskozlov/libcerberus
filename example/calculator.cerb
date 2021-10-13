@@ -14,20 +14,11 @@ CLASS_NAME = Calculator
 STRING_POSTFIX = "_sv"
 MAX_TERMINALS = 16
 
-[FUNCTION]
-SIN: |"sin"
-COS: |"cos"
-TG:  |"tg"
-CTG: |"ctg"
-
 [VALUE]
 INT: "[0-9]+"
 
 [OPERATORS]
 ADD: '+'
-SUB: '-'
-MUL: '*'
-DIV: '/'
 
 [SEPARATOR]
 LEFT_PARENTHESIS: '('

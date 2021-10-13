@@ -20,6 +20,10 @@ enum struct Lex4LexItem : size_t
 {
     UNDEFINED        = static_cast<size_t>(Lex4LexBlock::RESERVED) + 0UL,
     EoF              = static_cast<size_t>(Lex4LexBlock::RESERVED) + 1UL,
+    SELF             = static_cast<size_t>(Lex4LexBlock::RESERVED) + 2UL,
+    EXPR             = static_cast<size_t>(Lex4LexBlock::RESERVED) + 3UL,
+    TERM             = static_cast<size_t>(Lex4LexBlock::RESERVED) + 4UL,
+    EMPTY            = static_cast<size_t>(Lex4LexBlock::RESERVED) + 5UL,
     TRUE             = static_cast<size_t>(Lex4LexBlock::GENERAL) + 0UL,
     FALSE            = static_cast<size_t>(Lex4LexBlock::GENERAL) + 1UL,
     INT              = static_cast<size_t>(Lex4LexBlock::GENERAL) + 2UL,
@@ -42,10 +46,14 @@ constexpr cerb::gl::Map<Lex4LexBlock, cerb::string_view, 3> Lex4LexBlockNames{
     }
 };
 
-constexpr cerb::gl::Map<Lex4LexItem, cerb::string_view, 14> Lex4LexItemItemsNames{
+constexpr cerb::gl::Map<Lex4LexItem, cerb::string_view, 18> Lex4LexItemItemsNames{
     true, {
         { Lex4LexItem::UNDEFINED, "UNDEFINED"_sv },
         { Lex4LexItem::EoF, "EoF"_sv },
+        { Lex4LexItem::SELF, "SELF"_sv },
+        { Lex4LexItem::EXPR, "EXPR"_sv },
+        { Lex4LexItem::TERM, "TERM"_sv },
+        { Lex4LexItem::EMPTY, "EMPTY"_sv },
         { Lex4LexItem::TRUE, "TRUE"_sv },
         { Lex4LexItem::FALSE, "FALSE"_sv },
         { Lex4LexItem::INT, "INT"_sv },

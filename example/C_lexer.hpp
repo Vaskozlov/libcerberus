@@ -25,6 +25,10 @@ enum struct Lex4CItem : size_t
 {
     UNDEFINED        = static_cast<size_t>(Lex4CBlock::RESERVED) + 0UL,
     EoF              = static_cast<size_t>(Lex4CBlock::RESERVED) + 1UL,
+    SELF             = static_cast<size_t>(Lex4CBlock::RESERVED) + 2UL,
+    EXPR             = static_cast<size_t>(Lex4CBlock::RESERVED) + 3UL,
+    TERM             = static_cast<size_t>(Lex4CBlock::RESERVED) + 4UL,
+    EMPTY            = static_cast<size_t>(Lex4CBlock::RESERVED) + 5UL,
     ADD              = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 0UL,
     SUB              = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 1UL,
     MUL              = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 2UL,
@@ -100,10 +104,14 @@ constexpr cerb::gl::Map<Lex4CBlock, cerb::string_view, 8> Lex4CBlockNames{
     }
 };
 
-constexpr cerb::gl::Map<Lex4CItem, cerb::string_view, 62> Lex4CItemItemsNames{
+constexpr cerb::gl::Map<Lex4CItem, cerb::string_view, 66> Lex4CItemItemsNames{
     true, {
         { Lex4CItem::UNDEFINED, "UNDEFINED"_sv },
         { Lex4CItem::EoF, "EoF"_sv },
+        { Lex4CItem::SELF, "SELF"_sv },
+        { Lex4CItem::EXPR, "EXPR"_sv },
+        { Lex4CItem::TERM, "TERM"_sv },
+        { Lex4CItem::EMPTY, "EMPTY"_sv },
         { Lex4CItem::ADD, "ADD"_sv },
         { Lex4CItem::SUB, "SUB"_sv },
         { Lex4CItem::MUL, "MUL"_sv },

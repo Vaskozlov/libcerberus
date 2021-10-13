@@ -6,7 +6,7 @@
 #include <cerberus/analyzation/exceptions.hpp>
 
 #define CERBERUS_LEX_PARENT_CLASS                                                   \
-    cerb::lex::experimental::LexicalAnalyzer<                                       \
+    cerb::lex::LexicalAnalyzer<                                                     \
         CharT,                                                                      \
         TokenType,                                                                  \
         MayThrow,                                                                   \
@@ -17,7 +17,7 @@
         MaxSize4Terminals>
 
 #define CERBERUS_LEX_PARENT_CLASS_ACCESS                                            \
-    using parent = cerb::lex::experimental::LexicalAnalyzer<                        \
+    using parent = cerb::lex::LexicalAnalyzer<                                      \
         CharT,                                                                      \
         TokenType,                                                                  \
         MayThrow,                                                                   \
@@ -39,7 +39,7 @@
     using item_initializer   = typename parent::item_initializer;                   \
     using string_container_t = typename parent::string_container_t;
 
-namespace cerb::lex::experimental {
+namespace cerb::lex {
     template<
         typename CharT,
         typename TokenType,
@@ -459,6 +459,6 @@ namespace cerb::lex::experimental {
                 single_line_comment, multiline_comment_begin, multiline_comment_end);
         }
     };
-}// namespace cerb::lex::experimental
+}// namespace cerb::lex
 
 #endif /* CERBERUS_LEX_HPP */

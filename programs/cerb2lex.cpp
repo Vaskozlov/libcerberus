@@ -10,6 +10,7 @@
 
 using namespace cerb::literals;
 using namespace std::string_literals;
+using namespace std::string_view_literals;
 
 Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
 {
@@ -134,8 +135,8 @@ private:
     };
 
     static constexpr size_t MaxPriority = 64;
-    static constexpr cerb::gl::Set<std::string_view, 2> m_reserved_types{
-        "UNDEFINED", "EoF"
+    static constexpr std::array m_reserved_types{
+        "UNDEFINED"sv, "EoF"sv, "SELF"sv, "EXPR"sv, "TERM"sv, "EMPTY"sv
     };
 
 private:

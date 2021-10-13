@@ -27,14 +27,13 @@ const char *const input = R"(
     }
 )";
 
-
 auto main() -> int
 {
     CalculatorImp calculator{};
     Lex4CImp C_lexer{};
 
-    // calculator.scan("sin(50) + cos(50 + 20)", "stdio");
-    C_lexer.scan(input, "stdio");
+    calculator.scan("50 + 20", "stdio");
+    // C_lexer.scan(input, "stdio");
 
     return 0;
 }
