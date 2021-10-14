@@ -7,119 +7,66 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
 {
     CalculatorAccess;
 
-    u32 current_item{};
-    cerb::Vector<cerb::Pair<u32, TokenType>> lr_stack{ { { 0, EMPTY } } };
-    static constexpr u32 SyntaxError = std::numeric_limits<u32>::max();
+    constexpr static u32 SyntaxError = std::numeric_limits<u32>::max();
 
-    struct LR0_Action
+    template<size_t N>
+    struct LR0_Item
     {
-        bool reduce{ false };
-        u32 state{};
-        u32 stack_cleanup{};
-        TokenType reduced_token{};
+        bool reduce{};
+        u32 size{};
+        TokenType type{};
+        cerb::gl::Map<TokenType, u32, N> Table{};
+        constexpr static std::array types = {
+            EXPR, TERM, INT, ADD, LEFT_PARENTHESIS, RIGHT_PARENTHESIS, EoF
+        };
 
-        constexpr LR0_Action() = default;
-        constexpr LR0_Action(
-            bool reduce_, u32 state_, u32 stack_cleanup_, TokenType reduced_token_)
-          : reduce(reduce_), state(state_), stack_cleanup(stack_cleanup_),
-            reduced_token(reduced_token_)
-        {}
+        constexpr LR0_Item() = default;
+
+        constexpr LR0_Item(TokenType type_, u32 size_)
+          : reduce(true), size(size_), type(type_)
+        {
+            CERBLIB_UNROLL_N(4)
+            for (const auto &elem : types) {
+                Table.emplace(elem, SyntaxError);
+            }
+        }
+
+        constexpr LR0_Item(const std::initializer_list<u32> &data)
+        {
+            typename std::initializer_list<u32>::iterator it = data.begin();
+
+            CERBLIB_UNROLL_N(2)
+            for (const auto &elem : types) {
+                Table.emplace(elem, *it);
+                ++it;
+            }
+        }
+
+        constexpr auto operator[](const TokenType &key) const noexcept
+        {
+            return Table.at(key);
+        }
     };
 
-    static constexpr cerb::gl::Map<int, LR0_Action, 10> TableActions{
-        { 0, LR0_Action{} },
-        { 1, LR0_Action{} },
-        { 2, LR0_Action{ true, 0, 1, EoF } },
-        { 3, LR0_Action{} },
-        { 4, LR0_Action{ true, 0, 3, EXPR } },
-        { 5, LR0_Action{ true, 6, 1, TERM } },
-        { 6, LR0_Action{ true, 1, 1, EXPR } },
-        { 7, LR0_Action{} },
-        { 8, LR0_Action{} },
-        { 9, LR0_Action{ true, 6, 1, TERM } }
+    static constexpr cerb::gl::Map<u32, LR0_Item<7>, 10> Table{
+        { 0, { 1, 6, 5, SyntaxError, 7, SyntaxError, 2 } },
+        { 1,
+          { SyntaxError, SyntaxError, SyntaxError, 3, SyntaxError, SyntaxError,
+            2 } },
+        { 2, { EoF, 1 } },
+        { 3, { SyntaxError, 4, 5, SyntaxError, 7, SyntaxError, SyntaxError } },
+        { 4, { EXPR, 3 } },
+        { 5, { TERM, 1 } },
+        { 6, { EXPR, 1 } },
+        { 7, { 8, 6, 5, SyntaxError, 7, SyntaxError, SyntaxError } },
+        { 8,
+          { SyntaxError, SyntaxError, SyntaxError, 3, SyntaxError, 9,
+            SyntaxError } },
+        { 9, { TERM, 3 } }
     };
 
-    constexpr static cerb::gl::Map<unsigned, cerb::gl::Map<TokenType, u32, 7>, 10>
-        Table{ { 0,
-                 { { EXPR, 1 },
-                   { TERM, 6 },
-                   { INT, 5 },
-                   { ADD, SyntaxError },
-                   { LEFT_PARENTHESIS, 7 },
-                   { RIGHT_PARENTHESIS, SyntaxError },
-                   { EoF, SyntaxError } } },
-               { 1,
-                 { { EXPR, SyntaxError },
-                   { TERM, SyntaxError },
-                   { INT, SyntaxError },
-                   { ADD, 3 },
-                   { LEFT_PARENTHESIS, SyntaxError },
-                   { RIGHT_PARENTHESIS, SyntaxError },
-                   { EoF, 2 } } },
-               { 2,
-                 { { EXPR, SyntaxError },
-                   { TERM, SyntaxError },
-                   { INT, SyntaxError },
-                   { ADD, SyntaxError },
-                   { LEFT_PARENTHESIS, SyntaxError },
-                   { RIGHT_PARENTHESIS, SyntaxError },
-                   { EoF, SyntaxError } } },
-               { 3,
-                 { { EXPR, SyntaxError },
-                   { TERM, 4 },
-                   { INT, 5 },
-                   { ADD, SyntaxError },
-                   { LEFT_PARENTHESIS, 7 },
-                   { RIGHT_PARENTHESIS, SyntaxError },
-                   { EoF, SyntaxError } } },
-               { 4,
-                 { { EXPR, SyntaxError },
-                   { TERM, SyntaxError },
-                   { INT, SyntaxError },
-                   { ADD, SyntaxError },
-                   { LEFT_PARENTHESIS, SyntaxError },
-                   { RIGHT_PARENTHESIS, SyntaxError },
-                   { EoF, SyntaxError } } },
-               { 5,
-                 { { EXPR, SyntaxError },
-                   { TERM, SyntaxError },
-                   { INT, SyntaxError },
-                   { ADD, SyntaxError },
-                   { LEFT_PARENTHESIS, SyntaxError },
-                   { RIGHT_PARENTHESIS, SyntaxError },
-                   { EoF, SyntaxError } } },
-               { 6,
-                 { { EXPR, SyntaxError },
-                   { TERM, SyntaxError },
-                   { INT, SyntaxError },
-                   { ADD, SyntaxError },
-                   { LEFT_PARENTHESIS, SyntaxError },
-                   { RIGHT_PARENTHESIS, SyntaxError },
-                   { EoF, SyntaxError } } },
-               { 7,
-                 { { EXPR, 8 },
-                   { TERM, 6 },
-                   { INT, 5 },
-                   { ADD, SyntaxError },
-                   { LEFT_PARENTHESIS, 7 },
-                   { RIGHT_PARENTHESIS, SyntaxError },
-                   { EoF, SyntaxError } } },
-               { 8,
-                 { { EXPR, SyntaxError },
-                   { TERM, SyntaxError },
-                   { INT, SyntaxError },
-                   { ADD, 3 },
-                   { LEFT_PARENTHESIS, SyntaxError },
-                   { RIGHT_PARENTHESIS, 9 },
-                   { EoF, SyntaxError } } },
-               { 9,
-                 { { EXPR, SyntaxError },
-                   { TERM, SyntaxError },
-                   { INT, SyntaxError },
-                   { ADD, SyntaxError },
-                   { LEFT_PARENTHESIS, SyntaxError },
-                   { RIGHT_PARENTHESIS, SyntaxError },
-                   { EoF, SyntaxError } } } };
+    u32 current_state{};
+    cerb::Vector<cerb::Pair<u32, token_t>> lr_stack{};
 
     constexpr auto yield(const token_t &token) -> bool override
     {
@@ -129,48 +76,50 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
 
         std::cout << token.pos << std::endl;
 
-        if (!TableActions[current_item].reduce) {
-            lr_stack.back().second = token.type;
-            current_item           = Table[current_item][token.type];
-            lr_stack.emplace_back(current_item);
-        }
+        if (Table[current_state][token.type] == SyntaxError) {
+            cerb::analysis::basic_syntax_error(*head(), token.repr, "Syntax error!");
+        } else {
+            if (!Table[current_state].reduce) {
+                lr_stack.emplace_back(current_state, token);
+                current_state = Table[current_state][token.type];
 
-        fmt::print("Stack: \n");
-        CERBLIB_UNROLL_N(2)
-        for (const auto &elem : lr_stack) {
-            if (CalculatorItemItemsNames.contains(elem.second)) {
-                fmt::print(
-                    "{{ {}: {} }}, ", elem.first,
-                    CalculatorItemItemsNames[elem.second].to_string());
+                fmt::print("Stack: \n");
+                CERBLIB_UNROLL_N(2)
+                for (const auto &elem : lr_stack) {
+                    if (CalculatorItemItemsNames.contains(elem.second)) {
+                        fmt::print(
+                            "{{ {}: {} }}, ", elem.first,
+                            CalculatorItemItemsNames[elem.second.type].to_string());
+                    }
+                }
+                std::cout << std::endl;
             }
-        }
-        std::cout << std::endl;
+            while (Table[current_state].reduce) {
+                lr_stack.back().second.type = Table[current_state].type;
 
-        CERBLIB_UNROLL_N(1)
-        while (TableActions[current_item].reduce) {
-            lr_stack[lr_stack.size() - 2].second =
-                TableActions[current_item].reduced_token;
-            current_item = lr_stack[lr_stack.size() - 2].first;
+                for (size_t i = 1; i < Table[current_state].size; ++i) {
+                    lr_stack.pop_back();
+                }
 
-            fmt::print("Stack {}: \n", current_item);
-            CERBLIB_UNROLL_N(2)
-            for (const auto &elem : lr_stack) {
-                if (CalculatorItemItemsNames.contains(elem.second)) {
-                    fmt::print(
-                        "{{ {}: {} }}, ", elem.first,
-                        CalculatorItemItemsNames[elem.second].to_string());
+                current_state =
+                    Table[lr_stack.back().first][lr_stack.back().second.type];
+
+                fmt::print("Stack: \n");
+                CERBLIB_UNROLL_N(2)
+                for (const auto &elem : lr_stack) {
+                    if (CalculatorItemItemsNames.contains(elem.second)) {
+                        fmt::print(
+                            "{{ {}: {} }}, ", elem.first,
+                            CalculatorItemItemsNames[elem.second.type].to_string());
+                    }
+                }
+                std::cout << std::endl;
+
+                if (current_state == SyntaxError || current_state == 2) {
+                    break;
                 }
             }
-            std::cout << std::endl;
         }
-        /*
-         * while (TableActions[current_item].reduce &&
-Table[lr_stack[lr_stack.size() - 2].first]
-     [TableActions[current_item].reduced_token] != SyntaxError) {
-lr_stack[lr_stack.size() - 2].second =
- TableActions[current_item].reduced_token;
-current_item = TableActions[current_item].state;
-         */
 
         return true;
     }
