@@ -31,7 +31,7 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
         { 1, LR0_Action{} },
         { 2, LR0_Action{ true, 0, 1, EoF } },
         { 3, LR0_Action{} },
-        { 4, LR0_Action{ true, 0, 1, EXPR } },
+        { 4, LR0_Action{ true, 0, 3, EXPR } },
         { 5, LR0_Action{ true, 6, 1, TERM } },
         { 6, LR0_Action{ true, 1, 1, EXPR } },
         { 7, LR0_Action{} },
@@ -150,7 +150,7 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
         while (TableActions[current_item].reduce) {
             lr_stack[lr_stack.size() - 2].second =
                 TableActions[current_item].reduced_token;
-            current_item = TableActions[current_item].state;
+            current_item = lr_stack[lr_stack.size() - 2].first;
 
             fmt::print("Stack {}: \n", current_item);
             CERBLIB_UNROLL_N(2)
@@ -163,6 +163,14 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
             }
             std::cout << std::endl;
         }
+        /*
+         * while (TableActions[current_item].reduce &&
+Table[lr_stack[lr_stack.size() - 2].first]
+     [TableActions[current_item].reduced_token] != SyntaxError) {
+lr_stack[lr_stack.size() - 2].second =
+ TableActions[current_item].reduced_token;
+current_item = TableActions[current_item].state;
+         */
 
         return true;
     }
