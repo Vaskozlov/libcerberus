@@ -15,25 +15,28 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
     {
         bool reduce{ false };
         u32 state{};
+        u32 stack_cleanup{};
         TokenType reduced_token{};
 
         constexpr LR0_Action() = default;
-        constexpr LR0_Action(bool reduce_, u32 state_, TokenType reduced_token_)
-          : reduce(reduce_), state(state_), reduced_token(reduced_token_)
+        constexpr LR0_Action(
+            bool reduce_, u32 state_, u32 stack_cleanup_, TokenType reduced_token_)
+          : reduce(reduce_), state(state_), stack_cleanup(stack_cleanup_),
+            reduced_token(reduced_token_)
         {}
     };
 
-    static constexpr std::array<LR0_Action, 10> TableActions{
-        LR0_Action{},
-        LR0_Action{},
-        LR0_Action{ true, 0, EoF },
-        LR0_Action{},
-        LR0_Action{ true, 0, EXPR },
-        LR0_Action{ true, 6, TERM },
-        LR0_Action{ true, 1, EXPR },
-        LR0_Action{},
-        LR0_Action{},
-        LR0_Action{ true, 6, TERM }
+    static constexpr cerb::gl::Map<int, LR0_Action, 10> TableActions{
+        { 0, LR0_Action{} },
+        { 1, LR0_Action{} },
+        { 2, LR0_Action{ true, 0, 1, EoF } },
+        { 3, LR0_Action{} },
+        { 4, LR0_Action{ true, 0, 1, EXPR } },
+        { 5, LR0_Action{ true, 6, 1, TERM } },
+        { 6, LR0_Action{ true, 1, 1, EXPR } },
+        { 7, LR0_Action{} },
+        { 8, LR0_Action{} },
+        { 9, LR0_Action{ true, 6, 1, TERM } }
     };
 
     constexpr static cerb::gl::Map<unsigned, cerb::gl::Map<TokenType, u32, 7>, 10>
@@ -149,7 +152,7 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
                 TableActions[current_item].reduced_token;
             current_item = TableActions[current_item].state;
 
-            fmt::print("Stack: \n");
+            fmt::print("Stack {}: \n", current_item);
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : lr_stack) {
                 if (CalculatorItemItemsNames.contains(elem.second)) {
