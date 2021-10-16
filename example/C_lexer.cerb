@@ -47,7 +47,7 @@ LESS:           '<'
 GREATER:        '>'
 LOGICAL_NOT:    '!'
 
-LES_EQ:         "<="
+LESS_EQ:        "<="
 GREATER_EQ:     ">="
 
 LOGICAL_OR:         "||"

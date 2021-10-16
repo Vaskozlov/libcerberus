@@ -5,7 +5,7 @@
 #include <cerberus/string_view.hpp>
 #include <fmt/format.h>
 #include <fmt/color.h>
-#include "calculator_imp.hpp"
+#include "calculator_imp_yacc.hpp"
 #include "lexer4C_imp.hpp"
 
 using namespace cerb::literals;
@@ -33,12 +33,12 @@ const char *const input = R"(
 
 auto main() -> int
 {
-    CalculatorImp calculator{};
+    CalculatorImpYacc calculator{};
     Lex4CImp C_lexer{};
 
     // calculator.scan("50 + 20", "stdio");
-    // calculator.scan("((10)) + (10 + 20)", "stdio");
-    C_lexer.scan(input, "stdio");
+    calculator.scan("20 + 30", "stdio");
+    //C_lexer.scan(input, "stdio");
 
     return 0;
 }
