@@ -65,22 +65,26 @@ namespace cerb::analysis {
         }
     };
 
-    constexpr auto
-        basic_syntax_error(const auto &item, const auto &repr, const char *message)
-            -> void
+    template<typename CharT>
+    constexpr auto basic_syntax_error(
+        const auto &item, const cerb::basic_string_view<CharT> &repr,
+        const char *message) -> void
     {
-        const auto &pos  = item.get_token_pos();
-        const auto &line = item.get_line();
+        const auto &pos                                 = item.get_token_pos();
+        const auto &line                                = item.get_line();
+        const cerb::basic_string_view<CharT> final_repr = {
+            cerb::max(line.begin(), repr.begin() - 40),
+            cerb::min(line.end(), repr.end() + 40)
+        };
+        auto repr_offset = static_cast<int>(repr.begin() - final_repr.begin());
 
         fmt::print(
             "Syntax analysis error! At: file: {}, line: {}, column: {}\n",
             pos.filename.to_string(), pos.line_number, pos.char_number);
-        fmt::print(fmt::emphasis::italic, "{}\n", line.to_string());
+        fmt::print(fmt::emphasis::italic, "{}\n", final_repr.to_string());
 
         CERBLIB_UNROLL_N(4)
-        for (int i = 0;
-             i < static_cast<int>(item.get_input().begin() - line.begin());
-             ++i) {
+        for (int i = 0; i < repr_offset; ++i) {
             putchar(' ');
         }
 
@@ -93,23 +97,27 @@ namespace cerb::analysis {
         throw cerb::analysis::syntax_analysis_error("Syntax error: "s + message);
     }
 
-    constexpr auto
-        basic_lexical_error(const auto &item, const auto &repr, const char *message)
-            -> void
+    template<typename CharT>
+    constexpr auto basic_lexical_error(
+        const auto &item, const cerb::basic_string_view<CharT> &repr,
+        const char *message) -> void
     {
-        const auto &pos  = item.get_token_pos();
-        const auto &line = item.get_line();
+        const auto &pos                                 = item.get_token_pos();
+        const auto &line                                = item.get_line();
+        const cerb::basic_string_view<CharT> final_repr = {
+            cerb::max(line.begin(), repr.begin() - 40),
+            cerb::min(line.end(), repr.end() + 40)
+        };
+        auto repr_offset = static_cast<int>(repr.begin() - final_repr.begin());
 
         fmt::print(
             "Lexical analysis error! At: file: {}, line: {}, column: {}\n",
             pos.filename.to_string(), pos.line_number, pos.char_number);
 
-        fmt::print(fmt::emphasis::italic, "{}\n", line.to_string());
+        fmt::print(fmt::emphasis::italic, "{}\n", final_repr.to_string());
 
         CERBLIB_UNROLL_N(4)
-        for (int i = 0;
-             i < static_cast<int>(repr.begin() - item.get_input().begin());
-             ++i) {
+        for (int i = 0; i < repr_offset; ++i) {
             putchar(' ');
         }
 

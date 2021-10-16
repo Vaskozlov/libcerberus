@@ -11,7 +11,7 @@ using namespace cerb::literals;
 
 enum struct CalculatorBlock : size_t
 {
-    RESERVED         = 8UL,
+    RESERVED         = 16UL,
     OPERATORS        = 4096UL,
     SEPARATOR        = 8192UL,
     VALUE            = 16384UL,

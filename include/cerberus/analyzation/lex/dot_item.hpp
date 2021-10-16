@@ -14,7 +14,7 @@
 namespace cerb::lex {
     constexpr size_t MAX_RANGES = 4;
 
-    enum ItemRule : u16
+    enum ItemRule : u32
     {
         BASIC,
         OPTIONAL,
@@ -22,7 +22,7 @@ namespace cerb::lex {
         ZERO_OR_MORE_TIMES
     };
 
-    enum ItemState : u16
+    enum ItemState : u32
     {
         UNABLE_TO_MATCH,
         NEED_TO_SCAN,
@@ -206,6 +206,52 @@ namespace cerb::lex {
         static inline string_view_t m_multiline_comment_begin{};
         static inline string_view_t m_multiline_comment_end{};
         static inline position_t m_global_position{};
+
+    private:
+        constexpr auto end_of_input_check() -> ItemState
+        {
+            if (is_layout_or_end_of_input(get_char()) ||
+                (AllowComments &&
+                 (check_substring(m_dot, m_input, m_single_line_comment) ||
+                  check_substring(m_dot, m_input, m_multiline_comment_begin)))) {
+                if (m_dot != 0 && can_end()) {
+                    string_view_t repr = { m_token_begin, m_token_begin + m_dot };
+                    result_of_check    = { { repr, m_token_type, m_token_pos } };
+                    return SCAN_FINISHED;
+                }
+                return UNABLE_TO_MATCH;
+            }
+
+            auto terminal_repr = m_checker.check(m_dot, m_input);
+            if (!terminal_repr.first.empty()) {
+                if (m_dot == 0) {
+                    string_view_t repr = {
+                        m_token_begin, m_token_begin + terminal_repr.first.size()
+                    };
+                    result_of_check = { { repr, terminal_repr.second,
+                                          m_token_pos } };
+                    m_dot += terminal_repr.first.size();
+                    m_current_pos += terminal_repr.first.size();
+                    return SCAN_FINISHED;
+                }
+                if (m_current_range == m_ranges.end() ||
+                    (m_current_range->can_end() && can_end())) {
+                    string_view_t repr1 = { m_token_begin, m_token_begin + m_dot };
+                    string_view_t repr2 = {
+                        repr1.end(), repr1.end() + terminal_repr.first.size()
+                    };
+                    result_of_check = { { repr1, m_token_type, m_token_pos },
+                                        { repr2, terminal_repr.second,
+                                          m_current_pos } };
+
+                    m_dot += terminal_repr.first.size();
+                    m_current_pos += terminal_repr.first.size();
+                    return SCAN_FINISHED;
+                }
+                return UNABLE_TO_MATCH;
+            }
+            return UNABLE_TO_MATCH;
+        }
 
     public:
         constexpr auto operator==(const DotItem &other) const -> bool
@@ -454,6 +500,10 @@ namespace cerb::lex {
             if (m_is_word) {
                 return m_dot == m_word_repr.size();
             }
+            
+            if (m_current_range == m_ranges.end()) {
+                return true;
+            }
 
             CERBLIB_UNROLL_N(2)
             for (auto i = m_ranges.end() - 1; i != m_current_range; --i) {
@@ -471,50 +521,6 @@ namespace cerb::lex {
 
         auto check() -> ItemState
         {
-            if (is_layout(get_char()) || get_char() == char_cast(0) ||
-                (AllowComments &&
-                 (check_substring(m_dot, m_input, m_single_line_comment) ||
-                  check_substring(m_dot, m_input, m_multiline_comment_begin)))) {
-                if (m_dot != 0 && can_end()) {
-                    string_view_t repr = { m_token_begin, m_token_begin + m_dot };
-                    result_of_check    = { { repr, m_token_type, m_token_pos } };
-                    return SCAN_FINISHED;
-                }
-                return UNABLE_TO_MATCH;
-            }
-
-            auto terminal_repr = m_checker.check(m_dot, m_input);
-            if (!terminal_repr.first.empty()) {
-                if (m_dot == 0) {
-                    string_view_t repr = {
-                        m_token_begin, m_token_begin + terminal_repr.first.size()
-                    };
-                    result_of_check = { { repr, terminal_repr.second,
-                                          m_token_pos } };
-                    m_dot += terminal_repr.first.size();
-                    m_current_pos += terminal_repr.first.size();
-                    return SCAN_FINISHED;
-                }
-                if (m_current_range == m_ranges.end() ||
-                    (m_current_range->can_end() && can_end())) {
-                    string_view_t repr1 = { m_token_begin, m_token_begin + m_dot };
-                    string_view_t repr2 = {
-                        repr1.end(), repr1.end() + terminal_repr.first.size()
-                    };
-                    result_of_check = { { repr1, m_token_type, m_token_pos },
-                                        { repr2, terminal_repr.second,
-                                          m_current_pos } };
-
-                    m_dot += terminal_repr.first.size();
-                    m_current_pos += terminal_repr.first.size();
-                    return SCAN_FINISHED;
-                }
-                return UNABLE_TO_MATCH;
-            }
-
-            if (get_char() == char_cast('"')) {}
-            if (get_char() == char_cast('\'')) {}
-
             if (m_is_word) {
                 if (m_word_repr[m_dot] == get_char() && m_dot < m_word_repr.size()) {
                     ++m_dot;
@@ -539,10 +545,14 @@ namespace cerb::lex {
 
             case NEED_TO_SWITCH_RANGE:
                 ++m_current_range;
-                return NEED_TO_SCAN;
+
+                if (m_current_range != m_ranges.end()) {
+                    return NEED_TO_SCAN;
+                }
+                [[fallthrough]];
 
             default:
-                return UNABLE_TO_MATCH;
+                return end_of_input_check();
             }
         }
 

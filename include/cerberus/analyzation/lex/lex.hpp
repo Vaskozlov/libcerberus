@@ -92,7 +92,8 @@ namespace cerb::lex {
         const TokenType m_char_type{};
         const CharT m_string_separator{};
         const CharT m_char_separator{};
-        constexpr static string_view_t repr4EoF = "$";
+        static constexpr size_t RESERVED        = 16UL;
+        static constexpr string_view_t repr4EoF = "$";
 
     private:
         enum StringScanState
@@ -112,8 +113,8 @@ namespace cerb::lex {
             { char_cast('C'), 12 }, { char_cast('D'), 13 }, { char_cast('E'), 14 },
             { char_cast('F'), 15 }
         };
-        static constexpr size_t RESERVED = 8UL;
-        static constexpr size_t EoF      = RESERVED + 1UL;
+
+        static constexpr size_t EoF = RESERVED + 1UL;
 
     private:
         template<size_t CharCount, size_t Mul, bool BreakOnZero, typename Func>

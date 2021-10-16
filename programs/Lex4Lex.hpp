@@ -11,7 +11,7 @@ using namespace cerb::literals;
 
 enum struct Lex4LexBlock : size_t
 {
-    RESERVED         = 8UL,
+    RESERVED         = 16UL,
     GENERAL          = 4096UL,
     OPERATORS        = 8192UL,
 };

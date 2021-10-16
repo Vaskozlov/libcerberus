@@ -13,13 +13,13 @@ namespace cerb::lex {
         cerb::basic_string_view<CharT> filename{};
 
     public:
-        constexpr auto operator+=(size_t value) -> PositionInFile &
+        constexpr auto operator+=(auto value) -> PositionInFile &
         {
             char_number += value;
             return *this;
         }
 
-        constexpr auto operator-=(size_t value) -> PositionInFile &
+        constexpr auto operator-=(auto value) -> PositionInFile &
         {
             char_number -= value;
             return *this;

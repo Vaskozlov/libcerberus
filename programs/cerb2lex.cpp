@@ -406,8 +406,8 @@ public:
         }
 
         generated_string = fmt::format(
-            "enum struct {} : size_t\n{{\n    {:<16} = 8UL,\n", m_name_of_block,
-            "RESERVED");
+            "enum struct {} : size_t\n{{\n    {:<16} = {}UL,\n", m_name_of_block,
+            "RESERVED", parent::RESERVED);
 
         CERBLIB_UNROLL_N(2)
         for (auto &elem : m_blocks) {
@@ -486,6 +486,7 @@ public:
             "{0}ItemsNames{{\n    true, {{\n",
             m_name_of_items, rules_count + m_reserved_types.size());
 
+        CERBLIB_UNROLL_N(2)
         for (const auto &elem : m_reserved_types) {
             generated_string += fmt::format(
                 "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items, elem);
@@ -494,24 +495,24 @@ public:
         CERBLIB_UNROLL_N(2)
         for (const auto &elem : m_blocks) {
             CERBLIB_UNROLL_N(2)
-            for (const auto &i : elem.second.words) {
+            for (const auto &word : elem.second.words) {
                 generated_string += fmt::format(
                     "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items,
-                    i.first.to_string());
+                    word.first.to_string());
             }
 
             CERBLIB_UNROLL_N(2)
-            for (const auto &i : elem.second.rules) {
+            for (const auto &rule : elem.second.rules) {
                 generated_string += fmt::format(
                     "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items,
-                    i.first.to_string());
+                    rule.first.to_string());
             }
 
             CERBLIB_UNROLL_N(2)
-            for (const auto &i : elem.second.operators) {
+            for (const auto &operator_ : elem.second.operators) {
                 generated_string += fmt::format(
                     "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items,
-                    i.first.to_string());
+                    operator_.first.to_string());
             }
         }
 

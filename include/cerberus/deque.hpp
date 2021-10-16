@@ -242,18 +242,12 @@ namespace cerb {
     public:
         constexpr auto push_back(T &&value) -> void
         {
-            ++m_size;
-            NodePtr node = get_back();
-
-            node->data[node->last++] = value;
+            this->template emplace_back<T &&>(value);
         }
 
         constexpr auto push_back(const T &value) -> void
         {
-            ++m_size;
-            NodePtr node = get_back();
-
-            node->data[node->last++] = value;
+            this->template emplace_back<const T &>(value);
         }
 
         template<typename... Ts>
@@ -266,18 +260,12 @@ namespace cerb {
 
         constexpr auto push_front(T &&value) -> void
         {
-            ++m_size;
-            NodePtr node = get_front();
-
-            node->data[--node->first] = value;
+            this->template emplace_front<T &&>(value);
         }
 
         constexpr auto push_front(const T &value) -> void
         {
-            ++m_size;
-            NodePtr node = get_front();
-
-            node->data[--node->first] = value;
+            this->template emplace_front<const T &>(value);
         }
 
         template<typename... Ts>

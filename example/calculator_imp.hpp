@@ -66,7 +66,55 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
     };
 
     u32 current_state{};
+    u32 tokens_count{};
+    token_t m_current_token{};
     cerb::Vector<cerb::Pair<u32, token_t>> lr_stack{};
+
+    constexpr auto
+        process_token(const token_t &current_token, const token_t &next_token)
+            -> void
+    {
+        if (!Table[current_state].reduce) {
+            lr_stack.emplace_back(current_state, current_token);
+            current_state = Table[current_state][current_token.type];
+
+            fmt::print("Stack: \n");
+            CERBLIB_UNROLL_N(2)
+            for (const auto &elem : lr_stack) {
+                if (CalculatorItemItemsNames.contains(elem.second)) {
+                    fmt::print(
+                        "{{ {}: {} }}, ", elem.first,
+                        CalculatorItemItemsNames[elem.second.type].to_string());
+                }
+            }
+            std::cout << std::endl;
+        }
+
+        while (Table[current_state].reduce) {
+            for (size_t i = 1; i < Table[current_state].size; ++i) {
+                lr_stack.pop_back();
+            }
+
+            lr_stack.back().second.type = Table[current_state].type;
+            current_state =
+                Table[lr_stack.back().first][lr_stack.back().second.type];
+
+            fmt::print("Stack: \n");
+            CERBLIB_UNROLL_N(2)
+            for (const auto &elem : lr_stack) {
+                if (CalculatorItemItemsNames.contains(elem.second)) {
+                    fmt::print(
+                        "{{ {}: {} }}, ", elem.first,
+                        CalculatorItemItemsNames[elem.second.type].to_string());
+                }
+            }
+            std::cout << std::endl << std::endl;
+
+            if (current_state == SyntaxError || current_state == 2) {
+                break;
+            }
+        }
+    }
 
     constexpr auto yield(const token_t &token) -> bool override
     {
@@ -76,51 +124,16 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
 
         std::cout << token.pos << std::endl;
 
-        if (Table[current_state][token.type] == SyntaxError) {
-            cerb::analysis::basic_syntax_error(*head(), token.repr, "Syntax error!");
-        } else {
-            if (!Table[current_state].reduce) {
-                lr_stack.emplace_back(current_state, token);
-                current_state = Table[current_state][token.type];
-
-                fmt::print("Stack: \n");
-                CERBLIB_UNROLL_N(2)
-                for (const auto &elem : lr_stack) {
-                    if (CalculatorItemItemsNames.contains(elem.second)) {
-                        fmt::print(
-                            "{{ {}: {} }}, ", elem.first,
-                            CalculatorItemItemsNames[elem.second.type].to_string());
-                    }
-                }
-                std::cout << std::endl;
-            }
-            while (Table[current_state].reduce) {
-                lr_stack.back().second.type = Table[current_state].type;
-
-                for (size_t i = 1; i < Table[current_state].size; ++i) {
-                    lr_stack.pop_back();
-                }
-
-                current_state =
-                    Table[lr_stack.back().first][lr_stack.back().second.type];
-
-                fmt::print("Stack: \n");
-                CERBLIB_UNROLL_N(2)
-                for (const auto &elem : lr_stack) {
-                    if (CalculatorItemItemsNames.contains(elem.second)) {
-                        fmt::print(
-                            "{{ {}: {} }}, ", elem.first,
-                            CalculatorItemItemsNames[elem.second.type].to_string());
-                    }
-                }
-                std::cout << std::endl;
-
-                if (current_state == SyntaxError || current_state == 2) {
-                    break;
-                }
+        if (tokens_count > 0) {
+            if (Table[current_state][m_current_token.type] == SyntaxError) {
+                cerb::analysis::basic_syntax_error(
+                    *head(), m_current_token.repr, "Syntax error!");
+            } else {
+                process_token(m_current_token, token);
             }
         }
-
+        ++tokens_count;
+        m_current_token = token;
         return true;
     }
 
@@ -132,7 +145,9 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
     }
 
     constexpr auto finish() -> void override
-    {}
+    {
+        process_token(m_current_token, {});
+    }
 };
 
 #endif /* CERBERUS_CALCULATORIMPL_HPP */

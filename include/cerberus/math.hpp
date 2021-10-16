@@ -60,6 +60,12 @@ namespace cerb {
      * @return T max(lhs, rhs)
      */
     template<typename T>
+    constexpr auto max(const T &lhs, const auto &rhs) -> const T &
+    {
+        return cmov(lhs > rhs, lhs, rhs);
+    }
+
+    template<typename T>
     constexpr auto max(const T &lhs, const T &rhs) -> const T &
     {
         return cmov(lhs > rhs, lhs, rhs);
@@ -75,6 +81,12 @@ namespace cerb {
      */
     template<typename T>
     constexpr auto min(const T &lhs, const T &rhs) -> const T &
+    {
+        return cmov(lhs < rhs, lhs, rhs);
+    }
+
+    template<typename T>
+    constexpr auto min(const T &lhs, const auto &rhs) -> const T &
     {
         return cmov(lhs < rhs, lhs, rhs);
     }
