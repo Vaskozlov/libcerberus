@@ -56,6 +56,18 @@ constexpr cerb::gl::Map<CalculatorItem, cerb::string_view, 10> CalculatorItemIte
 };
 
 
+
+namespace cerb {
+    constexpr auto convert(CalculatorItem value) -> cerb::string_view
+    {
+        if (CalculatorItemItemsNames.contains(value)) {
+            return CalculatorItemItemsNames[value];
+        }
+
+        return "";
+    }
+}
+
 #define CalculatorTemplate                             \
     template<                                   \
         typename CharT = char,                       \

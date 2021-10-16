@@ -4,6 +4,9 @@
 #include "calculator.hpp"
 #include <cerberus/vector.hpp>
 
+extern "C" int yylex(void);
+extern "C" void yyerror(char *);
+
 CalculatorTemplate struct CalculatorImpYacc final : public Calculator<>
 {
     CalculatorAccess;
@@ -23,8 +26,7 @@ CalculatorTemplate struct CalculatorImpYacc final : public Calculator<>
     }
 
     constexpr auto finish() -> void override
-    {
-    }
+    {}
 };
 
 #endif// CERBERUS_CALCULATOR_IMP_YACC_HPP

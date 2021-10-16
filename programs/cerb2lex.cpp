@@ -520,6 +520,18 @@ public:
 
         generated_string += fmt::format(
             R"(
+
+namespace cerb {{
+    constexpr auto convert({7} value) -> cerb::string_view
+    {{
+        if ({7}ItemsNames.contains(value)) {{
+            return {7}ItemsNames[value];
+        }}
+
+        return "";
+    }}
+}}
+
 #define {0}Template                             \
     template<                                   \
         typename CharT = {1},                       \

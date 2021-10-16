@@ -39,6 +39,11 @@ file(
         "programs/cerb2lex.cpp"
 )
 
+file(
+        GLOB_RECURSE
+        CALCULATOR_OBJS
+        "example/calculator.cpp"
+)
 
 add_executable(
         example
@@ -48,6 +53,11 @@ add_executable(
 add_executable(
         cerb2lex
         ${CERB2LEX_OBJS}
+)
+
+add_executable(
+        calculator
+        ${CALCULATOR_OBJS}
 )
 
 add_library(
@@ -81,6 +91,12 @@ target_compile_options(
         -Wall ${EXTRA_FLAGS} -I ${CMAKE_CURRENT_LIST_DIR}/include
 )
 
+target_compile_options(
+        calculator
+        PRIVATE
+        -Wall ${EXTRA_FLAGS} -I ${CMAKE_CURRENT_LIST_DIR}/include
+)
+
 find_package(fmt CONFIG REQUIRED)
 
 if (USE_STATIC)
@@ -107,10 +123,23 @@ if (USE_STATIC)
             -static
     )
 
+
     target_link_libraries(
             cerb2lex
             ${PROJECT_NAME} fmt::fmt-header-only
     )
+
+    target_link_options(
+            calculator
+            PRIVATE
+            -static
+    )
+
+    target_link_libraries(
+            calculator
+            ${PROJECT_NAME} fmt::fmt-header-only y
+    )
+
 else ()
     add_library(
             ${PROJECT_NAME}
@@ -126,6 +155,11 @@ else ()
 
     target_link_libraries(
             example
+            ${PROJECT_NAME} fmt::fmt
+    )
+
+    target_link_libraries(
+            calculator
             ${PROJECT_NAME} fmt::fmt
     )
 

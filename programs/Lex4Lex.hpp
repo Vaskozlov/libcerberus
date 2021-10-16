@@ -70,6 +70,18 @@ constexpr cerb::gl::Map<Lex4LexItem, cerb::string_view, 18> Lex4LexItemItemsName
 };
 
 
+
+namespace cerb {
+    constexpr auto convert(Lex4LexItem value) -> cerb::string_view
+    {
+        if (Lex4LexItemItemsNames.contains(value)) {
+            return Lex4LexItemItemsNames[value];
+        }
+
+        return "";
+    }
+}
+
 #define Lex4LexTemplate                             \
     template<                                   \
         typename CharT = char,                       \

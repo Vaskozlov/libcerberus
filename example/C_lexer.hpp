@@ -59,7 +59,7 @@ enum struct Lex4CItem : size_t
     LESS             = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 0UL,
     GREATER          = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 1UL,
     LOGICAL_NOT      = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 2UL,
-    LES_EQ           = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 3UL,
+    LESS_EQ          = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 3UL,
     GREATER_EQ       = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 4UL,
     LOGICAL_OR       = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 5UL,
     LOGICAL_AND      = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 6UL,
@@ -142,7 +142,7 @@ constexpr cerb::gl::Map<Lex4CItem, cerb::string_view, 66> Lex4CItemItemsNames{
         { Lex4CItem::LESS, "LESS"_sv },
         { Lex4CItem::GREATER, "GREATER"_sv },
         { Lex4CItem::LOGICAL_NOT, "LOGICAL_NOT"_sv },
-        { Lex4CItem::LES_EQ, "LES_EQ"_sv },
+        { Lex4CItem::LESS_EQ, "LESS_EQ"_sv },
         { Lex4CItem::GREATER_EQ, "GREATER_EQ"_sv },
         { Lex4CItem::LOGICAL_OR, "LOGICAL_OR"_sv },
         { Lex4CItem::LOGICAL_AND, "LOGICAL_AND"_sv },
@@ -175,6 +175,18 @@ constexpr cerb::gl::Map<Lex4CItem, cerb::string_view, 66> Lex4CItemItemsNames{
     }
 };
 
+
+
+namespace cerb {
+    constexpr auto convert(Lex4CItem value) -> cerb::string_view
+    {
+        if (Lex4CItemItemsNames.contains(value)) {
+            return Lex4CItemItemsNames[value];
+        }
+
+        return "";
+    }
+}
 
 #define Lex4CTemplate                             \
     template<                                   \
@@ -272,7 +284,7 @@ struct Lex4C: public CERBERUS_LEX_PARENT_CLASS
                 { RIGHT_SHIFT, ">>"_sv },
                 { LEFT_SHIFT_EQ, "<<="_sv },
                 { RIGHT_SHIFT_EQ, ">>="_sv },
-                { LES_EQ, "<="_sv },
+                { LESS_EQ, "<="_sv },
                 { GREATER_EQ, ">="_sv },
                 { LOGICAL_OR, "||"_sv },
                 { LOGICAL_AND, "&&"_sv },

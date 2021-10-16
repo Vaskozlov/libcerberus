@@ -12,7 +12,17 @@ namespace cerb::lex {
         PositionInFile<CharT> pos{};
 
     public:
-        constexpr ~Token() noexcept = default;
+        constexpr Token()                       = default;
+        constexpr ~Token() noexcept             = default;
+        constexpr Token(Token &&) noexcept      = default;
+        constexpr Token(const Token &) noexcept = default;
+
+        constexpr Token(Repr repr_, TokenType type_, PositionInFile<CharT> pos_)
+          : repr(repr_), type(type_), pos(pos_)
+        {}
+
+        constexpr auto operator=(Token &&) noexcept -> Token & = default;
+        constexpr auto operator=(const Token &) noexcept -> Token & = default;
 
         constexpr auto operator==(const Token &other) const -> bool
         {

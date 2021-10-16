@@ -2,12 +2,14 @@
 #define CERBERUS_CALCULATORIMPL_HPP
 
 #include "calculator.hpp"
+#include <cerberus/analyzation/parser/SLR1.hpp>
 
+/*
 CalculatorTemplate struct CalculatorImp final : public Calculator<>
 {
     CalculatorAccess;
 
-    constexpr static u32 SyntaxError = std::numeric_limits<u32>::max();
+    constexpr static u32 SYE = std::numeric_limits<u32>::max();
 
     template<size_t N>
     struct LR0_Item
@@ -27,7 +29,7 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
         {
             CERBLIB_UNROLL_N(4)
             for (const auto &elem : types) {
-                Table.emplace(elem, SyntaxError);
+                Table.emplace(elem, SYE);
             }
         }
 
@@ -49,23 +51,23 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
     };
 
     static constexpr cerb::gl::Map<u32, LR0_Item<7>, 10> Table{
-        { 0, { 1, 6, 5, SyntaxError, 7, SyntaxError, 2 } },
+        { 0, { 1, 6, 5, SYE, 7, SYE, 2 } },
         { 1,
-          { SyntaxError, SyntaxError, SyntaxError, 3, SyntaxError, SyntaxError,
+          { SYE, SYE, SYE, 3, SYE, SYE,
             2 } },
         { 2, { EoF, 1 } },
-        { 3, { SyntaxError, 4, 5, SyntaxError, 7, SyntaxError, SyntaxError } },
+        { 3, { SYE, 4, 5, SYE, 7, SYE, SYE } },
         { 4, { EXPR, 3 } },
         { 5, { TERM, 1 } },
         { 6, { EXPR, 1 } },
-        { 7, { 8, 6, 5, SyntaxError, 7, SyntaxError, SyntaxError } },
+        { 7, { 8, 6, 5, SYE, 7, SYE, SYE } },
         { 8,
-          { SyntaxError, SyntaxError, SyntaxError, 3, SyntaxError, 9,
-            SyntaxError } },
+          { SYE, SYE, SYE, 3, SYE, 9,
+            SYE } },
         { 9, { TERM, 3 } }
     };
 
-    u32 current_state{};
+    u32 m_current_state{};
     u32 tokens_count{};
     token_t m_current_token{};
     cerb::Vector<cerb::Pair<u32, token_t>> lr_stack{};
@@ -74,9 +76,9 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
         process_token(const token_t &current_token, const token_t &next_token)
             -> void
     {
-        if (!Table[current_state].reduce) {
-            lr_stack.emplace_back(current_state, current_token);
-            current_state = Table[current_state][current_token.type];
+        if (!Table[m_current_state].reduce) {
+            lr_stack.emplace_back(m_current_state, current_token);
+            m_current_state = Table[m_current_state][current_token.type];
 
             fmt::print("Stack: \n");
             CERBLIB_UNROLL_N(2)
@@ -90,13 +92,13 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
             std::cout << std::endl;
         }
 
-        while (Table[current_state].reduce) {
-            for (size_t i = 1; i < Table[current_state].size; ++i) {
+        while (Table[m_current_state].reduce) {
+            for (size_t i = 1; i < Table[m_current_state].size; ++i) {
                 lr_stack.pop_back();
             }
 
-            lr_stack.back().second.type = Table[current_state].type;
-            current_state =
+            lr_stack.back().second.type = Table[m_current_state].type;
+            m_current_state =
                 Table[lr_stack.back().first][lr_stack.back().second.type];
 
             fmt::print("Stack: \n");
@@ -110,7 +112,7 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
             }
             std::cout << std::endl << std::endl;
 
-            if (current_state == SyntaxError || current_state == 2) {
+            if (m_current_state == SYE || m_current_state == 2) {
                 break;
             }
         }
@@ -125,7 +127,7 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
         std::cout << token.pos << std::endl;
 
         if (tokens_count > 0) {
-            if (Table[current_state][m_current_token.type] == SyntaxError) {
+            if (Table[m_current_state][m_current_token.type] == SYE) {
                 cerb::analysis::basic_syntax_error(
                     *head(), m_current_token.repr, "Syntax error!");
             } else {
@@ -148,6 +150,58 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
     {
         process_token(m_current_token, {});
     }
+};*/
+
+
+CalculatorTemplate struct CalculatorImp final : public Calculator<>
+{
+    CalculatorAccess;
+
+    using parser   = cerb::analysis::parser::SLR1<CharT, TokenType, token_t, 7, 10>;
+    using SLR1Item = typename parser::SLR1Item;
+    constexpr static u32 SYE = std::numeric_limits<u32>::max();
+
+    parser slr1{
+        { INT, ADD, LEFT_PARENTHESIS, RIGHT_PARENTHESIS, EoF, EXPR, TERM },
+        {
+            { SLR1_S(5), SLR1_E, SLR1_S(7), SLR1_E, SLR1_E, SLR1_S(1), SLR1_S(6) },
+            { SLR1_E, SLR1_S(3), SLR1_E, SLR1_E, SLR1_S(2), SLR1_E, SLR1_E },
+            { SLR1_E, SLR1_E, SLR1_E, SLR1_E, SLR1_R(1, 2, EoF), SLR1_E, SLR1_E },
+            { SLR1_S(5), SLR1_E, SLR1_S(7), SLR1_E, SLR1_E, SLR1_E, SLR1_S(4) },
+            { SLR1_E, SLR1_R(3, 3, EXPR), SLR1_E, SLR1_R(3, 3, EXPR),
+              SLR1_R(3, 3, EXPR), SLR1_E, SLR1_E },
+            { SLR1_E, SLR1_R(4, 1, TERM), SLR1_E, SLR1_R(4, 1, TERM),
+              SLR1_R(4, 1, TERM), SLR1_E, SLR1_E },
+            { SLR1_E, SLR1_R(2, 1, EXPR), SLR1_E, SLR1_R(2, 1, EXPR),
+              SLR1_R(2, 1, EXPR), SLR1_E, SLR1_E },
+            { SLR1_S(5), SLR1_E, SLR1_S(7), SLR1_E, SLR1_E, SLR1_S(8), SLR1_S(6) },
+            { SLR1_E, SLR1_S(3), SLR1_E, SLR1_S(9), SLR1_E, SLR1_E, SLR1_E },
+            { SLR1_E, SLR1_R(5, 3, TERM), SLR1_E, SLR1_R(5, 3, TERM),
+              SLR1_R(5, 3, TERM), SLR1_E, SLR1_E },
+        }
+    };
+
+    constexpr auto yield(const token_t &token) -> bool override
+    {
+        fmt::print(
+            "{:<16} {:<20} ", token.repr.to_string(),
+            CalculatorItemItemsNames[token.type].to_string());
+
+        std::cout << token.pos << std::endl;
+        slr1.yield(token);
+
+        return true;
+    }
+
+    constexpr auto error(const item_t &item, const string_view_t &repr)
+        -> void override
+    {
+        cerb::analysis::basic_lexical_error(
+            item, repr, "Unable to find suitable dot item for: ");
+    }
+
+    constexpr auto finish() -> void override
+    {}
 };
 
 #endif /* CERBERUS_CALCULATORIMPL_HPP */
