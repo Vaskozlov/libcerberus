@@ -30,89 +30,84 @@ namespace cerb::PRIVATE {
             storage_t m_data{};
 
         public:
-            [[nodiscard]] constexpr auto size() const -> size_t
+            CERBLIB_DECL auto size() const -> size_t
             {
                 return m_size;
             }
 
-            [[nodiscard]] constexpr auto hidden() const -> size_t
+            CERBLIB_DECL auto hidden() const -> size_t
             {
                 return m_hidden;
             }
 
-            [[nodiscard]] constexpr auto data() -> storage_t &
-            {
-                return m_data;
-            }
-
-            [[nodiscard]] constexpr auto data() const -> const storage_t &
+            CERBLIB_DECL auto data() const -> storage_t &
             {
                 return m_data;
             }
 
         public:
-            constexpr auto begin() -> iterator
+            CERBLIB_DECL auto begin() -> iterator
             {
                 return m_data.begin();
             }
 
-            constexpr auto end() -> iterator
+            CERBLIB_DECL auto end() -> iterator
             {
                 return m_data.begin() + m_size;
             }
 
-            constexpr auto begin() const -> const_iterator
+            CERBLIB_DECL auto begin() const -> const_iterator
             {
                 return m_data.begin();
             }
 
-            constexpr auto end() const -> const_iterator
+            CERBLIB_DECL auto end() const -> const_iterator
             {
                 return m_data.begin() + m_size;
             }
 
-            constexpr auto rbegin() -> reverse_iterator
+            CERBLIB_DECL auto rbegin() -> reverse_iterator
             {
                 return reverse_iterator(begin());
             }
 
-            constexpr auto rend() -> reverse_iterator
+            CERBLIB_DECL auto rend() -> reverse_iterator
             {
                 return reverse_iterator(end());
             }
 
-            constexpr auto rbegin() const -> const_reverse_iterator
+            CERBLIB_DECL auto rbegin() const -> const_reverse_iterator
             {
                 return const_reverse_iterator(begin());
             }
 
-            constexpr auto rend() const -> const_reverse_iterator
+            CERBLIB_DECL auto rend() const -> const_reverse_iterator
             {
                 return const_reverse_iterator(end());
             }
 
-            constexpr auto cbegin() -> const_iterator
+            CERBLIB_DECL auto cbegin() -> const_iterator
             {
                 return m_data.cbegin();
             }
 
-            constexpr auto cend() -> const_iterator
+            CERBLIB_DECL auto cend() -> const_iterator
             {
                 return m_data.cbegin() + m_size;
             }
 
-            constexpr auto crbegin() -> const_reverse_iterator
+            CERBLIB_DECL auto crbegin() -> const_reverse_iterator
             {
                 return const_reverse_iterator(cbegin());
             }
 
-            constexpr auto crend() -> const_reverse_iterator
+            CERBLIB_DECL auto crend() -> const_reverse_iterator
             {
                 return const_reverse_iterator(cend());
             }
 
         public:
-            [[nodiscard]] constexpr auto self() const -> const BasicSet &
+            CERBLIB_DECL auto self() const -> const BasicSet &
             {
                 return *this;
             }
@@ -125,42 +120,33 @@ namespace cerb::PRIVATE {
 
 
         protected:
-            template<typename U>
-            [[nodiscard]] constexpr auto search(const U &key)
+            CERBLIB_DECL auto search(const auto &key) const
             {
                 return cerb::find_if(
                     begin(), end(), [&key](const auto &i) { return i == key; });
             }
 
-            template<typename U>
-            [[nodiscard]] constexpr auto search(const U &key) const
-            {
-                return cerb::find_if(
-                    begin(), end(), [&key](const auto &i) { return i == key; });
-            }
-
-            constexpr auto hide(iterator i) -> void
+            constexpr auto hide(iterator elem) -> void
             {
                 --m_size;
                 ++m_hidden;
 
                 if (m_size != 0) {
-                    swap(*i, *end());
+                    std::swap(*elem, *end());
                 }
             }
 
-            constexpr auto hide(const_iterator i) -> void
+            constexpr auto hide(const_iterator elem) -> void
             {
                 --m_size;
                 ++m_hidden;
 
                 if (m_size != 0) {
-                    swap(*i, *end());
+                    std::swap(*elem, *end());
                 }
             }
 
-            template<typename U>
-            constexpr auto hide(const U &key) -> void
+            constexpr auto hide(const auto &key) -> void
             {
                 auto elem = search(key);
 
@@ -176,7 +162,7 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            constexpr auto last() -> iterator
+            CERBLIB_DECL auto last() -> iterator
             {
                 if constexpr (MayThrow) {
                     if (m_size == Size) {
@@ -186,13 +172,12 @@ namespace cerb::PRIVATE {
                 return begin() + (m_size++);
             }
 
-            constexpr auto get_last() const -> const_iterator
+            CERBLIB_DECL auto get_last() const -> const_iterator
             {
                 return begin() + (m_size - 1);
             }
 
-            template<typename U>
-            constexpr auto insert(U &&value) -> void
+            constexpr auto insert(auto &&value) -> void
             {
                 if constexpr (MayThrow) {
                     if (m_size == Size) {
@@ -203,8 +188,7 @@ namespace cerb::PRIVATE {
                 m_data[m_size++] = value_type(value);
             }
 
-            template<typename U>
-            constexpr auto insert(const U &value) -> void
+            constexpr auto insert(const auto &value) -> void
             {
                 if constexpr (MayThrow) {
                     if (m_size == Size) {
@@ -216,7 +200,7 @@ namespace cerb::PRIVATE {
             }
 
             template<typename... Ts>
-            constexpr auto emplace(Ts&&... args) -> void
+            constexpr auto emplace(Ts &&...args) -> void
             {
                 if constexpr (MayThrow) {
                     if (m_size == Size) {
@@ -227,8 +211,7 @@ namespace cerb::PRIVATE {
                 m_data[m_size++] = std::move(T(args...));
             }
 
-            template<typename U>
-            constexpr auto erase(const U &value)
+            constexpr auto erase(const auto &value)
             {
                 auto elem = search(value);
 
@@ -242,8 +225,7 @@ namespace cerb::PRIVATE {
                 }
             }
 
-            template<typename U>
-            constexpr auto contains(const U &value) const -> bool
+            CERBLIB_DECL auto contains(const auto &value) const -> bool
             {
                 return search(value) != end();
             }
@@ -288,7 +270,6 @@ namespace cerb::PRIVATE {
             {
                 CERBLIB_UNROLL_N(2)
                 for (const auto &elem : args) {
-
                     if constexpr (MayThrow) {
                         if (m_size == Size) {
                             throw std::out_of_range("cerb::gl::Set is full");
@@ -318,47 +299,46 @@ namespace cerb::PRIVATE {
             RBTreeNodeColor color;
 
         public:
-            [[nodiscard]] constexpr auto operator==(const RBTreeNode &other) const
-                -> bool
+            CERBLIB_DECL auto operator==(const RBTreeNode &other) const -> bool
             {
                 return value == other.value;
             }
 
-            [[nodiscard]] constexpr auto operator==(const T &other) const -> bool
+            CERBLIB_DECL auto operator==(const T &other) const -> bool
             {
                 return value == other;
             }
 
-            [[nodiscard]] constexpr auto operator<=>(const RBTreeNode &other) const
+            CERBLIB_DECL auto operator<=>(const RBTreeNode &other) const
                 -> std::strong_ordering
             {
                 return value <=> other.value;
             }
 
-            [[nodiscard]] constexpr auto operator<=>(const T &other) const
+            CERBLIB_DECL auto operator<=>(const T &other) const
                 -> std::strong_ordering
             {
                 return value <=> other.value;
             }
 
         public:
-            [[nodiscard]] constexpr auto isLeftChild() const
+            CERBLIB_DECL auto isLeftChild() const
             {
                 return this == parent->left;
             }
 
-            [[nodiscard]] constexpr auto hasRedChild() const -> bool
+            CERBLIB_DECL auto hasRedChild() const -> bool
             {
                 return (left != nullptr && left->color == RED) ||
                        (right != nullptr && right->color == RED);
             }
 
-            [[nodiscard]] constexpr auto hasChild() const -> bool
+            CERBLIB_DECL auto hasChild() const -> bool
             {
                 return left != nullptr || right != nullptr;
             }
 
-            [[nodiscard]] constexpr auto uncle() -> RBTreeNode *
+            CERBLIB_DECL auto uncle() -> RBTreeNode *
             {
                 if (parent == nullptr || parent->parent == nullptr) [[unlikely]] {
                     return nullptr;
@@ -369,7 +349,7 @@ namespace cerb::PRIVATE {
                 }
             }
 
-            [[nodiscard]] constexpr auto uncle() const -> RBTreeNode *
+            CERBLIB_DECL auto uncle() const -> RBTreeNode *
             {
                 if (parent == nullptr || parent->parent == nullptr) [[unlikely]] {
                     return nullptr;
@@ -380,7 +360,7 @@ namespace cerb::PRIVATE {
                 }
             }
 
-            [[nodiscard]] constexpr auto sibling() -> RBTreeNode *
+            CERBLIB_DECL auto sibling() -> RBTreeNode *
             {
                 if (parent == nullptr) [[unlikely]] {
                     return nullptr;
@@ -442,13 +422,13 @@ namespace cerb::PRIVATE {
         public:
             template<typename... Ts>
             constexpr explicit RBTreeNode(Ts &&...args) noexcept
-              : left(nullptr), right(nullptr),
-                parent(nullptr), value(args...), color(RED)
+              : left(nullptr), right(nullptr), parent(nullptr), value(args...),
+                color(RED)
             {}
 
             constexpr explicit RBTreeNode(const T &t_value) noexcept
-              : left(nullptr), right(nullptr),
-                parent(nullptr), value(t_value), color(RED)
+              : left(nullptr), right(nullptr), parent(nullptr), value(t_value),
+                color(RED)
             {}
 
             constexpr explicit RBTreeNode(const T &&t_value) noexcept(
@@ -487,7 +467,7 @@ namespace cerb::PRIVATE {
         NodeAllocator m_allocator{};
 
     public:
-        [[nodiscard]] constexpr auto size() const noexcept
+        CERBLIB_DECL auto size() const noexcept
         {
             return m_size;
         }
@@ -567,7 +547,7 @@ namespace cerb::PRIVATE {
             }
         }
 
-        [[nodiscard]] constexpr static auto leftNode(NodePtr node) -> NodePtr
+        CERBLIB_DECL static auto leftNode(NodePtr node) -> NodePtr
         {
             CERBLIB_UNROLL_N(2)
             while (true) {
@@ -578,7 +558,7 @@ namespace cerb::PRIVATE {
             }
         }
 
-        [[nodiscard]] constexpr static auto rightNode(NodePtr node) -> NodePtr
+        CERBLIB_DECL static auto rightNode(NodePtr node) -> NodePtr
         {
             CERBLIB_UNROLL_N(2)
             while (true) {
@@ -589,7 +569,7 @@ namespace cerb::PRIVATE {
             }
         }
 
-        [[nodiscard]] constexpr static auto RBTreeReplace(NodePtr node) -> NodePtr
+        CERBLIB_DECL static auto RBTreeReplace(NodePtr node) -> NodePtr
         {
             if (node->left != nullptr && node->right != nullptr) {
                 return leftNode(node->right);
@@ -735,8 +715,7 @@ namespace cerb::PRIVATE {
         }
 
     private:
-        template<typename U>
-        [[nodiscard]] static constexpr auto RBTreeSearch(NodePtr root, const U &key)
+        CERBLIB_DECL static auto RBTreeSearch(NodePtr root, const auto &key)
             -> NodePtr
         {
             NodePtr tmp = root;
@@ -762,16 +741,14 @@ namespace cerb::PRIVATE {
         }
 
     protected:
-        template<typename U>
-        [[nodiscard]] constexpr auto search(const U &key) -> NodePtr
+        CERBLIB_DECL auto search(const auto &key) -> NodePtr
         {
-            return RBTreeSearch<U>(m_root, key);
+            return RBTreeSearch(m_root, key);
         }
 
-        template<typename U>
-        [[nodiscard]] constexpr auto search(const U &key) const -> NodePtr
+        CERBLIB_DECL auto search(const auto &key) const -> NodePtr
         {
-            return RBTreeSearch<U>(m_root, key);
+            return RBTreeSearch(m_root, key);
         }
 
         template<bool Construct = true, bool Update = false, typename... Ts>
@@ -877,14 +854,13 @@ namespace cerb::PRIVATE {
             return new_node;
         }
 
-        template<typename U>
-        constexpr auto RBTreeErase(const U &key) noexcept -> bool
+        constexpr auto RBTreeErase(const auto &key) noexcept -> bool
         {
             if (m_root == nullptr) {
                 return false;
             }
 
-            NodePtr v = search<U>(key);
+            NodePtr v = search(key);
 
             if (v->value == key) [[likely]] {
                 return deleteNode(v);
@@ -1000,17 +976,8 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            constexpr friend auto
-                operator==(const iterator &lhs, const iterator &rhs) -> bool
-            {
-                return lhs.m_node == rhs.m_node;
-            }
-
-            constexpr friend auto
-                operator<=>(const iterator &lhs, const iterator &rhs)
-            {
-                return lhs.m_node <=> rhs.m_node;
-            }
+            constexpr auto operator<=>(const iterator &) const        = default;
+            constexpr auto operator==(const iterator &) const -> bool = default;
 
         public:
             constexpr auto operator=(iterator &&) noexcept -> iterator & = default;
@@ -1072,18 +1039,10 @@ namespace cerb::PRIVATE {
             }
 
         public:
-            [[nodiscard]] constexpr friend auto
-                operator==(const reverse_iterator &lhs, const reverse_iterator &rhs)
-                    -> bool
-            {
-                return lhs.m_node == rhs.m_node;
-            }
+            CERBLIB_DECL auto operator<=>(const reverse_iterator &) const = default;
 
-            [[nodiscard]] constexpr friend auto
-                operator<=>(const reverse_iterator &lhs, const reverse_iterator &rhs)
-            {
-                return lhs.m_node <=> rhs.m_node;
-            }
+            CERBLIB_DECL auto operator==(const reverse_iterator &) const
+                -> bool = default;
 
         public:
             constexpr auto operator   =(reverse_iterator &&) noexcept
@@ -1101,7 +1060,7 @@ namespace cerb::PRIVATE {
             constexpr ~reverse_iterator() noexcept = default;
         };
 
-        constexpr auto begin() -> iterator
+        constexpr auto begin() const -> iterator
         {
             if (m_root == nullptr) [[unlikely]] {
                 return iterator(nullptr);
@@ -1110,17 +1069,17 @@ namespace cerb::PRIVATE {
             return iterator(leftNode(m_root));
         }
 
-        constexpr auto end() -> iterator
+        constexpr auto end() const -> iterator
         {
             return iterator(nullptr);
         }
 
-        constexpr auto rbegin() -> reverse_iterator
+        constexpr auto rbegin() const -> reverse_iterator
         {
             return reverse_iterator(rightNode(m_root));
         }
 
-        constexpr auto rend() -> reverse_iterator
+        constexpr auto rend() const -> reverse_iterator
         {
             return reverse_iterator(nullptr);
         }
@@ -1223,6 +1182,10 @@ namespace cerb::PRIVATE {
     public:
         constexpr auto operator=(const RBTree &other) -> RBTree &
         {
+            if (this == &other) {
+                return *this;
+            }
+
             saveCopyFrom(other);
             m_size = other.m_size;
             return *this;
@@ -1265,37 +1228,33 @@ namespace cerb::PRIVATE {
         size_t counter;
 
     public:
-        [[nodiscard]] constexpr friend auto
-            operator==(const MultiSetNode &lhs, const MultiSetNode &rhs)
+        CERBLIB_DECL auto operator==(const T &rhs)
         {
-            return lhs.value == rhs.value;
+            return value == rhs;
         }
 
-        [[nodiscard]] constexpr friend auto
-            operator==(const MultiSetNode &lhs, const T &rhs)
+        CERBLIB_DECL auto operator==(const MultiSetNode &rhs)
         {
-            return lhs.value == rhs;
+            return value == rhs.value;
         }
 
-        [[nodiscard]] constexpr friend auto
-            operator==(const T &lhs, const MultiSetNode &rhs)
-        {
-            return lhs == rhs.value;
-        }
-
-        [[nodiscard]] constexpr auto operator<=>(const MultiSetNode &rhs) const
-        {
-            return value <=> rhs.value;
-        }
-
-        [[nodiscard]] constexpr auto operator<=>(const T &rhs) const
+        CERBLIB_DECL auto operator<=>(const T &rhs) const
         {
             return value <=> rhs;
+        }
+
+        CERBLIB_DECL auto operator<=>(const MultiSetNode &rhs) const
+        {
+            return value <=> rhs.value;
         }
 
     public:
         constexpr auto operator=(const MultiSetNode &other) -> MultiSetNode &
         {
+            if (this == &other) {
+                return *this;
+            }
+
             value   = other.value;
             counter = other.counter;
             return *this;

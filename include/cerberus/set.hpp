@@ -34,7 +34,6 @@ namespace cerb {
             using parent::rbegin;
             using parent::rend;
             using parent::self;
-            using parent::show;
             using parent::size;
 
             using iterator               = typename parent::iterator;

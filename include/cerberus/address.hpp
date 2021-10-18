@@ -24,7 +24,7 @@ namespace cerb {
         };
 
     public:
-        [[nodiscard]] constexpr auto raw() const -> void *
+        CERBLIB_DECL auto raw() const -> void *
         {
             return static_cast<void *>(m_address);
         }

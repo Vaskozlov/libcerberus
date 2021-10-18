@@ -59,17 +59,17 @@ namespace cerb::gl {
         }
 
     public:
-        [[nodiscard]] constexpr auto find_free() const noexcept -> size_t
+        CERBLIB_DECL auto find_free() const noexcept -> size_t
         {
             return m_tracker.template find_if<0>();
         }
 
-        [[nodiscard]] constexpr auto find_set() const noexcept -> size_t
+        CERBLIB_DECL auto find_set() const noexcept -> size_t
         {
             return m_tracker.template find_if<1>();
         }
 
-        [[nodiscard]] constexpr auto put(const T &value) noexcept(!CheckMemory)
+        CERBLIB_DECL auto put(const T &value) noexcept(!CheckMemory)
             -> T &
         {
             auto index = find_free();
@@ -79,7 +79,7 @@ namespace cerb::gl {
             return elem;
         }
 
-        [[nodiscard]] constexpr auto put_i(const T &value) noexcept(!CheckMemory)
+        CERBLIB_DECL auto put_i(const T &value) noexcept(!CheckMemory)
             -> size_t
         {
             auto index = find_free();

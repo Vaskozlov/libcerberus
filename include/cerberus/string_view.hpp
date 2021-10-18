@@ -11,7 +11,7 @@ namespace cerb {
         static_assert(!std::is_array_v<CharT>);
         static_assert(std::is_trivial_v<CharT> && std::is_standard_layout_v<CharT>);
 
-        static constexpr auto length_of_string(const CharT *str) -> size_t
+        CERBLIB_DECL static auto length_of_string(const CharT *str) -> size_t
         {
             size_t index = 0;
 
@@ -52,9 +52,7 @@ namespace cerb {
         template<unsigned long Size>
         constexpr basic_string_view(const CharT (&str)[Size]) noexcept
           : m_len(Size), m_str(str)
-        {
-            return;
-        }
+        {}
 
         constexpr basic_string_view(
             const_iterator first, const_iterator last) noexcept
@@ -69,65 +67,62 @@ namespace cerb {
         constexpr auto operator    =(const basic_string_view &) noexcept
             -> basic_string_view & = default;
 
-        [[nodiscard]] constexpr auto size() const -> size_t
+        CERBLIB_DECL auto size() const -> size_t
         {
             return m_len;
         }
 
-        [[nodiscard]] constexpr auto length() const -> size_t
+        CERBLIB_DECL auto length() const -> size_t
         {
             return m_len;
         }
 
-        [[nodiscard]] constexpr auto begin() const noexcept -> const_iterator
+        CERBLIB_DECL auto begin() const noexcept -> const_iterator
         {
             return m_str;
         }
 
-        [[nodiscard]] constexpr auto end() const noexcept -> const_iterator
+        CERBLIB_DECL auto end() const noexcept -> const_iterator
         {
             return m_str + m_len;
         }
 
-        [[nodiscard]] constexpr auto cbegin() const noexcept -> const_iterator
+        CERBLIB_DECL auto cbegin() const noexcept -> const_iterator
         {
             return m_str;
         }
 
-        [[nodiscard]] constexpr auto cend() const noexcept -> const_iterator
+        CERBLIB_DECL auto cend() const noexcept -> const_iterator
         {
             return m_str + m_len;
         }
 
-        [[nodiscard]] constexpr auto rbegin() const noexcept
-            -> const_reverce_iterator
+        CERBLIB_DECL auto rbegin() const noexcept -> const_reverce_iterator
         {
             return const_reverce_iterator(begin());
         }
 
-        [[nodiscard]] constexpr auto rend() const noexcept -> const_reverce_iterator
+        CERBLIB_DECL auto rend() const noexcept -> const_reverce_iterator
         {
             return const_reverce_iterator(end());
         }
 
-        [[nodiscard]] constexpr auto crbegin() const noexcept
-            -> const_reverce_iterator
+        CERBLIB_DECL auto crbegin() const noexcept -> const_reverce_iterator
         {
             return const_reverce_iterator(begin());
         }
 
-        [[nodiscard]] constexpr auto crend() const noexcept -> const_reverce_iterator
+        CERBLIB_DECL auto crend() const noexcept -> const_reverce_iterator
         {
             return const_reverce_iterator(end());
         }
 
-        [[nodiscard]] constexpr auto empty() const noexcept -> bool
+        CERBLIB_DECL auto empty() const noexcept -> bool
         {
             return m_len == 0;
         }
 
-        [[nodiscard]] constexpr auto at(size_type index) const noexcept
-            -> const_reference
+        CERBLIB_DECL auto at(size_type index) const noexcept -> const_reference
         {
             return m_str[index];
         }
@@ -137,23 +132,22 @@ namespace cerb {
             return m_str[index];
         }
 
-        [[nodiscard]] constexpr auto front() const noexcept -> const_reference
+        CERBLIB_DECL auto front() const noexcept -> const_reference
         {
             return *m_str;
         }
 
-        [[nodiscard]] constexpr auto back() const noexcept -> const_reference
+        CERBLIB_DECL auto back() const noexcept -> const_reference
         {
             return m_str[m_len - 1];
         }
 
-        [[nodiscard]] constexpr auto data() const noexcept -> const_pointer
+        CERBLIB_DECL auto data() const noexcept -> const_pointer
         {
             return m_str;
         }
 
-        [[nodiscard]] constexpr auto to_string() const noexcept
-            -> std::basic_string_view<CharT>
+        CERBLIB_DECL auto to_string() const noexcept -> std::basic_string_view<CharT>
         {
             return std::basic_string_view<CharT>(begin(), size());
         }
@@ -187,7 +181,7 @@ namespace cerb {
             return size() <=> other.size();
         }
 
-        [[nodiscard]] constexpr auto contains(CharT elem) const noexcept -> size_t
+        CERBLIB_DECL auto contains(CharT elem) const noexcept -> size_t
         {
             CERBLIB_UNROLL_N(4)
             for (size_t i = 0; i < size(); ++i) {

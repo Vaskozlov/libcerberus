@@ -8,7 +8,7 @@
 #if defined(_MSC_VER)
 namespace cerb::PRIVATE {
     template<unsigned Value>
-    [[nodiscard]] constexpr auto findBitForward(u64 value) -> u64
+    CERBLIB_DECL auto findBitForward(u64 value) -> u64
     {
         u64 j = 0;
 
@@ -22,7 +22,7 @@ namespace cerb::PRIVATE {
     }
 
     template<unsigned Value>
-    [[nodiscard]] constexpr auto findBitReverse(u64 value) -> u64
+    CERBLIB_DECL auto findBitReverse(u64 value) -> u64
     {
         u64 j = 63;
 
@@ -60,13 +60,7 @@ namespace cerb {
      * @return T max(lhs, rhs)
      */
     template<typename T>
-    constexpr auto max(const T &lhs, const auto &rhs) -> const T &
-    {
-        return cmov(lhs > rhs, lhs, rhs);
-    }
-
-    template<typename T>
-    constexpr auto max(const T &lhs, const T &rhs) -> const T &
+    CERBLIB_DECL auto max(const T &lhs, const auto &rhs) -> const T &
     {
         return cmov(lhs > rhs, lhs, rhs);
     }
@@ -80,13 +74,7 @@ namespace cerb {
      * @return T min(lhs, rhs)
      */
     template<typename T>
-    constexpr auto min(const T &lhs, const T &rhs) -> const T &
-    {
-        return cmov(lhs < rhs, lhs, rhs);
-    }
-
-    template<typename T>
-    constexpr auto min(const T &lhs, const auto &rhs) -> const T &
+    CERBLIB_DECL auto min(const T &lhs, const auto &rhs) -> const T &
     {
         return cmov(lhs < rhs, lhs, rhs);
     }
@@ -100,7 +88,7 @@ namespace cerb {
      * @return T(2)^power
      */
     template<typename T>
-    constexpr auto pow2(u32 power) -> T
+    CERBLIB_DECL auto pow2(u32 power) -> T
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
 
@@ -132,7 +120,7 @@ namespace cerb {
      * @return T or ResultType
      */
     template<typename ResultType = EmptyType, typename T>
-    constexpr auto abs(T value)
+    CERBLIB_DECL decltype(auto) abs(T value)
     {
         if constexpr (std::is_unsigned_v<T>) {
             return value;
@@ -158,7 +146,7 @@ namespace cerb {
     }
 
     template<u32 powerOf2, auto mode = AlignMode::ALIGN, typename T>
-    constexpr auto align(T value) -> T
+    CERBLIB_DECL auto align(T value) -> T
     {
         static_assert(std::is_integral_v<T>);
 
@@ -173,7 +161,7 @@ namespace cerb {
         }
     }
 
-    [[nodiscard]] constexpr auto findSetBitForward(u64 value) -> u64
+    CERBLIB_DECL auto findSetBitForward(u64 value) -> u64
     {
         if (value == 0) {
             return UINTMAX_MAX;
@@ -194,12 +182,12 @@ namespace cerb {
 #endif
     }
 
-    [[nodiscard]] constexpr auto findFreeBitForward(u64 value) -> u64
+    CERBLIB_DECL auto findFreeBitForward(u64 value) -> u64
     {
         return findSetBitForward(~value);
     }
 
-    [[nodiscard]] constexpr auto findSetBitReverse(u64 value) -> u64
+    CERBLIB_DECL auto findSetBitReverse(u64 value) -> u64
     {
         if (value == 0) {
             return UINTMAX_MAX;
@@ -220,7 +208,7 @@ namespace cerb {
 #endif
     }
 
-    [[nodiscard]] constexpr auto findFreeBitReverse(u64 value) -> u64
+    CERBLIB_DECL auto findFreeBitReverse(u64 value) -> u64
     {
         return findSetBitReverse(~value);
     }
@@ -233,7 +221,7 @@ namespace cerb {
      * @return log2(value)
      */
     template<typename T>
-    constexpr auto log2(const T value) -> T
+    CERBLIB_DECL auto log2(const T value) -> T
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
 

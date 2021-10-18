@@ -66,7 +66,7 @@ Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
         string_view_t repr{};
 
     public:
-        [[nodiscard]] constexpr auto check_type(TokenType token) const noexcept
+        CERBLIB_DECL auto check_type(TokenType token) const noexcept
             -> bool
         {
             return allowed_types.contains(token);
@@ -82,7 +82,7 @@ Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
             return repr <=> other.repr;
         }
 
-        [[nodiscard]] constexpr auto to_string() const noexcept
+        CERBLIB_DECL auto to_string() const noexcept
             -> std::basic_string_view<CharT>
         {
             return repr.to_string();
@@ -162,7 +162,7 @@ private:
     }
 
 public:
-    [[nodiscard]] constexpr auto get_result() const noexcept -> const std::string &
+    CERBLIB_DECL auto get_result() const noexcept -> const std::string &
     {
         return generated_string;
     }

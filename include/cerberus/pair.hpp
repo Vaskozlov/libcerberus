@@ -135,7 +135,7 @@ namespace cerb {
     };
 
     template<PairCompare Compare = DEFAULT, typename T1, typename T2>
-    constexpr auto make_pair(const T1 &first, const T2 &second)
+    CERBLIB_DECL auto make_pair(const T1 &first, const T2 &second)
         -> Pair<T1, T2, Compare>
     {
         return Pair<T1, T2, Compare>(first, second);

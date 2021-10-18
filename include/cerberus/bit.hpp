@@ -56,7 +56,7 @@ namespace cerb {
      * @return bits of x as TO type
      */
     template<typename TO, typename FROM>
-    [[nodiscard]] constexpr auto bit_cast(const FROM &x) noexcept -> TO
+    CERBLIB_DECL auto bit_cast(const FROM &x) noexcept -> TO
     {
         static_assert(
             sizeof(TO) == sizeof(FROM) && std::is_trivially_copyable_v<FROM> &&

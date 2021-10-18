@@ -55,14 +55,14 @@ namespace cerb::lex {
         using map_t = gl::Map<uintmax_t, TokenType, MaxTerminals>;
 
     public:
-        [[nodiscard]] constexpr auto check(CharT elem) const -> Pair<bool, TokenType>
+        CERBLIB_DECL auto check(CharT elem) const -> Pair<bool, TokenType>
         {
             auto hash = to_unsigned(elem);
             return { static_cast<bool>(m_bitmaps[0].template at<0>(hash)),
                      m_map.search(hash)->second };
         }
 
-        [[nodiscard]] constexpr auto
+        CERBLIB_DECL auto
             check(size_t offset, const string_view_t &str) const
             -> Pair<string_view_t, TokenType>
         {

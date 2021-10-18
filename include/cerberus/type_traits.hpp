@@ -30,11 +30,11 @@ namespace cerb {
     template<typename T>
     inline constexpr auto is_iterative_v = is_iterative<T>::value;
 
-    template<typename F, typename... Ts>
-    [[nodiscard]] constexpr CERBLIB_INLINE auto forEach(F &&func, Ts &&...values)
+    template<typename... Ts>
+    CERBLIB_DECL CERBLIB_INLINE auto forEach(auto &&func, Ts &&...values)
     {
-        auto _ = { ([&](auto &i) -> int {
-            func(i);
+        auto _ = { ([&](auto &iterator) -> int {
+            func(iterator);
             return 0;
         })(values)... };
     }

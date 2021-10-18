@@ -326,7 +326,7 @@ namespace cerb::lex {
         constexpr virtual void
             error(const item_t &item, const string_view_t &repr) = 0;
 
-        [[nodiscard]] constexpr auto head() const noexcept
+        CERBLIB_DECL auto head() const noexcept
         {
             return m_head;
         }
@@ -364,7 +364,7 @@ namespace cerb::lex {
         }
 
     public:
-        [[nodiscard]] constexpr auto get_input() const noexcept
+        CERBLIB_DECL auto get_input() const noexcept
             -> const string_view_t &
         {
             return head()->get_input();

@@ -77,6 +77,10 @@ typedef u8 byte;
 #    define CERBLIB_INLINE __forceinline
 #endif
 
+#ifndef CERBLIB_DECL
+#    define CERBLIB_DECL [[nodiscard]] constexpr
+#endif /* CERBLIB_DECL */
+
 #ifndef LIKELY
 #    define LIKELY [[likely]]
 #endif /* LIKELY */
@@ -222,8 +226,7 @@ namespace cerb {
     };
 
     template<typename T>
-    [[nodiscard]] constexpr auto getLimits(const T & /*unused*/)
-        -> std::numeric_limits<T>
+    CERBLIB_DECL auto getLimits(const T & /*unused*/) -> std::numeric_limits<T>
     {
         return std::numeric_limits<T>();
     }

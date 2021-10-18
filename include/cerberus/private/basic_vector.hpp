@@ -32,17 +32,17 @@ namespace cerb::PRIVATE {
         constexpr static bool isVector = true;
 
     public:
-        [[nodiscard]] constexpr auto data() const noexcept -> pointer
+        CERBLIB_DECL auto data() const noexcept -> pointer
         {
             return m_data;
         }
 
-        [[nodiscard]] constexpr auto size() const noexcept -> size_type
+        CERBLIB_DECL auto size() const noexcept -> size_type
         {
             return m_size;
         }
 
-        [[nodiscard]] constexpr auto capacity() const noexcept -> size_type
+        CERBLIB_DECL auto capacity() const noexcept -> size_type
         {
             return m_capacity;
         }
@@ -117,14 +117,15 @@ namespace cerb::PRIVATE {
                 return m_p;
             }
 
-            [[nodiscard]] explicit constexpr operator pointer() const noexcept
+            CERBLIB_DECL explicit operator pointer() const noexcept
             {
                 return m_p;
             }
 
         public:
             constexpr auto operator==(const iterator &) const noexcept
-                -> bool                                                 = default;
+                -> bool = default;
+
             constexpr auto operator<=>(const iterator &) const noexcept = default;
 
         public:
@@ -139,7 +140,7 @@ namespace cerb::PRIVATE {
             constexpr iterator(iterator &&) noexcept      = default;
             constexpr iterator(const iterator &) noexcept = default;
 
-            constexpr explicit iterator(pointer p) noexcept : m_p(p)
+            constexpr explicit iterator(pointer point) noexcept : m_p(point)
             {}
         };
 
@@ -147,43 +148,42 @@ namespace cerb::PRIVATE {
         using reverse_iterator       = std::reverse_iterator<iterator>;
         using const_reverse_iterator = const reverse_iterator;
 
-        [[nodiscard]] constexpr auto begin() const noexcept -> iterator
+        CERBLIB_DECL auto begin() const noexcept -> iterator
         {
             return iterator(m_data);
         }
 
-        [[nodiscard]] constexpr auto end() const noexcept -> iterator
+        CERBLIB_DECL auto end() const noexcept -> iterator
         {
             return iterator(m_data + m_size);
         }
 
-        [[nodiscard]] constexpr auto rbegin() const noexcept -> reverse_iterator
+        CERBLIB_DECL auto rbegin() const noexcept -> reverse_iterator
         {
             return reverse_iterator(end());
         }
 
-        [[nodiscard]] constexpr auto rend() const noexcept -> reverse_iterator
+        CERBLIB_DECL auto rend() const noexcept -> reverse_iterator
         {
             return reverse_iterator(begin());
         }
 
-        [[nodiscard]] constexpr auto cbegin() const noexcept -> const_iterator
+        CERBLIB_DECL auto cbegin() const noexcept -> const_iterator
         {
             return const_iterator(data());
         }
 
-        [[nodiscard]] constexpr auto cend() const noexcept -> const_iterator
+        CERBLIB_DECL auto cend() const noexcept -> const_iterator
         {
             return const_iterator(data() + size());
         }
 
-        [[nodiscard]] constexpr auto crbegin() const noexcept
-            -> const_reverse_iterator
+        CERBLIB_DECL auto crbegin() const noexcept -> const_reverse_iterator
         {
             return const_reverse_iterator(cbegin());
         }
 
-        [[nodiscard]] constexpr auto crend() const noexcept -> const_reverse_iterator
+        CERBLIB_DECL auto crend() const noexcept -> const_reverse_iterator
         {
             return const_reverse_iterator(cend());
         }
@@ -207,11 +207,6 @@ namespace cerb::PRIVATE {
         {
             check_size();
             ValueTraits::construct(m_allocator, m_data + (m_size++), args...);
-        }
-
-        constexpr auto back() -> reference
-        {
-            return m_data[m_size - 1];
         }
 
         constexpr auto back() const -> reference
@@ -438,7 +433,7 @@ namespace cerb::PRIVATE {
         }
 
     public:
-        constexpr auto self() const -> const BasicVector &
+        CERBLIB_DECL auto self() const -> const BasicVector &
         {
             return *this;
         }
@@ -522,7 +517,7 @@ namespace cerb::PRIVATE {
             raw_copy(m_data, args.begin(), args.end());
         }
 
-        constexpr BasicVector(size_t t_capacity)
+        constexpr explicit BasicVector(size_t t_capacity)
           : m_allocator(), m_data(nullptr), m_capacity(t_capacity)
         {
             m_capacity = cmov<size_t>(m_capacity == 0, 1, m_capacity);

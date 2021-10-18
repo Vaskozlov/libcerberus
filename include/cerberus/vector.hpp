@@ -68,11 +68,6 @@ namespace cerb {
             return data()[index];
         }
 
-        constexpr auto operator[](size_type index) -> reference
-        {
-            return data()[index];
-        }
-
         constexpr auto operator[](size_type index) const -> reference
         {
             return data()[index];

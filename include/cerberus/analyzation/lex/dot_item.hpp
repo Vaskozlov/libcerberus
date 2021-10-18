@@ -99,12 +99,12 @@ namespace cerb::lex {
                 times = 0;
             }
 
-            [[nodiscard]] constexpr auto at(CharT index) const -> u8
+            CERBLIB_DECL auto at(CharT index) const -> u8
             {
                 return bitmap.template at<0>(to_unsigned(index));
             }
 
-            [[nodiscard]] constexpr auto operator[](CharT index) const -> u8
+            CERBLIB_DECL auto operator[](CharT index) const -> u8
             {
                 return at(index);
             }
@@ -115,7 +115,7 @@ namespace cerb::lex {
                 return bitmap.template set<1, 0>(to_unsigned(index));
             }
 
-            [[nodiscard]] constexpr auto can_end() const -> bool
+            CERBLIB_DECL auto can_end() const -> bool
             {
                 switch (rule) {
                 case BASIC:
@@ -132,7 +132,7 @@ namespace cerb::lex {
                 }
             }
 
-            [[nodiscard]] constexpr auto check(CharT elem) -> ItemState
+            CERBLIB_DECL auto check(CharT elem) -> ItemState
             {
                 u8 contains = at(elem);
 
@@ -288,8 +288,7 @@ namespace cerb::lex {
             return result_of_check;
         }
 
-        [[nodiscard]] constexpr auto get_token_pos() const noexcept
-            -> const position_t &
+        CERBLIB_DECL auto get_token_pos() const noexcept -> const position_t &
         {
             return static_cast<const position_t &>(m_current_pos);
         }
@@ -320,7 +319,7 @@ namespace cerb::lex {
             return m_input;
         }
 
-        [[nodiscard]] constexpr auto isolate_token() const -> string_view_t
+        CERBLIB_DECL auto isolate_token() const -> string_view_t
         {
             size_t index         = m_dot;
             string_view_t result = { m_input.begin() + index,
@@ -500,7 +499,7 @@ namespace cerb::lex {
             if (m_is_word) {
                 return m_dot == m_word_repr.size();
             }
-            
+
             if (m_current_range == m_ranges.end()) {
                 return true;
             }

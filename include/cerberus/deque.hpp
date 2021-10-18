@@ -130,7 +130,7 @@ namespace cerb {
                 -> std::strong_ordering = default;
 
         public:
-            constexpr auto operator*() -> T &
+            constexpr auto operator*() const -> T &
             {
                 return m_node->data[m_index];
             }
@@ -155,19 +155,9 @@ namespace cerb {
         using reverse_iterator = std::reverse_iterator<iterator>;
 
     public:
-        constexpr auto begin() -> iterator
-        {
-            return iterator(m_begin->first, m_begin);
-        }
-
         constexpr auto begin() const -> iterator
         {
             return iterator(m_begin->first, m_begin);
-        }
-
-        constexpr auto end() -> iterator
-        {
-            return iterator(m_end->last, m_end);
         }
 
         constexpr auto end() const -> iterator
@@ -175,19 +165,9 @@ namespace cerb {
             return iterator(m_end->last, m_end);
         }
 
-        constexpr auto rbegin() -> reverse_iterator
-        {
-            return reverse_iterator(end());
-        }
-
         constexpr auto rbegin() const -> reverse_iterator
         {
             return reverse_iterator(end());
-        }
-
-        constexpr auto rend() -> reverse_iterator
-        {
-            return reverse_iterator(begin());
         }
 
         constexpr auto rend() const -> reverse_iterator
@@ -202,7 +182,7 @@ namespace cerb {
         size_t m_size{ 0 };
 
     public:
-        [[nodiscard]] constexpr auto size() const -> size_t
+        CERBLIB_DECL auto size() const -> size_t
         {
             return m_size;
         }
@@ -242,12 +222,16 @@ namespace cerb {
     public:
         constexpr auto push_back(T &&value) -> void
         {
-            this->template emplace_back<T &&>(value);
+            ++m_size;
+            NodePtr node = get_back();
+            std::construct_at(&node->data[node->last++], value);
         }
 
         constexpr auto push_back(const T &value) -> void
         {
-            this->template emplace_back<const T &>(value);
+            ++m_size;
+            NodePtr node = get_back();
+            std::construct_at(&node->data[node->last++], value);
         }
 
         template<typename... Ts>
@@ -308,17 +292,6 @@ namespace cerb {
         }
 
     public:
-        constexpr auto back() -> T &
-        {
-            if constexpr (MayThrow) {
-                if (m_size == 0) {
-                    [[unlikely]];
-                    throw std::out_of_range("cerb::Deque does not have back elem");
-                }
-            }
-            return m_end->data[m_end->last - 1];
-        }
-
         constexpr auto back() const -> T &
         {
             if constexpr (MayThrow) {
@@ -328,17 +301,6 @@ namespace cerb {
                 }
             }
             return m_end->data[m_end->last - 1];
-        }
-
-        constexpr auto front() -> T &
-        {
-            if constexpr (MayThrow) {
-                if (m_size == 0) {
-                    [[unlikely]];
-                    throw std::out_of_range("cerb::Deque does not have back elem");
-                }
-            }
-            return m_begin->data[m_begin->first];
         }
 
         constexpr auto front() const -> T &
@@ -376,27 +338,6 @@ namespace cerb {
         constexpr auto operator[](size_t index) const -> T &
         {
             return at(index);
-        }
-
-        constexpr auto operator[](size_t index) -> T &
-        {
-            if constexpr (MayThrow) {
-                if (index >= m_size) {
-                    [[unlikely]];
-                    throw std::out_of_range(
-                        "cerb::Deque does not have item at given index");
-                }
-            }
-
-            auto node = m_begin;
-            index += node->first;
-
-            CERBLIB_UNROLL_N(1)
-            for (size_t i = 0; i < index / Size; ++i) {
-                node = node->front;
-            }
-
-            return node->data[index % Size];
         }
 
     public:
