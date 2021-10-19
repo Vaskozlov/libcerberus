@@ -7,7 +7,7 @@
 namespace cerb {
 
     template<typename T>
-    constexpr auto isPowerOf2(T value) -> bool
+    CERBLIB_DECL auto isPowerOf2(T value) -> bool
     {
         static_assert(std::is_integral_v<T>);
         return (value != 0) && (value & (value - 1)) == 0;
@@ -28,7 +28,7 @@ namespace cerb {
         std::array<u64, sizeof(T) / sizeof(u64)> mask_u64;
 
     public:
-        constexpr decltype(auto) getAsIntegral() noexcept
+        CERBLIB_DECL decltype(auto) getAsIntegral() noexcept
         {
             static_assert(sizeof(T) < sizeof(u64) && isPowerOf2(sizeof(T)));
 
@@ -44,7 +44,7 @@ namespace cerb {
         }
 
     public:
-        explicit constexpr ByteMask(T t_value) : value(t_value)
+        constexpr explicit ByteMask(T t_value) : value(t_value)
         {}
     };
 
@@ -81,28 +81,14 @@ namespace cerb {
         T m_mask{ ~static_cast<T>(0) };
 
     public:
-        constexpr friend auto
-            operator==(const BitPattern<T> &pattern, const T &value) -> bool
+        constexpr auto operator==(const T &value) const -> bool
         {
-            return (value & pattern.m_mask) == pattern.m_expected;
+            return (value & m_mask) == m_expected;
         }
 
-        constexpr friend auto
-            operator==(const T &value, const BitPattern<T> &pattern) -> bool
+        constexpr auto operator!=(const T &value) -> bool
         {
-            return operator==(pattern, value);
-        }
-
-        constexpr friend auto
-            operator!=(const BitPattern<T> &pattern, const T &value) -> bool
-        {
-            return !operator==(pattern, value);
-        }
-
-        constexpr friend auto
-            operator!=(const T &value, const BitPattern<T> &pattern) -> bool
-        {
-            return !operator==(pattern, value);
+            return !operator==(value);
         }
 
     public:

@@ -117,9 +117,9 @@ namespace cerb::lex {
         static constexpr size_t EoF = RESERVED + 1UL;
 
     private:
-        template<size_t CharCount, size_t Mul, bool BreakOnZero, typename Func>
-        static constexpr auto process_char_as_int(
-            Func &&func,
+        template<size_t CharCount, size_t Mul, bool BreakOnZero>
+        CERBLIB_DECL static auto process_char_as_int(
+            auto &&func,
             size_t index,
             item_t &item,
             string_t &result) -> size_t
@@ -147,7 +147,7 @@ namespace cerb::lex {
             return index;
         }
 
-        static constexpr auto
+        CERBLIB_DECL static auto
             process_unique_char(size_t index, item_t &item, string_t &result)
                 -> size_t
         {
@@ -253,7 +253,7 @@ namespace cerb::lex {
             }
         }
 
-        constexpr auto evaluate_string() -> bool
+        CERBLIB_DECL auto evaluate_string() -> bool
         {
             m_strings.emplace_back();
             auto &str   = m_strings.back();
@@ -277,7 +277,7 @@ namespace cerb::lex {
             return true;
         }
 
-        constexpr auto evaluate_char() -> bool
+        CERBLIB_DECL auto evaluate_char() -> bool
         {
             m_strings.emplace_back();
             auto result =
@@ -305,7 +305,7 @@ namespace cerb::lex {
             return true;
         }
 
-        constexpr auto manage_char_and_string() -> StringScanState
+        CERBLIB_DECL auto manage_char_and_string() -> StringScanState
         {
             if constexpr (AllowStringLiterals) {
                 if (m_string_separator != item_t::char_cast(0) &&
@@ -331,7 +331,7 @@ namespace cerb::lex {
             return m_head;
         }
 
-        constexpr virtual auto process_string(item_t &item, string_t &result)
+        CERBLIB_DECL virtual auto process_string(item_t &item, string_t &result)
             -> size_t
         {
             throw_if_can(
@@ -364,14 +364,13 @@ namespace cerb::lex {
         }
 
     public:
-        CERBLIB_DECL auto get_input() const noexcept
-            -> const string_view_t &
+        CERBLIB_DECL auto get_input() const noexcept -> const string_view_t &
         {
             return head()->get_input();
         }
 
         constexpr auto
-            scan(const string_view_t &input, const string_view_t &filename)
+            scan(const string_view_t &input, const string_view_t &filename) -> void
         {
             head()->set_input(input, filename);
             head()->skip_comments_and_layout();

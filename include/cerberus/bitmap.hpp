@@ -55,7 +55,9 @@ namespace cerb::PRIVATE {
         u64 result = 0;
 
         forEach(
-            [&](auto i) { result = (result << 1U) + static_cast<u8>(i); },
+            [&](auto iterator) {
+                result = (result << 1U) + static_cast<u8>(iterator);
+            },
             Values...);
 
         return result;

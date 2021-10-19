@@ -274,7 +274,7 @@ namespace cerb {
     constexpr auto cmov(bool condition, const T &on_true, const auto &on_false)
         -> const T &
     {
-        return condition ? on_true : on_false;
+        return condition ? on_true : static_cast<T>(on_false);
     }
 }// namespace cerb
 

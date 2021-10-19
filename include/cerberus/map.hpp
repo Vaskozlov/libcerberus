@@ -14,8 +14,8 @@ namespace cerb {
     namespace gl {
         template<typename T1, typename T2, size_t Size, bool MayThrow = true>
         class Map
-          : public PRIVATE::gl::BasicSet<
-                Pair<T1, T2, BY_FIRST_VALUE>, Size, MayThrow>
+          : public PRIVATE::gl::
+                BasicSet<Pair<T1, T2, BY_FIRST_VALUE>, Size, MayThrow>
         {
             using key_type         = T1;
             using value_type       = T2;
@@ -53,7 +53,7 @@ namespace cerb {
             using const_reverse_iterator = typename parent::const_reverse_iterator;
 
         public:
-            constexpr auto at(const_key_type &key) const -> const value_type &
+            CERBLIB_DECL auto at(const_key_type &key) const -> const value_type &
             {
                 auto elem = search(key);
 
@@ -70,7 +70,7 @@ namespace cerb {
                 return elem->second;
             }
 
-            constexpr auto operator[](const_key_type &key) -> value_type &
+            CERBLIB_DECL auto operator[](const_key_type &key) -> value_type &
             {
                 auto elem = search(key);
 
@@ -86,7 +86,7 @@ namespace cerb {
                 return elem->second;
             }
 
-            constexpr auto operator[](const_key_type &key) const
+            CERBLIB_DECL auto operator[](const_key_type &key) const
                 -> const value_type &
             {
                 return at(key);
@@ -97,7 +97,8 @@ namespace cerb {
             constexpr auto operator=(Map &&) noexcept -> Map & = default;
 
         public:
-            constexpr Map() = default;
+            constexpr Map()  = default;
+            constexpr ~Map() = default;
 
             constexpr Map(const Map &)     = default;
             constexpr Map(Map &&) noexcept = default;
@@ -106,15 +107,20 @@ namespace cerb {
               : parent(args)
             {}
 
-            consteval Map(bool, const std::initializer_list<const_map_elem> &args)
+            consteval Map(
+                bool /* consteval */,
+                const std::initializer_list<const_map_elem> &args)
               : parent(args)
             {}
         };
     }// namespace gl
 
     template<
-        typename T1, typename T2, bool MayThrow = true,
-        typename Compare = less<void>, typename Alloc = std::allocator<T1>>
+        typename T1,
+        typename T2,
+        bool MayThrow    = true,
+        typename Compare = less<void>,
+        typename Alloc   = std::allocator<T1>>
     class CERBLIB_TRIVIAL Map
       : public PRIVATE::RBTree<Pair<const T1, T2, BY_FIRST_VALUE>, Compare, Alloc>
     {

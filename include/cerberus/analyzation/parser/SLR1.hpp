@@ -53,46 +53,46 @@ namespace cerb::analysis::parser {
         u32 m_processed_token_count{};
         u32 m_current_state{};
 
-        constexpr auto get(u32 state, TokenType token) const noexcept
+        CERBLIB_DECL auto get(u32 state, TokenType token) const noexcept
             -> const SLR1Item &
         {
             return m_action_goto_table[state][token];
         }
 
-        constexpr auto get(const Pair<u32, TokenType> &pos) const noexcept
+        CERBLIB_DECL auto get(const Pair<u32, TokenType> &pos) const noexcept
             -> const SLR1Item &
         {
             return m_action_goto_table[pos.first][pos.second];
         }
 
-        constexpr auto is_shifting(u32 state, TokenType token) const noexcept
+        CERBLIB_DECL auto is_shifting(u32 state, TokenType token) const noexcept
         {
             return !get(state, token).reduce;
         }
 
-        constexpr auto is_shifting(const Pair<u32, TokenType> &pos) const noexcept
+        CERBLIB_DECL auto is_shifting(const Pair<u32, TokenType> &pos) const noexcept
         {
             return !get(pos).reduce;
         }
 
-        constexpr auto is_reducing(u32 state, TokenType token) const noexcept
+        CERBLIB_DECL auto is_reducing(u32 state, TokenType token) const noexcept
         {
             return get(state, token).reduce;
         }
 
-        constexpr auto is_reducing(const Pair<u32, TokenType> &pos) const noexcept
+        CERBLIB_DECL auto is_reducing(const Pair<u32, TokenType> &pos) const noexcept
         {
             return !get(pos).reduce;
         }
 
-        constexpr auto get_reduce_info(u32 state, TokenType token) const noexcept
+        CERBLIB_DECL auto get_reduce_info(u32 state, TokenType token) const noexcept
             -> Pair<u32, TokenType>
         {
             const auto elem = get(state, token);
             return { elem.reduce_size, elem.token };
         }
 
-        constexpr auto
+        CERBLIB_DECL auto
             get_reduce_info(const Pair<u32, TokenType> &pos) const noexcept
             -> Pair<u32, TokenType>
         {
@@ -100,12 +100,13 @@ namespace cerb::analysis::parser {
             return { elem.reduce_size, elem.token };
         }
 
-        constexpr auto get_next_state(u32 state, TokenType token) const noexcept
+        CERBLIB_DECL auto get_next_state(u32 state, TokenType token) const noexcept
         {
             return get(state, token).state;
         }
 
-        constexpr auto get_next_state(const Pair<u32, TokenType> &pos) const noexcept
+        CERBLIB_DECL auto
+            get_next_state(const Pair<u32, TokenType> &pos) const noexcept
         {
             return get(pos).state;
         }
@@ -118,7 +119,7 @@ namespace cerb::analysis::parser {
             return is_reducing(get_next_state(state, token), next);
         }
 
-        constexpr auto print_stack() const
+        constexpr auto print_stack() const -> void
         {
             fmt::print("Stack: \n");
             CERBLIB_UNROLL_N(2)

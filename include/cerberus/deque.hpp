@@ -155,22 +155,22 @@ namespace cerb {
         using reverse_iterator = std::reverse_iterator<iterator>;
 
     public:
-        constexpr auto begin() const -> iterator
+        CERBLIB_DECL auto begin() const -> iterator
         {
             return iterator(m_begin->first, m_begin);
         }
 
-        constexpr auto end() const -> iterator
+        CERBLIB_DECL auto end() const -> iterator
         {
             return iterator(m_end->last, m_end);
         }
 
-        constexpr auto rbegin() const -> reverse_iterator
+        CERBLIB_DECL auto rbegin() const -> reverse_iterator
         {
             return reverse_iterator(end());
         }
 
-        constexpr auto rend() const -> reverse_iterator
+        CERBLIB_DECL auto rend() const -> reverse_iterator
         {
             return reverse_iterator(begin());
         }
@@ -188,7 +188,7 @@ namespace cerb {
         }
 
     private:
-        constexpr auto get_back() -> NodePtr
+        CERBLIB_DECL auto get_back() -> NodePtr
         {
             if (m_end->last == Size) {
                 [[unlikely]];
@@ -204,7 +204,7 @@ namespace cerb {
             return m_end;
         }
 
-        constexpr auto get_front() -> NodePtr
+        CERBLIB_DECL auto get_front() -> NodePtr
         {
             if (m_begin->first == 0) {
                 NodePtr new_node = NodeTraits::allocate(m_allocator, 1);
@@ -292,7 +292,7 @@ namespace cerb {
         }
 
     public:
-        constexpr auto back() const -> T &
+        CERBLIB_DECL auto back() const -> T &
         {
             if constexpr (MayThrow) {
                 if (m_size == 0) {
@@ -303,7 +303,7 @@ namespace cerb {
             return m_end->data[m_end->last - 1];
         }
 
-        constexpr auto front() const -> T &
+        CERBLIB_DECL auto front() const -> T &
         {
             if constexpr (MayThrow) {
                 if (m_size == 0) {
@@ -314,7 +314,7 @@ namespace cerb {
             return m_begin->data[m_begin->first];
         }
 
-        constexpr auto at(size_t index) const -> T &
+        CERBLIB_DECL auto at(size_t index) const -> T &
         {
             if constexpr (MayThrow) {
                 if (index >= m_size) {
@@ -335,7 +335,7 @@ namespace cerb {
             return node->data[index % Size];
         }
 
-        constexpr auto operator[](size_t index) const -> T &
+        CERBLIB_DECL auto operator[](size_t index) const -> T &
         {
             return at(index);
         }

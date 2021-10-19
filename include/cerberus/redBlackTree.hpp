@@ -1060,7 +1060,7 @@ namespace cerb::PRIVATE {
             constexpr ~reverse_iterator() noexcept = default;
         };
 
-        constexpr auto begin() const -> iterator
+        CERBLIB_DECL auto begin() const -> iterator
         {
             if (m_root == nullptr) [[unlikely]] {
                 return iterator(nullptr);
@@ -1069,17 +1069,17 @@ namespace cerb::PRIVATE {
             return iterator(leftNode(m_root));
         }
 
-        constexpr auto end() const -> iterator
+        CERBLIB_DECL auto end() const -> iterator
         {
             return iterator(nullptr);
         }
 
-        constexpr auto rbegin() const -> reverse_iterator
+        CERBLIB_DECL auto rbegin() const -> reverse_iterator
         {
             return reverse_iterator(rightNode(m_root));
         }
 
-        constexpr auto rend() const -> reverse_iterator
+        CERBLIB_DECL auto rend() const -> reverse_iterator
         {
             return reverse_iterator(nullptr);
         }

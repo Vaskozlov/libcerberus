@@ -294,17 +294,17 @@ namespace cerb::lex {
         }
 
         template<size_t Offset = 0>
-        constexpr auto get_char() const -> CharT
+        CERBLIB_DECL auto get_char() const -> CharT
         {
             return m_input[m_dot + Offset];
         }
 
-        constexpr auto get_char(size_t offset) const -> CharT
+        CERBLIB_DECL auto get_char(size_t offset) const -> CharT
         {
             return m_input[m_dot + offset];
         }
 
-        static constexpr auto get_line() -> string_view_t
+        CERBLIB_DECL static auto get_line() -> string_view_t
         {
             const auto &line = m_current_line;
             const auto pos   = line.contains('\n');
@@ -314,7 +314,7 @@ namespace cerb::lex {
                                         line.size(), pos) };
         }
 
-        static constexpr auto get_input() -> const string_view_t &
+        CERBLIB_DECL static auto get_input() -> const string_view_t &
         {
             return m_input;
         }
@@ -341,7 +341,7 @@ namespace cerb::lex {
         }
 
         template<typename T>
-        static constexpr auto char_cast(T value) -> CharT
+        CERBLIB_DECL static auto char_cast(T value) -> CharT
         {
             return static_cast<CharT>(value);
         }
@@ -489,7 +489,7 @@ namespace cerb::lex {
             m_checker = checker;
         }
 
-        constexpr static auto empty() -> bool
+        CERBLIB_DECL static auto empty() -> bool
         {
             return m_input.empty();
         }
