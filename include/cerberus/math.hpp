@@ -60,7 +60,7 @@ namespace cerb {
      * @return T max(lhs, rhs)
      */
     template<typename T>
-    CERBLIB_DECL auto max(const T &lhs, const auto &rhs) -> const T &
+    CERBLIB_DECL auto max(const T &lhs, const auto &rhs) -> T
     {
         return cmov(lhs > rhs, lhs, rhs);
     }
@@ -74,7 +74,7 @@ namespace cerb {
      * @return T min(lhs, rhs)
      */
     template<typename T>
-    CERBLIB_DECL auto min(const T &lhs, const auto &rhs) -> const T &
+    CERBLIB_DECL auto min(const T &lhs, const auto &rhs) -> T
     {
         return cmov(lhs < rhs, lhs, rhs);
     }
@@ -243,10 +243,15 @@ namespace cerb {
             ByteMask<T> mask(value);
 
             if constexpr (sizeof(T) == sizeof(u32)) {
-                return ((mask.getAsIntegral() & 0xFF80'0000) >> 23) - 0x7fu;
+                constexpr u32 ZeroPowerOfFloat32     = 0x7fU;
+                constexpr u32 MaskOfFloat32PowerBits = 0xFF80'0000;
+                return ((mask.getAsIntegral() & MaskOfFloat32PowerBits) >> 23) -
+                       ZeroPowerOfFloat32;
             } else {
-                return ((mask.getAsIntegral() & 0xFFF0'0000'0000'0000) >> 52) -
-                       0x3ffu;
+                constexpr u32 ZeroPowerOfFloat64     = 0x3ffU;
+                constexpr u64 MaskOfFloat64PowerBits = 0xFFF0'0000'0000'0000;
+                return ((mask.getAsIntegral() & MaskOfFloat64PowerBits) >> 52) -
+                       ZeroPowerOfFloat64;
             }
         }
     }

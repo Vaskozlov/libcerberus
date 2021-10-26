@@ -183,11 +183,11 @@ CalculatorTemplate struct CalculatorImp final : public Calculator<>
 
     constexpr auto yield(const token_t &token) -> bool override
     {
-        fmt::print(
+        /*fmt::print(
             "{:<16} {:<20} ", token.repr.to_string(),
             CalculatorItemItemsNames[token.type].to_string());
 
-        std::cout << token.pos << std::endl;
+        std::cout << token.pos << std::endl;*/
         slr1.yield(token);
 
         return true;

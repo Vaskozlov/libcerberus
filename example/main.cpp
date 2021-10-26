@@ -31,16 +31,18 @@ const char *const input = R"(
     }
 )";
 
-constexpr u32 SyntaxError = std::numeric_limits<u32>::max();
-
 auto main() -> int
 {
     CalculatorImp calculator{};
     Lex4CImp C_lexer{};
 
     // calculator.scan("50 + 20", "stdio");
-    calculator.scan("20 + 30", "stdio");
-    // C_lexer.scan(input, "stdio");
+    auto begin = std::chrono::high_resolution_clock::now();
+    // calculator.scan("sin(20) + 30", "stdio");
+    C_lexer.scan(input, "stdio");
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - begin;
+    fmt::print("{:e}\n", elapsed.count());
 
     return 0;
 }

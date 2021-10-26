@@ -120,6 +120,12 @@ namespace cerb::PRIVATE {
 
 
         protected:
+            CERBLIB_DECL auto search(const auto &key)
+            {
+                return cerb::find_if(
+                    begin(), end(), [&key](const auto &i) { return i == key; });
+            }
+
             CERBLIB_DECL auto search(const auto &key) const
             {
                 return cerb::find_if(

@@ -14,6 +14,9 @@ CLASS_NAME = Calculator
 STRING_POSTFIX = "_sv"
 MAX_TERMINALS = 16
 
+[FUNCTION]
+SIN: |"sin"
+
 [VALUE]
 INT: "[0-9]+"
 

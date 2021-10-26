@@ -380,7 +380,6 @@ namespace cerb::lex {
             item_t *item = nullptr;
 
             while (!item_t::empty()) {
-                ItemState state = UNABLE_TO_MATCH;
                 head()->rebind();
                 auto tmp = manage_char_and_string();
 
@@ -395,12 +394,7 @@ namespace cerb::lex {
                 for (auto &elem : m_items) {
                     elem.rebind();
 
-                    CERBLIB_UNROLL_N(2)
-                    do {
-                        state = elem.check();
-                    } while (state != UNABLE_TO_MATCH && state != SCAN_FINISHED);
-
-                    if (state == SCAN_FINISHED &&
+                    if (elem.check() == SCAN_FINISHED &&
                         (item == nullptr || elem.dot() > item->dot())) {
                         item = &elem;
                         break;

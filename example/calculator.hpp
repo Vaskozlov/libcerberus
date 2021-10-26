@@ -12,9 +12,10 @@ using namespace cerb::literals;
 enum struct CalculatorBlock : size_t
 {
     RESERVED         = 16UL,
-    OPERATORS        = 4096UL,
-    SEPARATOR        = 8192UL,
-    VALUE            = 16384UL,
+    FUNCTION         = 4096UL,
+    OPERATORS        = 8192UL,
+    SEPARATOR        = 16384UL,
+    VALUE            = 32768UL,
 };
 
 enum struct CalculatorItem : size_t
@@ -25,22 +26,24 @@ enum struct CalculatorItem : size_t
     EXPR             = static_cast<size_t>(CalculatorBlock::RESERVED) + 3UL,
     TERM             = static_cast<size_t>(CalculatorBlock::RESERVED) + 4UL,
     EMPTY            = static_cast<size_t>(CalculatorBlock::RESERVED) + 5UL,
+    SIN              = static_cast<size_t>(CalculatorBlock::FUNCTION) + 0UL,
     ADD              = static_cast<size_t>(CalculatorBlock::OPERATORS) + 0UL,
     LEFT_PARENTHESIS = static_cast<size_t>(CalculatorBlock::SEPARATOR) + 0UL,
     RIGHT_PARENTHESIS = static_cast<size_t>(CalculatorBlock::SEPARATOR) + 1UL,
     INT              = static_cast<size_t>(CalculatorBlock::VALUE) + 0UL,
 };
 
-constexpr cerb::gl::Map<CalculatorBlock, cerb::string_view, 4> CalculatorBlockNames{
+constexpr cerb::gl::Map<CalculatorBlock, cerb::string_view, 5> CalculatorBlockNames{
     true, {
         { CalculatorBlock::RESERVED, "RESERVED"_sv },
+        { CalculatorBlock::FUNCTION, "FUNCTION"_sv },
         { CalculatorBlock::OPERATORS, "OPERATORS"_sv },
         { CalculatorBlock::SEPARATOR, "SEPARATOR"_sv },
         { CalculatorBlock::VALUE, "VALUE"_sv },
     }
 };
 
-constexpr cerb::gl::Map<CalculatorItem, cerb::string_view, 10> CalculatorItemItemsNames{
+constexpr cerb::gl::Map<CalculatorItem, cerb::string_view, 11> CalculatorItemItemsNames{
     true, {
         { CalculatorItem::UNDEFINED, "UNDEFINED"_sv },
         { CalculatorItem::EoF, "EoF"_sv },
@@ -48,6 +51,7 @@ constexpr cerb::gl::Map<CalculatorItem, cerb::string_view, 10> CalculatorItemIte
         { CalculatorItem::EXPR, "EXPR"_sv },
         { CalculatorItem::TERM, "TERM"_sv },
         { CalculatorItem::EMPTY, "EMPTY"_sv },
+        { CalculatorItem::SIN, "SIN"_sv },
         { CalculatorItem::ADD, "ADD"_sv },
         { CalculatorItem::LEFT_PARENTHESIS, "LEFT_PARENTHESIS"_sv },
         { CalculatorItem::RIGHT_PARENTHESIS, "RIGHT_PARENTHESIS"_sv },
@@ -107,7 +111,8 @@ struct Calculator: public CERBERUS_LEX_PARENT_CLASS
         UNDEFINED,
         UNDEFINED,
         {
-            { INT, "[0-9]+"_sv, false, 14 }
+            { SIN, "sin"_sv, true, 2 },
+            { INT, "[0-9]+"_sv, false, 15 }
         },
         {
             { 

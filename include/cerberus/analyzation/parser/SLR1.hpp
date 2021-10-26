@@ -15,7 +15,10 @@ namespace cerb::analysis::parser {
     constexpr u32 SyntaxError = std::numeric_limits<u32>::max();
 
     template<
-        typename CharT, typename TokenType, typename token_t, size_t HandlesCount,
+        typename CharT,
+        typename TokenType,
+        typename token_t,
+        size_t HandlesCount,
         size_t StatesCount>
     struct SLR1
     {
@@ -121,6 +124,7 @@ namespace cerb::analysis::parser {
 
         constexpr auto print_stack() const -> void
         {
+            /*
             fmt::print("Stack: \n");
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : m_stack) {
@@ -129,6 +133,7 @@ namespace cerb::analysis::parser {
                     convert(elem.second.type).to_string());
             }
             std::cout << std::endl;
+        */
         }
 
         constexpr auto yield(token_t token) -> void

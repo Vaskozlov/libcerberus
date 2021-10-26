@@ -271,8 +271,7 @@ namespace cerb {
      * @return condition ?_on_true :_on_false
      */
     template<typename T>
-    constexpr auto cmov(bool condition, const T &on_true, const auto &on_false)
-        -> const T &
+    constexpr auto cmov(bool condition, const T &on_true, const auto &on_false) -> T
     {
         return condition ? on_true : static_cast<T>(on_false);
     }

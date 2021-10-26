@@ -15,7 +15,7 @@ namespace cerb::lex {
     public:
         constexpr auto operator+=(auto value) -> PositionInFile &
         {
-            char_number += value;
+            char_number += static_cast<size_t>(value);
             return *this;
         }
 
