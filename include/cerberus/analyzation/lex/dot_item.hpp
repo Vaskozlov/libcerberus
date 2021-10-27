@@ -270,9 +270,9 @@ namespace cerb::lex {
         }
 
     public:
-        constexpr auto operator==(const DotItem &other) const -> bool
+        constexpr auto operator<=>(const TokenType &other) const
         {
-            return priority == other.priority && m_token_type == other.m_token_type;
+            return m_token_type <=> other;
         }
 
         constexpr auto operator<=>(const DotItem &other) const
@@ -288,9 +288,9 @@ namespace cerb::lex {
             return m_token_type == other;
         }
 
-        constexpr auto operator<=>(const TokenType &other) const
+        constexpr auto operator==(const DotItem &other) const -> bool
         {
-            return m_token_type <=> other;
+            return priority == other.priority && m_token_type == other.m_token_type;
         }
 
     public:
@@ -299,14 +299,25 @@ namespace cerb::lex {
             return m_dot;
         }
 
+        CERBLIB_DECL static auto empty() -> bool
+        {
+            return m_input.empty();
+        }
+
+        constexpr auto dump() const -> void
+        {
+            m_global_position = m_current_pos;
+        }
+
+        template<typename T>
+        CERBLIB_DECL static auto char_cast(T value) -> CharT
+        {
+            return static_cast<CharT>(value);
+        }
+
         CERBLIB_DECL auto result() const -> const result_t &
         {
             return result_of_check;
-        }
-
-        CERBLIB_DECL auto get_token_pos() const noexcept -> const position_t &
-        {
-            return static_cast<const position_t &>(m_current_pos);
         }
 
         template<size_t Offset = 0>
@@ -320,6 +331,29 @@ namespace cerb::lex {
             return m_input[m_dot + offset];
         }
 
+        CERBLIB_DECL static auto get_input() -> const string_view_t &
+        {
+            return m_input;
+        }
+
+        CERBLIB_DECL auto get_token_pos() const noexcept -> const position_t &
+        {
+            return static_cast<const position_t &>(m_current_pos);
+        }
+
+        static constexpr auto add2input(size_t offset) -> void
+        {
+            auto &input = m_input;
+            m_input     = { cerb::min(input.begin() + offset, input.end()),
+                        input.end() };
+        }
+
+        static constexpr auto add2input(string_view_iterator first) -> void
+        {
+            auto &input = m_input;
+            m_input     = { cerb::min(first, input.end()), input.end() };
+        }
+
         CERBLIB_DECL static auto get_line() -> string_view_t
         {
             const auto &line = m_current_line;
@@ -328,11 +362,6 @@ namespace cerb::lex {
                      line.begin() + cmov(
                                         pos == std::numeric_limits<size_t>::max(),
                                         line.size(), pos) };
-        }
-
-        CERBLIB_DECL static auto get_input() -> const string_view_t &
-        {
-            return m_input;
         }
 
         CERBLIB_DECL auto isolate_token() const -> string_view_t
@@ -354,25 +383,6 @@ namespace cerb::lex {
                 ++index;
             }
             return { result.begin(), m_input.begin() + index };
-        }
-
-        template<typename T>
-        CERBLIB_DECL static auto char_cast(T value) -> CharT
-        {
-            return static_cast<CharT>(value);
-        }
-
-        static constexpr auto add2input(size_t offset) -> void
-        {
-            auto &input = m_input;
-            m_input     = { cerb::min(input.begin() + offset, input.end()),
-                        input.end() };
-        }
-
-        static constexpr auto add2input(string_view_iterator first) -> void
-        {
-            auto &input = m_input;
-            m_input     = { cerb::min(first, input.end()), input.end() };
         }
 
         auto skip_comments_and_layout() -> void
@@ -446,17 +456,12 @@ namespace cerb::lex {
             m_current_pos.filename = filename;
         }
 
-        constexpr auto dump() const -> void
-        {
-            m_global_position = m_current_pos;
-        }
-
         auto rebind(bool load_from_shared = true, bool reload_position = false)
             -> void
         {
             m_dot           = 0;
-            m_current_range = m_ranges.begin();
             m_token_begin   = m_input.begin();
+            m_current_range = m_ranges.begin();
 
             if (reload_position) {
                 m_current_pos.char_number = 0;
@@ -489,12 +494,7 @@ namespace cerb::lex {
             m_checker = checker;
         }
 
-        CERBLIB_DECL static auto empty() -> bool
-        {
-            return m_input.empty();
-        }
-
-        [[nodiscard]] auto can_end() const -> bool
+        CERBLIB_DECL auto can_end() const -> bool
         {
             if (m_is_word) {
                 return m_dot == m_word_repr.size();
@@ -504,7 +504,7 @@ namespace cerb::lex {
                 return true;
             }
 
-            CERBLIB_UNROLL_N(2)
+            CERBLIB_UNROLL_N(1)
             for (auto i = m_ranges.end() - 1; i != m_current_range; --i) {
                 switch (i->rule) {
                 case OPTIONAL:
@@ -512,7 +512,7 @@ namespace cerb::lex {
                     return true;
 
                 default:
-                    return false;
+                    continue;
                 }
             }
             return true;

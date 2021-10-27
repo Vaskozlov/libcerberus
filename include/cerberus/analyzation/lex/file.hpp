@@ -51,8 +51,8 @@ namespace cerb::lex {
         constexpr PositionInFile(PositionInFile &&) noexcept = default;
 
         constexpr PositionInFile(
-            size_t line, size_t char_n, const cerb::basic_string_view<CharT> &s)
-          : line_number(line), char_number(char_n), filename(s)
+            size_t line, size_t char_n, const cerb::basic_string_view<CharT> &str)
+          : line_number(line), char_number(char_n), filename(str)
         {}
     };
 }// namespace cerb::lex

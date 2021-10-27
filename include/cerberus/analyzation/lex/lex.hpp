@@ -321,15 +321,14 @@ namespace cerb::lex {
         }
 
     public:
-        constexpr virtual void finish()                    = 0;
-        constexpr virtual bool yield(const token_t &token) = 0;
-        constexpr virtual void
-            error(const item_t &item, const string_view_t &repr) = 0;
-
         CERBLIB_DECL auto head() const noexcept
         {
             return m_head;
         }
+
+        virtual void finish()                                             = 0;
+        virtual bool yield(const token_t &token)                          = 0;
+        virtual void error(const item_t &item, const string_view_t &repr) = 0;
 
         CERBLIB_DECL virtual auto process_string(item_t &item, string_t &result)
             -> size_t
@@ -391,6 +390,7 @@ namespace cerb::lex {
                     continue;
                 }
 
+                CERBLIB_UNROLL_N(2)
                 for (auto &elem : m_items) {
                     elem.rebind();
 
