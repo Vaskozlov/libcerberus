@@ -20,6 +20,7 @@ else ()
 endif ()
 
 set(INCLUDE_DIRECTORIES ./include)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 
 file(
         GLOB_RECURSE
@@ -55,46 +56,17 @@ add_executable(
         ${CERB2LEX_OBJS}
 )
 
-add_executable(
-        calculator
-        ${CALCULATOR_OBJS}
-)
-
 add_library(
         library-objs
         OBJECT
         ${LIBRARY_OBJS}
 )
 
-if (UNIX)
-    set(EXTRA_FLAGS "-Wextra")
-else ()
-    set(EXTRA_FLAGS " ")
-endif ()
-
 target_compile_options(
         library-objs
         PRIVATE
-        -Wall ${EXTRA_FLAGS} -fno-stack-protector
-        -nostdlib -ffreestanding -I ${CMAKE_CURRENT_LIST_DIR}/include
-)
-
-target_compile_options(
-        example
-        PRIVATE
-        -Wall ${EXTRA_FLAGS} -I ${CMAKE_CURRENT_LIST_DIR}/include
-)
-
-target_compile_options(
-        cerb2lex
-        PRIVATE
-        -Wall ${EXTRA_FLAGS} -I ${CMAKE_CURRENT_LIST_DIR}/include
-)
-
-target_compile_options(
-        calculator
-        PRIVATE
-        -Wall ${EXTRA_FLAGS} -I ${CMAKE_CURRENT_LIST_DIR}/include
+        -fno-stack-protector
+        -nostdlib -ffreestanding
 )
 
 find_package(fmt CONFIG REQUIRED)
@@ -123,21 +95,9 @@ if (USE_STATIC)
             -static
     )
 
-
     target_link_libraries(
             cerb2lex
             ${PROJECT_NAME} fmt::fmt-header-only
-    )
-
-    target_link_options(
-            calculator
-            PRIVATE
-            -static
-    )
-
-    target_link_libraries(
-            calculator
-            ${PROJECT_NAME} fmt::fmt-header-only y
     )
 
 else ()
@@ -155,11 +115,6 @@ else ()
 
     target_link_libraries(
             example
-            ${PROJECT_NAME} fmt::fmt
-    )
-
-    target_link_libraries(
-            calculator
             ${PROJECT_NAME} fmt::fmt
     )
 
