@@ -66,8 +66,7 @@ Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
         string_view_t repr{};
 
     public:
-        CERBLIB_DECL auto check_type(TokenType token) const noexcept
-            -> bool
+        CERBLIB_DECL auto check_type(TokenType token) const noexcept -> bool
         {
             return allowed_types.contains(token);
         }
@@ -82,8 +81,7 @@ Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
             return repr <=> other.repr;
         }
 
-        CERBLIB_DECL auto to_string() const noexcept
-            -> std::basic_string_view<CharT>
+        CERBLIB_DECL auto to_string() const noexcept -> std::basic_string_view<CharT>
         {
             return repr.to_string();
         }
@@ -405,7 +403,7 @@ public:
             elem.second.power = power;
         }
 
-        generated_string = fmt::format(
+        generated_string += fmt::format(
             "enum struct {} : size_t\n{{\n    {:<16} = {}UL,\n", m_name_of_block,
             "RESERVED", parent::RESERVED);
 
@@ -424,8 +422,7 @@ public:
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : m_reserved_types) {
                 generated_string += fmt::format(
-                    "    {:<16} = static_cast<size_t>({}::RESERVED) + {}UL,\n", elem,
-                    m_name_of_block, j++);
+                    "    {:<16} = {}UL,\n", elem, parent::RESERVED + (j++));
             }
         }
 
@@ -436,32 +433,118 @@ public:
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.words) {
                 generated_string += fmt::format(
-                    "    {:<16} = static_cast<size_t>({}::{}) + {}UL,\n",
-                    i.first.to_string(), m_name_of_block, elem.first.to_string(),
-                    j++);
+                    "    {:<16} = {}UL,\n", i.first.to_string(),
+                    (1ULL << elem.second.power) + (j++));
             }
             rules_count += elem.second.words.size();
 
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.rules) {
                 generated_string += fmt::format(
-                    "    {:<16} = static_cast<size_t>({}::{}) + {}UL,\n",
-                    i.first.to_string(), m_name_of_block, elem.first.to_string(),
-                    j++);
+                    "    {:<16} = {}UL,\n", i.first.to_string(),
+                    (1ULL << elem.second.power) + (j++));
             }
             rules_count += elem.second.rules.size();
 
             CERBLIB_UNROLL_N(2)
             for (const auto &i : elem.second.operators) {
                 generated_string += fmt::format(
-                    "    {:<16} = static_cast<size_t>({}::{}) + {}UL,\n",
-                    i.first.to_string(), m_name_of_block, elem.first.to_string(),
-                    j++);
+                    "    {:<16} = {}UL,\n", i.first.to_string(),
+                    (1ULL << elem.second.power) + (j++));
             }
 
             rules_count += elem.second.operators.size();
         }
         generated_string += "};\n\n";
+
+        {
+            generated_string += "/*\n";
+
+            {
+                size_t j = 0;
+                CERBLIB_UNROLL_N(2)
+                for (const auto &elem : m_reserved_types) {
+                    generated_string += fmt::format(
+                        "%token {:<16} {}\n", elem, parent::RESERVED + (j++));
+                }
+            }
+
+            for (auto &elem : m_blocks) {
+                size_t j = 0;
+
+                CERBLIB_UNROLL_N(2)
+                for (const auto &i : elem.second.words) {
+                    generated_string += fmt::format(
+                        "%token {:<16} {}\n", i.first.to_string(),
+                        (1ULL << elem.second.power) + (j++));
+                }
+
+                CERBLIB_UNROLL_N(2)
+                for (const auto &i : elem.second.rules) {
+                    generated_string += fmt::format(
+                        "%token {:<16} {}\n", i.first.to_string(),
+                        (1ULL << elem.second.power) + (j++));
+                }
+
+                CERBLIB_UNROLL_N(2)
+                for (const auto &i : elem.second.operators) {
+                    if (i.first != "STRING" && i.first != "CHAR") {
+                        generated_string += fmt::format(
+                            "%token {:<16} \"{}\"\n", i.first.to_string(),
+                            i.second.to_string());
+                    } else {
+                        generated_string += fmt::format(
+                            "%token {:<16} {}\n", i.first.to_string(),
+                            (1ULL << elem.second.power) + j);
+                    }
+                    ++j;
+                }
+            }
+
+            generated_string += fmt::format(
+                "\n\nconstexpr cerb::gl::Map<{0}, yytokentype, {1}> "
+                "{2}ItemsNamesConverter{{\n    true, {{\n",
+                m_name_of_items,
+                rules_count + m_reserved_types.size(),
+                m_directives["CLASS_NAME"].to_string());
+
+            {
+                size_t j = 0;
+                CERBLIB_UNROLL_N(2)
+                for (const auto &elem : m_reserved_types) {
+                    generated_string += fmt::format(
+                        "    {{{0}:{1:<16}, yytokentype::{1}}},\n", m_name_of_items,
+                        elem);
+                }
+            }
+
+            for (auto &elem : m_blocks) {
+                size_t j = 0;
+
+                CERBLIB_UNROLL_N(2)
+                for (const auto &i : elem.second.words) {
+                    generated_string += fmt::format(
+                        "    {{{0}::{1:<16}, yytokentype::{1}}},\n", m_name_of_items,
+                        i.first.to_string());
+                }
+
+                CERBLIB_UNROLL_N(2)
+                for (const auto &i : elem.second.rules) {
+                    generated_string += fmt::format(
+                        "    {{{0}::{1:<16}, yytokentype::{1}}},\n", m_name_of_items,
+                        i.first.to_string());
+                }
+
+                CERBLIB_UNROLL_N(2)
+                for (const auto &i : elem.second.operators) {
+                    generated_string += fmt::format(
+                        "    {{{0}::{1:<16}, yytokentype::{1}}},\n", m_name_of_items,
+                        i.first.to_string());
+                }
+            }
+
+            generated_string += "*/\n\n";
+        }
 
         generated_string += fmt::format(
             "constexpr cerb::gl::Map<{0}, cerb::string_view, {1}> "
@@ -481,42 +564,44 @@ public:
 
         generated_string += "    }\n};\n\n";
 
-        generated_string += fmt::format(
-            "constexpr cerb::gl::Map<{0}, cerb::string_view, {1}> "
-            "{0}ItemsNames{{\n    true, {{\n",
-            m_name_of_items, rules_count + m_reserved_types.size());
-
-        CERBLIB_UNROLL_N(2)
-        for (const auto &elem : m_reserved_types) {
+        {
             generated_string += fmt::format(
-                "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items, elem);
+                "constexpr cerb::gl::Map<{0}, cerb::string_view, {1}> "
+                "{0}ItemsNames{{\n    true, {{\n",
+                m_name_of_items, rules_count + m_reserved_types.size());
+
+            CERBLIB_UNROLL_N(2)
+            for (const auto &elem : m_reserved_types) {
+                generated_string += fmt::format(
+                    "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items, elem);
+            }
+
+            CERBLIB_UNROLL_N(2)
+            for (const auto &elem : m_blocks) {
+                CERBLIB_UNROLL_N(2)
+                for (const auto &word : elem.second.words) {
+                    generated_string += fmt::format(
+                        "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items,
+                        word.first.to_string());
+                }
+
+                CERBLIB_UNROLL_N(2)
+                for (const auto &rule : elem.second.rules) {
+                    generated_string += fmt::format(
+                        "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items,
+                        rule.first.to_string());
+                }
+
+                CERBLIB_UNROLL_N(2)
+                for (const auto &operator_ : elem.second.operators) {
+                    generated_string += fmt::format(
+                        "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items,
+                        operator_.first.to_string());
+                }
+            }
+
+            generated_string += "    }\n};\n\n";
         }
-
-        CERBLIB_UNROLL_N(2)
-        for (const auto &elem : m_blocks) {
-            CERBLIB_UNROLL_N(2)
-            for (const auto &word : elem.second.words) {
-                generated_string += fmt::format(
-                    "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items,
-                    word.first.to_string());
-            }
-
-            CERBLIB_UNROLL_N(2)
-            for (const auto &rule : elem.second.rules) {
-                generated_string += fmt::format(
-                    "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items,
-                    rule.first.to_string());
-            }
-
-            CERBLIB_UNROLL_N(2)
-            for (const auto &operator_ : elem.second.operators) {
-                generated_string += fmt::format(
-                    "        {{ {0}::{1}, \"{1}\"_sv }},\n", m_name_of_items,
-                    operator_.first.to_string());
-            }
-        }
-
-        generated_string += "    }\n};\n\n";
 
         generated_string += fmt::format(
             R"(

@@ -1,13 +1,23 @@
-
 %{
 #include <cstdlib>
 #include <string>
+#include <iostream>
 #include "calculator_imp_yacc.hpp"
-
 %}
 
-%token ADD
-%token INTEGERAL
+%token UNDEFINED        16
+%token EoF              17
+%token SELF             18
+%token EXPR             19
+%token TERM             20
+%token EMPTY            21
+%token SIN              4096
+%token ADD              "+"
+%token LEFT_PARENTHESIS "("
+%token RIGHT_PARENTHESIS ")"
+%token INT              32768
+%token SUB '-'
+
 %define api.value.type { std::string }
 
 %%
@@ -17,21 +27,30 @@ program:
 	;
 
 expr:
-	INTEGERAL			{ $$ = $1; }
-	| expr ADD expr 		{ $$ = std::to_string(std::atoi($1.c_str()) + std::atoi($3.c_str())); }
+	INT				{ $$ = $1; std::cout << $1 << std::endl; }
+	| expr "+" expr 		{ $$ = std::to_string(std::atoi($1.c_str()) + std::atoi($3.c_str())); std::cout << $1 << ' ' << $2 << ' ' << $3 << std::endl; }
 	;
 
 %%
 
-cerb::gl::Map<CalculatorItem, int, 3> Table
-{
-    {CalculatorItem::INT, INTEGERAL},
-    {CalculatorItem::ADD, ADD},
-    {CalculatorItem::EoF, 0}
-};
-
 
 CalculatorImpYacc calculator{};
+
+constexpr cerb::gl::Map<CalculatorItem, yytokentype, 11> CalculatorItemsNamesConverter{
+    true, {
+	    {CalculatorItem::UNDEFINED       , yytokentype::UNDEFINED},
+	    {CalculatorItem::EoF             , yytokentype::EoF},
+	    {CalculatorItem::SELF            , yytokentype::SELF},
+	    {CalculatorItem::EXPR            , yytokentype::EXPR},
+	    {CalculatorItem::TERM            , yytokentype::TERM},
+	    {CalculatorItem::EMPTY           , yytokentype::EMPTY},
+	    {CalculatorItem::SIN             , yytokentype::SIN},
+	    {CalculatorItem::ADD             , yytokentype::ADD},
+	    {CalculatorItem::LEFT_PARENTHESIS, yytokentype::LEFT_PARENTHESIS},
+	    {CalculatorItem::RIGHT_PARENTHESIS, yytokentype::RIGHT_PARENTHESIS},
+	    {CalculatorItem::INT             , yytokentype::INT}
+    }
+};
 
 int yylex(void) {
     static size_t index{};
@@ -44,7 +63,7 @@ int yylex(void) {
     }
 
     yylval = std::string(elem.repr.to_string());
-    return Table[elem.type];
+    return CalculatorItemsNamesConverter[elem.type];
 }
 
 int main() {

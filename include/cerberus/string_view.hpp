@@ -3,6 +3,7 @@
 
 #include <cerberus/types.h>
 #include <cerberus/math.hpp>
+#include <cerberus/string.hpp>
 
 namespace cerb {
     template<typename CharT>
@@ -13,6 +14,12 @@ namespace cerb {
 
         CERBLIB_DECL static auto length_of_string(const CharT *str) -> size_t
         {
+#ifdef __x86_64__
+            if constexpr (sizeof(CharT) == sizeof(char)) {
+                return cerb::strlen(static_cast<const char*>(str));
+            }
+#endif /* __x86_64__ */
+
             size_t index = 0;
 
             CERBLIB_UNROLL_N(4)

@@ -20,18 +20,47 @@ enum struct CalculatorBlock : size_t
 
 enum struct CalculatorItem : size_t
 {
-    UNDEFINED        = static_cast<size_t>(CalculatorBlock::RESERVED) + 0UL,
-    EoF              = static_cast<size_t>(CalculatorBlock::RESERVED) + 1UL,
-    SELF             = static_cast<size_t>(CalculatorBlock::RESERVED) + 2UL,
-    EXPR             = static_cast<size_t>(CalculatorBlock::RESERVED) + 3UL,
-    TERM             = static_cast<size_t>(CalculatorBlock::RESERVED) + 4UL,
-    EMPTY            = static_cast<size_t>(CalculatorBlock::RESERVED) + 5UL,
-    SIN              = static_cast<size_t>(CalculatorBlock::FUNCTION) + 0UL,
-    ADD              = static_cast<size_t>(CalculatorBlock::OPERATORS) + 0UL,
-    LEFT_PARENTHESIS = static_cast<size_t>(CalculatorBlock::SEPARATOR) + 0UL,
-    RIGHT_PARENTHESIS = static_cast<size_t>(CalculatorBlock::SEPARATOR) + 1UL,
-    INT              = static_cast<size_t>(CalculatorBlock::VALUE) + 0UL,
+    UNDEFINED        = 16UL,
+    EoF              = 17UL,
+    SELF             = 18UL,
+    EXPR             = 19UL,
+    TERM             = 20UL,
+    EMPTY            = 21UL,
+    SIN              = 4096UL,
+    ADD              = 8192UL,
+    LEFT_PARENTHESIS = 16384UL,
+    RIGHT_PARENTHESIS = 16385UL,
+    INT              = 32768UL,
 };
+
+/*
+%token UNDEFINED        16
+%token EoF              17
+%token SELF             18
+%token EXPR             19
+%token TERM             20
+%token EMPTY            21
+%token SIN              4096
+%token ADD              '+'
+%token LEFT_PARENTHESIS '('
+%token RIGHT_PARENTHESIS ')'
+%token INT              32768
+
+
+constexpr cerb::gl::Map<CalculatorItem, yytokentype, 11> CalculatorItemsNamesConverter{
+    true, {
+    {CalculatorItem:UNDEFINED       , yytokentype::UNDEFINED},
+    {CalculatorItem:EoF             , yytokentype::EoF},
+    {CalculatorItem:SELF            , yytokentype::SELF},
+    {CalculatorItem:EXPR            , yytokentype::EXPR},
+    {CalculatorItem:TERM            , yytokentype::TERM},
+    {CalculatorItem:EMPTY           , yytokentype::EMPTY},
+    {CalculatorItem::SIN             , yytokentype::SIN},
+    {CalculatorItem::ADD             , yytokentype::ADD},
+    {CalculatorItem::LEFT_PARENTHESIS, yytokentype::LEFT_PARENTHESIS},
+    {CalculatorItem::RIGHT_PARENTHESIS, yytokentype::RIGHT_PARENTHESIS},
+    {CalculatorItem::INT             , yytokentype::INT},
+*/
 
 constexpr cerb::gl::Map<CalculatorBlock, cerb::string_view, 5> CalculatorBlockNames{
     true, {

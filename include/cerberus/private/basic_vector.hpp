@@ -55,9 +55,9 @@ namespace cerb::PRIVATE {
                     ValueTraits::allocate(m_allocator, capacity() * 2U);
 
                 if constexpr (std::is_nothrow_move_constructible_v<value_type>) {
-                    raw_move(new_buffer, m_data, m_data + m_size);
+                    move_constructor(new_buffer, m_data, m_data + m_size);
                 } else {
-                    raw_copy(new_buffer, m_data, m_data + m_size);
+                    construct(new_buffer, m_data, m_data + m_size);
                 }
 
                 std::destroy_n(m_data, m_size);
@@ -168,24 +168,24 @@ namespace cerb::PRIVATE {
             return reverse_iterator(begin());
         }
 
-        CERBLIB_DECL auto cbegin() const noexcept -> const_iterator
+        CERBLIB_DECL auto cbegin() const noexcept -> iterator
         {
-            return const_iterator(data());
+            return iterator(data());
         }
 
-        CERBLIB_DECL auto cend() const noexcept -> const_iterator
+        CERBLIB_DECL auto cend() const noexcept -> iterator
         {
-            return const_iterator(data() + size());
+            return iterator(data() + size());
         }
 
-        CERBLIB_DECL auto crbegin() const noexcept -> const_reverse_iterator
+        CERBLIB_DECL auto crbegin() const noexcept -> reverse_iterator
         {
-            return const_reverse_iterator(cbegin());
+            return reverse_iterator(cbegin());
         }
 
-        CERBLIB_DECL auto crend() const noexcept -> const_reverse_iterator
+        CERBLIB_DECL auto crend() const noexcept -> reverse_iterator
         {
-            return const_reverse_iterator(cend());
+            return reverse_iterator(cend());
         }
 
     protected:
@@ -229,7 +229,7 @@ namespace cerb::PRIVATE {
                 CERBLIB_UNROLL_N(2)
                 for (long long i = size(); i > static_cast<long long>(index); --i) {
                     if constexpr (std::is_nothrow_move_constructible_v<T>) {
-                        m_data[i] = cerb::move(m_data[i - 1]);
+                        m_data[i] = std::move(m_data[i - 1]);
                     } else {
                         m_data[i] = m_data[i - 1];
                     }
@@ -252,7 +252,7 @@ namespace cerb::PRIVATE {
                 CERBLIB_UNROLL_N(2)
                 for (size_type i = size(); i > index; --i) {
                     if constexpr (std::is_nothrow_move_constructible_v<T>) {
-                        m_data[i] = cerb::move(m_data[i - elems]);
+                        m_data[i] = std::move(m_data[i - elems]);
                     } else {
                         m_data[i] = m_data[i - elems];
                     }
@@ -278,7 +278,7 @@ namespace cerb::PRIVATE {
                 CERBLIB_UNROLL_N(2)
                 for (size_type i = size(); i > index; --i) {
                     if constexpr (std::is_nothrow_move_constructible_v<T>) {
-                        m_data[i] = cerb::move(m_data[i - elems]);
+                        m_data[i] = std::move(m_data[i - elems]);
                     } else {
                         m_data[i] = m_data[i - elems];
                     }
@@ -454,7 +454,7 @@ namespace cerb::PRIVATE {
                 m_data     = ValueTraits::allocate(m_allocator, m_capacity);
             }
 
-            raw_copy(m_data, other.data(), other.data() + other.size());
+            construct(m_data, other.data(), other.data() + other.size());
             return *this;
         }
 
@@ -463,7 +463,7 @@ namespace cerb::PRIVATE {
             m_data      = other.data();
             m_size      = other.size();
             m_capacity  = other.capacity();
-            m_allocator = cerb::move(other.m_allocator);
+            m_allocator = std::move(other.m_allocator);
 
             other.m_size     = 0;
             other.m_capacity = 4;
@@ -495,11 +495,11 @@ namespace cerb::PRIVATE {
             m_capacity(other.capacity())
         {
             m_data = ValueTraits::allocate(m_allocator, m_capacity);
-            raw_copy<T>(m_data, other.data(), other.data() + other.size());
+            construct<T>(m_data, other.data(), other.data() + other.size());
         }
 
         constexpr BasicVector(BasicVector &&other) noexcept
-          : m_allocator(cerb::move(other.m_allocator)), m_data(other.m_data),
+          : m_allocator(std::move(other.m_allocator)), m_data(other.m_data),
             m_size(other.size()), m_capacity(other.capacity())
         {
             other.m_size     = 0;
@@ -514,7 +514,7 @@ namespace cerb::PRIVATE {
             m_capacity = cmov<size_t>(m_capacity == 0, 1, m_capacity);
 
             m_data = ValueTraits::allocate(m_allocator, m_capacity);
-            raw_copy(m_data, args.begin(), args.end());
+            construct(m_data, args.begin(), args.end());
         }
 
         constexpr explicit BasicVector(size_t t_capacity)

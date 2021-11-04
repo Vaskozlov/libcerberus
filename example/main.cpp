@@ -1,12 +1,17 @@
 #include <deque>
 #include <chrono>
+#include <ranges>
 #include <iomanip>
 #include <iostream>
+#include <thread>
 #include <cerberus/string_view.hpp>
 #include <fmt/format.h>
 #include <fmt/color.h>
 #include "calculator_imp.hpp"
 #include "lexer4C_imp.hpp"
+#include <cerberus/deque2.hpp>
+#include <cerberus/range.hpp>
+#include <cerberus/benchmark.hpp>
 
 using namespace cerb::literals;
 using namespace std::string_view_literals;
@@ -31,15 +36,77 @@ const char *const input = R"(
     }
 )";
 
-auto main() -> int
+consteval auto test() -> size_t
 {
-    CalculatorImp calculator{};
-    Lex4CImp C_lexer{};
+    cerb::experimental::Deque<int> ideque{};
 
-    // calculator.scan("50 + 20", "stdio");
+    CERBLIB_UNROLL_N(2)
+    for (int i = 0; i < 100; i++) {
+        ideque.emplace_back(i);
+        ideque.emplace_front(-i);
+    }
+    auto ideque2 = ideque;
+
+    ideque = ideque2;
+    return ideque.size();
+}
+
+/*
+CalculatorImp calculator{};
+Lex4CImp C_lexer{};
+
+// calculator.scan("50 + 20", "stdio");
+auto begin = std::chrono::high_resolution_clock::now();
+// calculator.scan("sin(20) + 30", "stdio");
+C_lexer.scan(input, "stdio");
+auto end = std::chrono::high_resolution_clock::now();
+std::chrono::duration<double> elapsed = end - begin;
+fmt::print("{:e}\n", elapsed.count());
+*/
+
+auto deque_test() -> int
+{
+    test();
     auto begin = std::chrono::high_resolution_clock::now();
-    // calculator.scan("sin(20) + 30", "stdio");
-    C_lexer.scan(input, "stdio");
+    {
+        cerb::experimental::Deque<int> ideque{};
+        cerb::experimental::Deque<std::string> deque{};
+        int i = 0;
+
+        cerb::experimental::Benchmark(
+            [](const auto elapsed, const char *name) {
+                fmt::print("pushing elapsed in {:e}\n", elapsed.count());
+            },
+            [&]() {
+                ideque.emplace_back(i);
+                ideque.emplace_front(-i);
+                deque.emplace_front(
+                    fmt::format("Hello, world! It's a long string {}", i));
+                deque.emplace_back(
+                    fmt::format("Hello, world! It's a long string {}", -i));
+                i++;
+            });
+
+        auto ideque2 = ideque;
+        auto deque2  = deque;
+
+        CERBLIB_UNROLL_N(2)
+        for (auto i : cerb::range(8)) {
+            deque.pop_back();
+            deque.pop_front();
+        }
+        deque.pop_back();
+
+        deque = std::move(deque2);
+
+        fmt::print("1: {} {}\n", deque.front(), deque.back());
+        fmt::print("2: {} {}\n", deque2.front(), deque2.back());
+
+        for (auto it = deque.rbegin(); it != deque.rend(); it--) {
+            std::cout << *it << std::endl;
+        }
+    }
+
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - begin;
     fmt::print("{:e}\n", elapsed.count());
@@ -47,10 +114,21 @@ auto main() -> int
     return 0;
 }
 
+auto main() -> int
+{
+    deque_test();
+    cerb::experimental::Benchmark(
+        [](const auto time, const char *name) {
+            fmt::print("{} elapsed in {:e}\n", name, time.count());
+        },
+        deque_test);
+    return 0;
+}
+
 /*
  * TODO:
  *  1) if string is to long print half on it on error
  *
- *  1) как генеировать таблицу автоматически
+ *  1) как генерировать таблицу автоматически
  *
  */

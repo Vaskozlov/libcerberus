@@ -146,6 +146,8 @@ typedef u8 byte;
 #ifndef CERBLIB_UNROLL_N
 #    if defined(__clang__)
 #        define CERBLIB_UNROLL_N(N) _Pragma(CERBLIB_STR(unroll N))
+#    elif defined(__GNUC__)
+#        define CERBLIB_UNROLL_N(N) _Pragma(CERBLIB_STR(GCC unroll N))
 #    else
 #        define CERBLIB_UNROLL_N(N)
 #    endif

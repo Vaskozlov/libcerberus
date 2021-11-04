@@ -5,7 +5,9 @@
 #include <cerberus/vector.hpp>
 
 extern "C" int yylex(void);
-extern "C" void yyerror(char *);
+extern "C" void yyerror(const char *message) {
+    std::cerr << message << std::endl;
+}
 
 CalculatorTemplate struct CalculatorImpYacc final : public Calculator<>
 {

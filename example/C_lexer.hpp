@@ -23,73 +23,212 @@ enum struct Lex4CBlock : size_t
 
 enum struct Lex4CItem : size_t
 {
-    UNDEFINED        = static_cast<size_t>(Lex4CBlock::RESERVED) + 0UL,
-    EoF              = static_cast<size_t>(Lex4CBlock::RESERVED) + 1UL,
-    SELF             = static_cast<size_t>(Lex4CBlock::RESERVED) + 2UL,
-    EXPR             = static_cast<size_t>(Lex4CBlock::RESERVED) + 3UL,
-    TERM             = static_cast<size_t>(Lex4CBlock::RESERVED) + 4UL,
-    EMPTY            = static_cast<size_t>(Lex4CBlock::RESERVED) + 5UL,
-    ADD              = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 0UL,
-    SUB              = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 1UL,
-    MUL              = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 2UL,
-    DIV              = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 3UL,
-    MOD              = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 4UL,
-    ASSIGN           = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 5UL,
-    ADD_EQ           = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 6UL,
-    SUB_EQ           = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 7UL,
-    MUL_EQ           = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 8UL,
-    DIV_EQ           = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 9UL,
-    MOD_EQ           = static_cast<size_t>(Lex4CBlock::ARITHMETIC_OPERATOR) + 10UL,
-    OR               = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 0UL,
-    AND              = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 1UL,
-    XOR              = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 2UL,
-    NOT              = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 3UL,
-    OR_EQ            = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 4UL,
-    AND_EQ           = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 5UL,
-    XOR_EQ           = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 6UL,
-    LEFT_SHIFT       = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 7UL,
-    RIGHT_SHIFT      = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 8UL,
-    LEFT_SHIFT_EQ    = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 9UL,
-    RIGHT_SHIFT_EQ   = static_cast<size_t>(Lex4CBlock::BIT_OPERATOR) + 10UL,
-    FOR              = static_cast<size_t>(Lex4CBlock::KEYWORD) + 0UL,
-    WHILE            = static_cast<size_t>(Lex4CBlock::KEYWORD) + 1UL,
-    RETURN           = static_cast<size_t>(Lex4CBlock::KEYWORD) + 2UL,
-    CASE             = static_cast<size_t>(Lex4CBlock::KEYWORD) + 3UL,
-    SWITCH           = static_cast<size_t>(Lex4CBlock::KEYWORD) + 4UL,
-    LESS             = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 0UL,
-    GREATER          = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 1UL,
-    LOGICAL_NOT      = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 2UL,
-    LESS_EQ          = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 3UL,
-    GREATER_EQ       = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 4UL,
-    LOGICAL_OR       = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 5UL,
-    LOGICAL_AND      = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 6UL,
-    LOGICAL_EQUAL    = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 7UL,
-    LOGICAL_NOT_EQUAL = static_cast<size_t>(Lex4CBlock::LOGICAL_OPERATOR) + 8UL,
-    CURLY_OPENING    = static_cast<size_t>(Lex4CBlock::OPERATOR_SEPARATOR) + 0UL,
-    CURLY_CLOSING    = static_cast<size_t>(Lex4CBlock::OPERATOR_SEPARATOR) + 1UL,
-    LEFT_PARENTHESIS = static_cast<size_t>(Lex4CBlock::OPERATOR_SEPARATOR) + 2UL,
-    RIGHT_PARENTHESIS = static_cast<size_t>(Lex4CBlock::OPERATOR_SEPARATOR) + 3UL,
-    ANGLE_OPENING    = static_cast<size_t>(Lex4CBlock::OPERATOR_SEPARATOR) + 4UL,
-    ANGLE_CLOSING    = static_cast<size_t>(Lex4CBlock::OPERATOR_SEPARATOR) + 5UL,
-    COMMA            = static_cast<size_t>(Lex4CBlock::OPERATOR_SEPARATOR) + 6UL,
-    SEPARATOR        = static_cast<size_t>(Lex4CBlock::OPERATOR_SEPARATOR) + 7UL,
-    PREPROCESSOR     = static_cast<size_t>(Lex4CBlock::OPERATOR_SEPARATOR) + 8UL,
-    QUESTION_MARK    = static_cast<size_t>(Lex4CBlock::OPERATOR_SEPARATOR) + 9UL,
-    INT              = static_cast<size_t>(Lex4CBlock::TYPE) + 0UL,
-    CHAR_T           = static_cast<size_t>(Lex4CBlock::TYPE) + 1UL,
-    LONG             = static_cast<size_t>(Lex4CBlock::TYPE) + 2UL,
-    SHORT            = static_cast<size_t>(Lex4CBlock::TYPE) + 3UL,
-    FLOAT_T          = static_cast<size_t>(Lex4CBlock::TYPE) + 4UL,
-    DOUBLE_T         = static_cast<size_t>(Lex4CBlock::TYPE) + 5UL,
-    SIGNED           = static_cast<size_t>(Lex4CBlock::TYPE) + 6UL,
-    UNSIGNED         = static_cast<size_t>(Lex4CBlock::TYPE) + 7UL,
-    INTEGER          = static_cast<size_t>(Lex4CBlock::VALUES) + 0UL,
-    FLOAT            = static_cast<size_t>(Lex4CBlock::VALUES) + 1UL,
-    DOUBLE           = static_cast<size_t>(Lex4CBlock::VALUES) + 2UL,
-    IDENTIFIER       = static_cast<size_t>(Lex4CBlock::VALUES) + 3UL,
-    CHAR             = static_cast<size_t>(Lex4CBlock::VALUES) + 4UL,
-    STRING           = static_cast<size_t>(Lex4CBlock::VALUES) + 5UL,
+    UNDEFINED        = 16UL,
+    EoF              = 17UL,
+    SELF             = 18UL,
+    EXPR             = 19UL,
+    TERM             = 20UL,
+    EMPTY            = 21UL,
+    ADD              = 4096UL,
+    SUB              = 4097UL,
+    MUL              = 4098UL,
+    DIV              = 4099UL,
+    MOD              = 4100UL,
+    ASSIGN           = 4101UL,
+    ADD_EQ           = 4102UL,
+    SUB_EQ           = 4103UL,
+    MUL_EQ           = 4104UL,
+    DIV_EQ           = 4105UL,
+    MOD_EQ           = 4106UL,
+    OR               = 8192UL,
+    AND              = 8193UL,
+    XOR              = 8194UL,
+    NOT              = 8195UL,
+    OR_EQ            = 8196UL,
+    AND_EQ           = 8197UL,
+    XOR_EQ           = 8198UL,
+    LEFT_SHIFT       = 8199UL,
+    RIGHT_SHIFT      = 8200UL,
+    LEFT_SHIFT_EQ    = 8201UL,
+    RIGHT_SHIFT_EQ   = 8202UL,
+    FOR              = 16384UL,
+    WHILE            = 16385UL,
+    RETURN           = 16386UL,
+    CASE             = 16387UL,
+    SWITCH           = 16388UL,
+    LESS             = 32768UL,
+    GREATER          = 32769UL,
+    LOGICAL_NOT      = 32770UL,
+    LESS_EQ          = 32771UL,
+    GREATER_EQ       = 32772UL,
+    LOGICAL_OR       = 32773UL,
+    LOGICAL_AND      = 32774UL,
+    LOGICAL_EQUAL    = 32775UL,
+    LOGICAL_NOT_EQUAL = 32776UL,
+    CURLY_OPENING    = 65536UL,
+    CURLY_CLOSING    = 65537UL,
+    LEFT_PARENTHESIS = 65538UL,
+    RIGHT_PARENTHESIS = 65539UL,
+    ANGLE_OPENING    = 65540UL,
+    ANGLE_CLOSING    = 65541UL,
+    COMMA            = 65542UL,
+    SEPARATOR        = 65543UL,
+    PREPROCESSOR     = 65544UL,
+    QUESTION_MARK    = 65545UL,
+    INT              = 131072UL,
+    CHAR_T           = 131073UL,
+    LONG             = 131074UL,
+    SHORT            = 131075UL,
+    FLOAT_T          = 131076UL,
+    DOUBLE_T         = 131077UL,
+    SIGNED           = 131078UL,
+    UNSIGNED         = 131079UL,
+    INTEGER          = 262144UL,
+    FLOAT            = 262145UL,
+    DOUBLE           = 262146UL,
+    IDENTIFIER       = 262147UL,
+    CHAR             = 262148UL,
+    STRING           = 262149UL,
 };
+
+/*
+%token UNDEFINED        16
+%token EoF              17
+%token SELF             18
+%token EXPR             19
+%token TERM             20
+%token EMPTY            21
+%token ADD              '+'
+%token SUB              '-'
+%token MUL              '*'
+%token DIV              '/'
+%token MOD              '%'
+%token ASSIGN           '='
+%token ADD_EQ           "+="
+%token SUB_EQ           "-="
+%token MUL_EQ           "*="
+%token DIV_EQ           "/="
+%token MOD_EQ           "%="
+%token OR               '|'
+%token AND              '&'
+%token XOR              '^'
+%token NOT              '~'
+%token OR_EQ            "|="
+%token AND_EQ           "&="
+%token XOR_EQ           "^="
+%token LEFT_SHIFT       "<<"
+%token RIGHT_SHIFT      ">>"
+%token LEFT_SHIFT_EQ    "<<="
+%token RIGHT_SHIFT_EQ   ">>="
+%token FOR              16384
+%token WHILE            16385
+%token RETURN           16386
+%token CASE             16387
+%token SWITCH           16388
+%token LESS             '<'
+%token GREATER          '>'
+%token LOGICAL_NOT      '!'
+%token LESS_EQ          "<="
+%token GREATER_EQ       ">="
+%token LOGICAL_OR       "||"
+%token LOGICAL_AND      "&&"
+%token LOGICAL_EQUAL    "=="
+%token LOGICAL_NOT_EQUAL "!="
+%token CURLY_OPENING    '{'
+%token CURLY_CLOSING    '}'
+%token LEFT_PARENTHESIS '('
+%token RIGHT_PARENTHESIS ')'
+%token ANGLE_OPENING    '['
+%token ANGLE_CLOSING    ']'
+%token COMMA            ','
+%token SEPARATOR        ';'
+%token PREPROCESSOR     '#'
+%token QUESTION_MARK    '?'
+%token INT              131072
+%token CHAR_T           131073
+%token LONG             131074
+%token SHORT            131075
+%token FLOAT_T          131076
+%token DOUBLE_T         131077
+%token SIGNED           131078
+%token UNSIGNED         131079
+%token INTEGER          262144
+%token FLOAT            262145
+%token DOUBLE           262146
+%token IDENTIFIER       262147
+%token CHAR             262148
+%token STRING           262149
+
+
+constexpr cerb::gl::Map<Lex4CItem, yytokentype, 66> Lex4CItemsNamesConverter{
+    true, {
+    {Lex4CItem:UNDEFINED       , yytokentype::UNDEFINED},
+    {Lex4CItem:EoF             , yytokentype::EoF},
+    {Lex4CItem:SELF            , yytokentype::SELF},
+    {Lex4CItem:EXPR            , yytokentype::EXPR},
+    {Lex4CItem:TERM            , yytokentype::TERM},
+    {Lex4CItem:EMPTY           , yytokentype::EMPTY},
+    {Lex4CItem::ADD             , yytokentype::ADD},
+    {Lex4CItem::SUB             , yytokentype::SUB},
+    {Lex4CItem::MUL             , yytokentype::MUL},
+    {Lex4CItem::DIV             , yytokentype::DIV},
+    {Lex4CItem::MOD             , yytokentype::MOD},
+    {Lex4CItem::ASSIGN          , yytokentype::ASSIGN},
+    {Lex4CItem::ADD_EQ          , yytokentype::ADD_EQ},
+    {Lex4CItem::SUB_EQ          , yytokentype::SUB_EQ},
+    {Lex4CItem::MUL_EQ          , yytokentype::MUL_EQ},
+    {Lex4CItem::DIV_EQ          , yytokentype::DIV_EQ},
+    {Lex4CItem::MOD_EQ          , yytokentype::MOD_EQ},
+    {Lex4CItem::OR              , yytokentype::OR},
+    {Lex4CItem::AND             , yytokentype::AND},
+    {Lex4CItem::XOR             , yytokentype::XOR},
+    {Lex4CItem::NOT             , yytokentype::NOT},
+    {Lex4CItem::OR_EQ           , yytokentype::OR_EQ},
+    {Lex4CItem::AND_EQ          , yytokentype::AND_EQ},
+    {Lex4CItem::XOR_EQ          , yytokentype::XOR_EQ},
+    {Lex4CItem::LEFT_SHIFT      , yytokentype::LEFT_SHIFT},
+    {Lex4CItem::RIGHT_SHIFT     , yytokentype::RIGHT_SHIFT},
+    {Lex4CItem::LEFT_SHIFT_EQ   , yytokentype::LEFT_SHIFT_EQ},
+    {Lex4CItem::RIGHT_SHIFT_EQ  , yytokentype::RIGHT_SHIFT_EQ},
+    {Lex4CItem::FOR             , yytokentype::FOR},
+    {Lex4CItem::WHILE           , yytokentype::WHILE},
+    {Lex4CItem::RETURN          , yytokentype::RETURN},
+    {Lex4CItem::CASE            , yytokentype::CASE},
+    {Lex4CItem::SWITCH          , yytokentype::SWITCH},
+    {Lex4CItem::LESS            , yytokentype::LESS},
+    {Lex4CItem::GREATER         , yytokentype::GREATER},
+    {Lex4CItem::LOGICAL_NOT     , yytokentype::LOGICAL_NOT},
+    {Lex4CItem::LESS_EQ         , yytokentype::LESS_EQ},
+    {Lex4CItem::GREATER_EQ      , yytokentype::GREATER_EQ},
+    {Lex4CItem::LOGICAL_OR      , yytokentype::LOGICAL_OR},
+    {Lex4CItem::LOGICAL_AND     , yytokentype::LOGICAL_AND},
+    {Lex4CItem::LOGICAL_EQUAL   , yytokentype::LOGICAL_EQUAL},
+    {Lex4CItem::LOGICAL_NOT_EQUAL, yytokentype::LOGICAL_NOT_EQUAL},
+    {Lex4CItem::CURLY_OPENING   , yytokentype::CURLY_OPENING},
+    {Lex4CItem::CURLY_CLOSING   , yytokentype::CURLY_CLOSING},
+    {Lex4CItem::LEFT_PARENTHESIS, yytokentype::LEFT_PARENTHESIS},
+    {Lex4CItem::RIGHT_PARENTHESIS, yytokentype::RIGHT_PARENTHESIS},
+    {Lex4CItem::ANGLE_OPENING   , yytokentype::ANGLE_OPENING},
+    {Lex4CItem::ANGLE_CLOSING   , yytokentype::ANGLE_CLOSING},
+    {Lex4CItem::COMMA           , yytokentype::COMMA},
+    {Lex4CItem::SEPARATOR       , yytokentype::SEPARATOR},
+    {Lex4CItem::PREPROCESSOR    , yytokentype::PREPROCESSOR},
+    {Lex4CItem::QUESTION_MARK   , yytokentype::QUESTION_MARK},
+    {Lex4CItem::INT             , yytokentype::INT},
+    {Lex4CItem::CHAR_T          , yytokentype::CHAR_T},
+    {Lex4CItem::LONG            , yytokentype::LONG},
+    {Lex4CItem::SHORT           , yytokentype::SHORT},
+    {Lex4CItem::FLOAT_T         , yytokentype::FLOAT_T},
+    {Lex4CItem::DOUBLE_T        , yytokentype::DOUBLE_T},
+    {Lex4CItem::SIGNED          , yytokentype::SIGNED},
+    {Lex4CItem::UNSIGNED        , yytokentype::UNSIGNED},
+    {Lex4CItem::INTEGER         , yytokentype::INTEGER},
+    {Lex4CItem::FLOAT           , yytokentype::FLOAT},
+    {Lex4CItem::DOUBLE          , yytokentype::DOUBLE},
+    {Lex4CItem::IDENTIFIER      , yytokentype::IDENTIFIER},
+    {Lex4CItem::CHAR            , yytokentype::CHAR},
+    {Lex4CItem::STRING          , yytokentype::STRING},
+*/
 
 constexpr cerb::gl::Map<Lex4CBlock, cerb::string_view, 8> Lex4CBlockNames{
     true, {

@@ -13,13 +13,7 @@ namespace cerb {
     }
 
     template<typename T>
-    auto move(T &&value) noexcept -> typename std::remove_reference<T>::type &&
-    {
-        return static_cast<typename std::remove_reference<T>::type &&>(value);
-    }
-
-    template<typename T>
-    constexpr auto raw_move(T *dest, T *begin, T *end) -> void
+    constexpr auto move_constructor(T *dest, T *begin, T *end) -> void
     {
         if (std::is_constant_evaluated()) {
             if constexpr (std::is_trivial_v<T>) {
@@ -37,7 +31,7 @@ namespace cerb {
     }
 
     template<typename T>
-    constexpr auto raw_copy(T *dest, const T *begin, const T *end) -> void
+    constexpr auto construct(T *dest, const T *begin, const T *end) -> void
     {
         if (!std::is_constant_evaluated()) {
             if constexpr (std::is_trivial_v<T>) {
@@ -48,9 +42,27 @@ namespace cerb {
             }
         }
 
-        CERBLIB_UNROLL_N(2)
+        CERBLIB_UNROLL_N(4)
         for (; begin != end; ++begin, ++dest) {
-            std::construct_at(dest, static_cast<const T &>(*begin));
+            std::construct_at(dest, *begin);
+        }
+    }
+
+    template<typename T>
+    constexpr auto copy(T *dest, const T *begin, const T *end) -> void
+    {
+        CERBLIB_UNROLL_N(4)
+        for (; begin != end; ++begin, ++dest) {
+           *dest = *begin;
+        }
+    }
+
+    template<typename T>
+    constexpr auto move(T *dest, T *begin, const T *end) -> void
+    {
+        CERBLIB_UNROLL_N(4)
+        for (; begin != end; ++begin, ++dest) {
+            *dest = std::move(*begin);
         }
     }
 

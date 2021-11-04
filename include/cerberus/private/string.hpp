@@ -9,7 +9,7 @@ namespace cerb::PRIVATE {
 
 #if defined(__x86_64__)
     CERBLIB_INLINE
-    void memset8(void *__restrict ptr, u8 value2set, size_t times)
+    auto memset8(void *__restrict ptr, u8 value2set, size_t times) -> void
     {
         asm volatile("rep stosb\n"
                      : "+D"(ptr), "+c"(times)
@@ -18,43 +18,47 @@ namespace cerb::PRIVATE {
     }
 
     CERBLIB_INLINE
-    void memset16(void *__restrict ptr, u16 value, size_t times)
+    auto memset16(void *__restrict ptr, u16 value, size_t times) -> void
     {
         asm volatile("rep stosw\n" : "+D"(ptr), "+c"(times) : "a"(value) : "memory");
     }
 
     CERBLIB_INLINE
-    void memset32(void *__restrict ptr, u32 value, size_t times)
+    auto memset32(void *__restrict ptr, u32 value, size_t times) -> void
     {
         asm volatile("rep stosl\n" : "+D"(ptr), "+c"(times) : "a"(value) : "memory");
     }
 
     CERBLIB_INLINE
-    void memset64(void *__restrict ptr, u64 value, size_t times)
+    auto memset64(void *__restrict ptr, u64 value, size_t times) -> void
     {
         asm volatile("rep stosq\n" : "+D"(ptr), "+c"(times) : "a"(value) : "memory");
     }
 
     CERBLIB_INLINE
-    void memcpy8(void *__restrict dest, const void *__restrict src, size_t times)
+    auto memcpy8(void *__restrict dest, const void *__restrict src, size_t times)
+        -> void
     {
         asm volatile("rep movsb" : "+S"(src), "+D"(dest), "+c"(times) : : "memory");
     }
 
     CERBLIB_INLINE
-    void memcpy16(void *__restrict dest, const void *__restrict src, size_t times)
+    auto memcpy16(void *__restrict dest, const void *__restrict src, size_t times)
+        -> void
     {
         asm volatile("rep movsw" : "+S"(src), "+D"(dest), "+c"(times) : : "memory");
     }
 
     CERBLIB_INLINE
-    void memcpy32(void *__restrict dest, const void *__restrict src, size_t times)
+    auto memcpy32(void *__restrict dest, const void *__restrict src, size_t times)
+        -> void
     {
         asm volatile("rep movsl" : "+S"(src), "+D"(dest), "+c"(times) : : "memory");
     }
 
     CERBLIB_INLINE
-    void memcpy64(void *__restrict dest, const void *__restrict src, size_t times)
+    auto memcpy64(void *__restrict dest, const void *__restrict src, size_t times)
+        -> void
     {
         asm volatile("rep movsq" : "+S"(src), "+D"(dest), "+c"(times) : : "memory");
     }
@@ -63,10 +67,6 @@ namespace cerb::PRIVATE {
     template<typename T>
     CERBLIB_INLINE auto memset(void *__restrict ptr, T value, size_t times) -> void
     {
-        static_assert(
-            (std::is_pointer_v<T> || std::is_integral_v<T>)&&sizeof(T) <=
-            sizeof(u64));
-
         if (times == 0) [[unlikely]] {
             return;
         }
@@ -79,12 +79,14 @@ namespace cerb::PRIVATE {
             PRIVATE::memset32(ptr, bit_cast<u32>(value), times);
         } else if constexpr (sizeof(T) == sizeof(u64)) {
             PRIVATE::memset64(ptr, bit_cast<u64>(value), times);
+        } else {
+            static_assert(sizeof(T) <= sizeof(u64));
         }
     }
 
     template<typename T>
-    CERBLIB_INLINE void
-        memcpy(T *__restrict dest, const T *__restrict src, size_t times)
+    CERBLIB_INLINE auto
+        memcpy(T *__restrict dest, const T *__restrict src, size_t times) -> void
     {
         if (times == 0) [[unlikely]] {
             return;

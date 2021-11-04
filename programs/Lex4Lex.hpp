@@ -18,25 +18,68 @@ enum struct Lex4LexBlock : size_t
 
 enum struct Lex4LexItem : size_t
 {
-    UNDEFINED        = static_cast<size_t>(Lex4LexBlock::RESERVED) + 0UL,
-    EoF              = static_cast<size_t>(Lex4LexBlock::RESERVED) + 1UL,
-    SELF             = static_cast<size_t>(Lex4LexBlock::RESERVED) + 2UL,
-    EXPR             = static_cast<size_t>(Lex4LexBlock::RESERVED) + 3UL,
-    TERM             = static_cast<size_t>(Lex4LexBlock::RESERVED) + 4UL,
-    EMPTY            = static_cast<size_t>(Lex4LexBlock::RESERVED) + 5UL,
-    TRUE             = static_cast<size_t>(Lex4LexBlock::GENERAL) + 0UL,
-    FALSE            = static_cast<size_t>(Lex4LexBlock::GENERAL) + 1UL,
-    INT              = static_cast<size_t>(Lex4LexBlock::GENERAL) + 2UL,
-    IDENTIFIER       = static_cast<size_t>(Lex4LexBlock::GENERAL) + 3UL,
-    STRING           = static_cast<size_t>(Lex4LexBlock::GENERAL) + 4UL,
-    CHAR             = static_cast<size_t>(Lex4LexBlock::GENERAL) + 5UL,
-    ASSIGN           = static_cast<size_t>(Lex4LexBlock::OPERATORS) + 0UL,
-    ANGLE_OPENING    = static_cast<size_t>(Lex4LexBlock::OPERATORS) + 1UL,
-    ANGLE_CLOSING    = static_cast<size_t>(Lex4LexBlock::OPERATORS) + 2UL,
-    COLON            = static_cast<size_t>(Lex4LexBlock::OPERATORS) + 3UL,
-    WORD             = static_cast<size_t>(Lex4LexBlock::OPERATORS) + 4UL,
-    EoR              = static_cast<size_t>(Lex4LexBlock::OPERATORS) + 5UL,
+    UNDEFINED        = 16UL,
+    EoF              = 17UL,
+    SELF             = 18UL,
+    EXPR             = 19UL,
+    TERM             = 20UL,
+    EMPTY            = 21UL,
+    TRUE             = 4096UL,
+    FALSE            = 4097UL,
+    INT              = 4098UL,
+    IDENTIFIER       = 4099UL,
+    STRING           = 4100UL,
+    CHAR             = 4101UL,
+    ASSIGN           = 8192UL,
+    ANGLE_OPENING    = 8193UL,
+    ANGLE_CLOSING    = 8194UL,
+    COLON            = 8195UL,
+    WORD             = 8196UL,
+    EoR              = 8197UL,
 };
+
+/*
+%token UNDEFINED        16
+%token EoF              17
+%token SELF             18
+%token EXPR             19
+%token TERM             20
+%token EMPTY            21
+%token TRUE             4096
+%token FALSE            4097
+%token INT              4098
+%token IDENTIFIER       4099
+%token STRING           4100
+%token CHAR             4101
+%token ASSIGN           '='
+%token ANGLE_OPENING    '['
+%token ANGLE_CLOSING    ']'
+%token COLON            ':'
+%token WORD             '|'
+%token EoR              "%%"
+
+
+constexpr cerb::gl::Map<Lex4LexItem, yytokentype, 18> Lex4LexItemsNamesConverter{
+    true, {
+    {Lex4LexItem:UNDEFINED       , yytokentype::UNDEFINED},
+    {Lex4LexItem:EoF             , yytokentype::EoF},
+    {Lex4LexItem:SELF            , yytokentype::SELF},
+    {Lex4LexItem:EXPR            , yytokentype::EXPR},
+    {Lex4LexItem:TERM            , yytokentype::TERM},
+    {Lex4LexItem:EMPTY           , yytokentype::EMPTY},
+    {Lex4LexItem::TRUE            , yytokentype::TRUE},
+    {Lex4LexItem::FALSE           , yytokentype::FALSE},
+    {Lex4LexItem::INT             , yytokentype::INT},
+    {Lex4LexItem::IDENTIFIER      , yytokentype::IDENTIFIER},
+    {Lex4LexItem::STRING          , yytokentype::STRING},
+    {Lex4LexItem::CHAR            , yytokentype::CHAR},
+    {Lex4LexItem::ASSIGN          , yytokentype::ASSIGN},
+    {Lex4LexItem::ANGLE_OPENING   , yytokentype::ANGLE_OPENING},
+    {Lex4LexItem::ANGLE_CLOSING   , yytokentype::ANGLE_CLOSING},
+    {Lex4LexItem::COLON           , yytokentype::COLON},
+    {Lex4LexItem::WORD            , yytokentype::WORD},
+    {Lex4LexItem::EoR             , yytokentype::EoR},
+*/
 
 constexpr cerb::gl::Map<Lex4LexBlock, cerb::string_view, 3> Lex4LexBlockNames{
     true, {
