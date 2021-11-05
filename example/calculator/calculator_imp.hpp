@@ -2,7 +2,7 @@
 #define CERBERUS_CALCULATORIMPL_HPP
 
 #include "calculator.hpp"
-#include <cerberus/analyzation/parser/SLR1.hpp>
+#include "cerberus/analyzation/parser/SLR1.hpp"
 
 CalculatorTemplate struct CalculatorImp final : public Calculator<>
 {

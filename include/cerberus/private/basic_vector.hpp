@@ -61,6 +61,7 @@ namespace cerb::PRIVATE {
                 }
 
                 std::destroy_n(m_data, m_size);
+                ValueTraits::deallocate(m_allocator, m_data, m_capacity);
                 m_data = new_buffer;
                 m_capacity *= 2U;
             }

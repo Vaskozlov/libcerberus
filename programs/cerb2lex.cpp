@@ -422,7 +422,8 @@ public:
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : m_reserved_types) {
                 generated_string += fmt::format(
-                    "    {:<16} = {}UL,\n", elem, parent::RESERVED + (j++));
+                    "    {:<16} = {}UL,\n", elem,
+                    (parent::RESERVED + (j++)) * (elem != "EoF"));
             }
         }
 
@@ -465,7 +466,8 @@ public:
                 CERBLIB_UNROLL_N(2)
                 for (const auto &elem : m_reserved_types) {
                     generated_string += fmt::format(
-                        "%token {:<16} {}\n", elem, parent::RESERVED + (j++));
+                        "%token {:<16} {}\n", elem,
+                        (parent::RESERVED + (j++)) * (elem != "EoF"));
                 }
             }
 
@@ -474,9 +476,16 @@ public:
 
                 CERBLIB_UNROLL_N(2)
                 for (const auto &i : elem.second.words) {
-                    generated_string += fmt::format(
-                        "%token {:<16} {}\n", i.first.to_string(),
-                        (1ULL << elem.second.power) + (j++));
+                    if (i.first != "STRING" && i.first != "CHAR") {
+                        generated_string += fmt::format(
+                            "%token {:<16} \"{}\"\n", i.first.to_string(),
+                            i.second.to_string());
+                    } else {
+                        generated_string += fmt::format(
+                            "%token {:<16} {}\n", i.first.to_string(),
+                            (1ULL << elem.second.power) + j);
+                    }
+                    ++j;
                 }
 
                 CERBLIB_UNROLL_N(2)
@@ -513,7 +522,7 @@ public:
                 CERBLIB_UNROLL_N(2)
                 for (const auto &elem : m_reserved_types) {
                     generated_string += fmt::format(
-                        "    {{{0}:{1:<16}, yytokentype::{1}}},\n", m_name_of_items,
+                        "    {{{0}::{1:<20}, yytokentype::{1}}},\n", m_name_of_items,
                         elem);
                 }
             }
@@ -524,25 +533,25 @@ public:
                 CERBLIB_UNROLL_N(2)
                 for (const auto &i : elem.second.words) {
                     generated_string += fmt::format(
-                        "    {{{0}::{1:<16}, yytokentype::{1}}},\n", m_name_of_items,
+                        "    {{{0}::{1:<20}, yytokentype::{1}}},\n", m_name_of_items,
                         i.first.to_string());
                 }
 
                 CERBLIB_UNROLL_N(2)
                 for (const auto &i : elem.second.rules) {
                     generated_string += fmt::format(
-                        "    {{{0}::{1:<16}, yytokentype::{1}}},\n", m_name_of_items,
+                        "    {{{0}::{1:<20}, yytokentype::{1}}},\n", m_name_of_items,
                         i.first.to_string());
                 }
 
                 CERBLIB_UNROLL_N(2)
                 for (const auto &i : elem.second.operators) {
                     generated_string += fmt::format(
-                        "    {{{0}::{1:<16}, yytokentype::{1}}},\n", m_name_of_items,
+                        "    {{{0}::{1:<20}, yytokentype::{1}}},\n", m_name_of_items,
                         i.first.to_string());
                 }
             }
-
+            generated_string += "    }\n};\n";
             generated_string += "*/\n\n";
         }
 
@@ -602,6 +611,38 @@ public:
 
             generated_string += "    }\n};\n\n";
         }
+
+        generated_string += fmt::format(
+            R"(
+namespace cerb::lex {{
+    constexpr auto convert({0} value) -> cerb::string_view
+    {{
+        return {1}BlockNames[value];
+    }}
+
+    constexpr auto convert({2} value) -> cerb::string_view
+    {{
+        return {2}ItemsNames[value];
+    }}
+}}
+
+template<typename T>
+auto operator<<(T &os, {0} value) -> T &
+{{
+    os << cerb::lex::convert(value);
+    return os;
+}}
+
+template<typename T>
+auto operator<<(T &os, {2} value) -> T &
+{{
+    os << cerb::lex::convert(value);
+    return os;
+}}
+
+)",
+            m_name_of_block, m_directives["CLASS_NAME"].to_string(),
+            m_name_of_items);
 
         generated_string += fmt::format(
             R"(

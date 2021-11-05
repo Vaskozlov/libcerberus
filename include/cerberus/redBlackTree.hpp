@@ -1098,7 +1098,7 @@ namespace cerb::PRIVATE {
             }
 
             selfDelete(x->left);
-            auto right = x->right;
+            auto *right = x->right;
 
             NodeTraits::destroy(m_allocator, x);
             NodeTraits::deallocate(m_allocator, x, 1);

@@ -2,8 +2,8 @@
 #define CERBERUS_LEXER_C
 
 #include <iostream>
-#include <cerberus/map.hpp>
-#include <cerberus/analyzation/lex/lex.hpp>
+#include "cerberus/map.hpp"
+#include "cerberus/analyzation/lex/lex.hpp"
 
 using namespace cerb::literals;
 

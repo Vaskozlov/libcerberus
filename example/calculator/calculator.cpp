@@ -72,9 +72,10 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
-#include "calculator_imp_yacc.hpp"
+#include "calculator_yacc.hpp"
+#include <cerberus/analyzation/parser/tree.hpp>
 
-#line 78 "calculator.cpp"
+#line 79 "calculator.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -112,28 +113,28 @@ extern int yydebug;
   enum yytokentype
   {
     YYEMPTY = -2,
-    YYEOF = 0,                     /* "end of file"  */
+    EoF = 0,                       /* EoF  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 32769,               /* "invalid token"  */
     UNDEFINED = 16,                /* UNDEFINED  */
-    EoF = 17,                      /* EoF  */
     SELF = 18,                     /* SELF  */
     EXPR = 19,                     /* EXPR  */
     TERM = 20,                     /* TERM  */
     EMPTY = 21,                    /* EMPTY  */
-    SIN = 4096,                    /* SIN  */
-    ADD = 32770,                   /* "+"  */
-    LEFT_PARENTHESIS = 32771,      /* "("  */
-    RIGHT_PARENTHESIS = 32772,     /* ")"  */
-    INT = 32768,                   /* INT  */
-    SUB = 32773                    /* SUB  */
+    SIN = 32770,                   /* "sin"  */
+    ADD = 32771,                   /* "+"  */
+    SUB = 32772,                   /* "-"  */
+    MUL = 32773,                   /* "*"  */
+    LEFT_PARENTHESIS = 32774,      /* "("  */
+    RIGHT_PARENTHESIS = 32775,     /* ")"  */
+    INT = 32768                    /* INT  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef  std::string  YYSTYPE;
+typedef  ParserNode*  YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
@@ -150,25 +151,24 @@ int yyparse (void);
 enum yysymbol_kind_t
 {
   YYSYMBOL_YYEMPTY = -2,
-  YYSYMBOL_YYEOF = 0,                      /* "end of file"  */
+  YYSYMBOL_YYEOF = 0,                      /* EoF  */
   YYSYMBOL_YYerror = 1,                    /* error  */
   YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
   YYSYMBOL_UNDEFINED = 3,                  /* UNDEFINED  */
-  YYSYMBOL_EoF = 4,                        /* EoF  */
-  YYSYMBOL_SELF = 5,                       /* SELF  */
-  YYSYMBOL_EXPR = 6,                       /* EXPR  */
-  YYSYMBOL_TERM = 7,                       /* TERM  */
-  YYSYMBOL_EMPTY = 8,                      /* EMPTY  */
-  YYSYMBOL_SIN = 9,                        /* SIN  */
-  YYSYMBOL_ADD = 10,                       /* "+"  */
-  YYSYMBOL_LEFT_PARENTHESIS = 11,          /* "("  */
-  YYSYMBOL_RIGHT_PARENTHESIS = 12,         /* ")"  */
-  YYSYMBOL_INT = 13,                       /* INT  */
-  YYSYMBOL_SUB = 14,                       /* SUB  */
-  YYSYMBOL_15_ = 15,                       /* '-'  */
-  YYSYMBOL_YYACCEPT = 16,                  /* $accept  */
-  YYSYMBOL_program = 17,                   /* program  */
-  YYSYMBOL_expr = 18                       /* expr  */
+  YYSYMBOL_SELF = 4,                       /* SELF  */
+  YYSYMBOL_EXPR = 5,                       /* EXPR  */
+  YYSYMBOL_TERM = 6,                       /* TERM  */
+  YYSYMBOL_EMPTY = 7,                      /* EMPTY  */
+  YYSYMBOL_SIN = 8,                        /* "sin"  */
+  YYSYMBOL_ADD = 9,                        /* "+"  */
+  YYSYMBOL_SUB = 10,                       /* "-"  */
+  YYSYMBOL_MUL = 11,                       /* "*"  */
+  YYSYMBOL_LEFT_PARENTHESIS = 12,          /* "("  */
+  YYSYMBOL_RIGHT_PARENTHESIS = 13,         /* ")"  */
+  YYSYMBOL_INT = 14,                       /* INT  */
+  YYSYMBOL_YYACCEPT = 15,                  /* $accept  */
+  YYSYMBOL_program = 16,                   /* program  */
+  YYSYMBOL_expr = 17                       /* expr  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -496,19 +496,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   13
+#define YYLAST   15
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  16
+#define YYNTOKENS  15
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  3
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  5
+#define YYNRULES  7
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  7
+#define YYNSTATES  12
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   32773
+#define YYMAXUTOK   32775
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -523,10 +523,10 @@ union yyalloc
 static const yytype_int8 yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     3,     4,     5,     6,
-       7,     8,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     3,     2,     4,     5,
+       6,     7,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,    15,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -931,7 +931,6 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     9,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -3798,15 +3797,16 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,    13,     2,
-      10,    11,    12,    14
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,    14,     2,
+       8,     9,    10,    11,    12,    13
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    25,    25,    26,    30,    31
+       0,    31,    31,    32,    36,    37,    38,    39
 };
 #endif
 
@@ -3822,9 +3822,9 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "\"end of file\"", "error", "\"invalid token\"", "UNDEFINED", "EoF",
-  "SELF", "EXPR", "TERM", "EMPTY", "SIN", "\"+\"", "\"(\"", "\")\"", "INT",
-  "SUB", "'-'", "$accept", "program", "expr", YY_NULLPTR
+  "EoF", "error", "\"invalid token\"", "UNDEFINED", "SELF", "EXPR",
+  "TERM", "EMPTY", "\"sin\"", "\"+\"", "\"-\"", "\"*\"", "\"(\"", "\")\"",
+  "INT", "$accept", "program", "expr", YY_NULLPTR
 };
 
 static const char *
@@ -3834,7 +3834,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-12)
+#define YYPACT_NINF (-11)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -3848,7 +3848,8 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -12,     0,   -12,   -12,    -9,   -11,    -9
+     -11,     0,   -11,   -10,   -11,    -1,     2,   -10,   -10,   -11,
+      -8,   -11
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -3856,19 +3857,20 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       3,     0,     1,     4,     2,     0,     5
+       3,     0,     1,     0,     4,     2,     0,     0,     0,     7,
+       6,     5
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -12,   -12,    -2
+     -11,   -11,    -2
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     1,     4
+       0,     1,     5
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -3876,33 +3878,34 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       2,     5,     3,     6,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     3
+       2,     6,     3,     8,     4,    10,    11,     0,     7,     0,
+       8,     7,     3,     8,     4,     9
 };
 
 static const yytype_int8 yycheck[] =
 {
-       0,    10,    13,     5,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    13
+       0,     3,    12,    11,    14,     7,     8,    -1,     9,    -1,
+      11,     9,    12,    11,    14,    13
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    17,     0,    13,    18,    10,    18
+       0,    16,     0,    12,    14,    17,    17,     9,    11,    13,
+      17,    17
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    16,    17,    17,    18,    18
+       0,    15,    16,    16,    17,    17,    17,    17
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     2,     0,     1,     3
+       0,     2,     2,     0,     1,     3,     3,     3
 };
 
 
@@ -4281,9 +4284,9 @@ yybackup:
       yychar = yylex ();
     }
 
-  if (yychar <= YYEOF)
+  if (yychar <= EoF)
     {
-      yychar = YYEOF;
+      yychar = EoF;
       yytoken = YYSYMBOL_YYEOF;
       YYDPRINTF ((stderr, "Now at end of input.\n"));
     }
@@ -4366,25 +4369,37 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: program expr  */
-#line 25 "calculator.y"
-                                { std::cout << yyvsp[0] << std::endl; }
-#line 4372 "calculator.cpp"
+#line 31 "calculator.y"
+                                { ParserNode::print(yyvsp[0]); std::cout << "Parsing finished" << std::endl; }
+#line 4375 "calculator.cpp"
     break;
 
   case 4: /* expr: INT  */
-#line 30 "calculator.y"
-                                        { yyval = yyvsp[0]; std::cout << yyvsp[0] << std::endl; }
-#line 4378 "calculator.cpp"
+#line 36 "calculator.y"
+                                { yyval = yyvsp[0]; }
+#line 4381 "calculator.cpp"
     break;
 
-  case 5: /* expr: expr "+" expr  */
-#line 31 "calculator.y"
-                                        { yyval = std::to_string(std::atoi(yyvsp[-2].c_str()) + std::atoi(yyvsp[0].c_str())); std::cout << yyvsp[-2] << ' ' << yyvsp[-1] << ' ' << yyvsp[0] << std::endl; }
-#line 4384 "calculator.cpp"
+  case 5: /* expr: expr "*" expr  */
+#line 37 "calculator.y"
+                                { yyval = ParserNode::construct_root(yyvsp[-1], {yyvsp[-2], yyvsp[0]});  }
+#line 4387 "calculator.cpp"
+    break;
+
+  case 6: /* expr: expr "+" expr  */
+#line 38 "calculator.y"
+                                { yyval = ParserNode::construct_root(yyvsp[-1], {yyvsp[-2], yyvsp[0]});  }
+#line 4393 "calculator.cpp"
+    break;
+
+  case 7: /* expr: "(" expr ")"  */
+#line 39 "calculator.y"
+                                { yyval = ParserNode::construct_root(yyvsp[-1], {yyvsp[-2], yyvsp[0]});  }
+#line 4399 "calculator.cpp"
     break;
 
 
-#line 4388 "calculator.cpp"
+#line 4403 "calculator.cpp"
 
       default: break;
     }
@@ -4439,10 +4454,10 @@ yyerrlab:
       /* If just tried and failed to reuse lookahead token after an
          error, discard it.  */
 
-      if (yychar <= YYEOF)
+      if (yychar <= EoF)
         {
           /* Return failure if at end of input.  */
-          if (yychar == YYEOF)
+          if (yychar == EoF)
             YYABORT;
         }
       else
@@ -4577,25 +4592,26 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 34 "calculator.y"
-
+#line 42 "calculator.y"
 
 
 CalculatorImpYacc calculator{};
 
-constexpr cerb::gl::Map<CalculatorItem, yytokentype, 11> CalculatorItemsNamesConverter{
+constexpr cerb::gl::Map<CalculatorItem, yytokentype, 13> CalculatorItemsNamesConverter{
     true, {
-	    {CalculatorItem::UNDEFINED       , yytokentype::UNDEFINED},
-	    {CalculatorItem::EoF             , yytokentype::EoF},
-	    {CalculatorItem::SELF            , yytokentype::SELF},
-	    {CalculatorItem::EXPR            , yytokentype::EXPR},
-	    {CalculatorItem::TERM            , yytokentype::TERM},
-	    {CalculatorItem::EMPTY           , yytokentype::EMPTY},
-	    {CalculatorItem::SIN             , yytokentype::SIN},
-	    {CalculatorItem::ADD             , yytokentype::ADD},
-	    {CalculatorItem::LEFT_PARENTHESIS, yytokentype::LEFT_PARENTHESIS},
-	    {CalculatorItem::RIGHT_PARENTHESIS, yytokentype::RIGHT_PARENTHESIS},
-	    {CalculatorItem::INT             , yytokentype::INT}
+    {CalculatorItem::UNDEFINED       , yytokentype::UNDEFINED},
+    {CalculatorItem::EoF             , yytokentype::EoF},
+    {CalculatorItem::SELF            , yytokentype::SELF},
+    {CalculatorItem::EXPR            , yytokentype::EXPR},
+    {CalculatorItem::TERM            , yytokentype::TERM},
+    {CalculatorItem::EMPTY           , yytokentype::EMPTY},
+    {CalculatorItem::SIN             , yytokentype::SIN},
+    {CalculatorItem::ADD             , yytokentype::ADD},
+    {CalculatorItem::SUB             , yytokentype::SUB},
+    {CalculatorItem::MUL             , yytokentype::MUL},
+    {CalculatorItem::LEFT_PARENTHESIS, yytokentype::LEFT_PARENTHESIS},
+    {CalculatorItem::RIGHT_PARENTHESIS, yytokentype::RIGHT_PARENTHESIS},
+    {CalculatorItem::INT             , yytokentype::INT}
     }
 };
 
@@ -4605,16 +4621,16 @@ int yylex(void) {
     const auto &elem = calculator.m_tokens[index++];
 
     if (elem.type == CalculatorItem::EoF) {
-	    yylval = "";
+	    yylval = ParserNode::construct_node(elem);
 	    return 0;
     }
 
-    yylval = std::string(elem.repr.to_string());
+    yylval = ParserNode::construct_node(elem);
     return CalculatorItemsNamesConverter[elem.type];
 }
 
 int main() {
-    calculator.scan("20 + 30\n", "stdio");
+    calculator.scan("20 + 30 + 40 * (2 + 8)\n", "stdio");
     yyparse();
     return 0;
 }

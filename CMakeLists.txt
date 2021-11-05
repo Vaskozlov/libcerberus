@@ -30,12 +30,6 @@ file(
 
 file(
         GLOB_RECURSE
-        CALCULATOR_OBJS
-        "example/calculator.cpp"
-)
-
-file(
-        GLOB_RECURSE
         CERB2LEX_OBJS
         "programs/cerb2lex.cpp"
 )
@@ -43,7 +37,7 @@ file(
 file(
         GLOB_RECURSE
         CALCULATOR_OBJS
-        "example/calculator.cpp"
+        "example/calculator/calculator.cpp"
 )
 
 add_executable(

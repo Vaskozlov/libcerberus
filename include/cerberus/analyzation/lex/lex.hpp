@@ -114,7 +114,7 @@ namespace cerb::lex {
             { char_cast('F'), 15 }
         };
 
-        static constexpr size_t EoF = RESERVED + 1UL;
+        static constexpr size_t EoF = 0UL;
 
     private:
         template<size_t CharCount, size_t Mul, bool BreakOnZero>

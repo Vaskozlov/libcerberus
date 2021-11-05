@@ -2,8 +2,8 @@
 #define CERBERUS_LEXER_C
 
 #include <iostream>
-#include <cerberus/map.hpp>
-#include <cerberus/analyzation/lex/lex.hpp>
+#include "cerberus/map.hpp"
+#include "cerberus/analyzation/lex/lex.hpp"
 
 using namespace cerb::literals;
 
@@ -24,7 +24,7 @@ enum struct Lex4CBlock : size_t
 enum struct Lex4CItem : size_t
 {
     UNDEFINED        = 16UL,
-    EoF              = 17UL,
+    EoF              = 0UL,
     SELF             = 18UL,
     EXPR             = 19UL,
     TERM             = 20UL,
@@ -93,26 +93,26 @@ enum struct Lex4CItem : size_t
 
 /*
 %token UNDEFINED        16
-%token EoF              17
+%token EoF              0
 %token SELF             18
 %token EXPR             19
 %token TERM             20
 %token EMPTY            21
-%token ADD              '+'
-%token SUB              '-'
-%token MUL              '*'
-%token DIV              '/'
-%token MOD              '%'
-%token ASSIGN           '='
+%token ADD              "+"
+%token SUB              "-"
+%token MUL              "*"
+%token DIV              "/"
+%token MOD              "%"
+%token ASSIGN           "="
 %token ADD_EQ           "+="
 %token SUB_EQ           "-="
 %token MUL_EQ           "*="
 %token DIV_EQ           "/="
 %token MOD_EQ           "%="
-%token OR               '|'
-%token AND              '&'
-%token XOR              '^'
-%token NOT              '~'
+%token OR               "|"
+%token AND              "&"
+%token XOR              "^"
+%token NOT              "~"
 %token OR_EQ            "|="
 %token AND_EQ           "&="
 %token XOR_EQ           "^="
@@ -120,38 +120,38 @@ enum struct Lex4CItem : size_t
 %token RIGHT_SHIFT      ">>"
 %token LEFT_SHIFT_EQ    "<<="
 %token RIGHT_SHIFT_EQ   ">>="
-%token FOR              16384
-%token WHILE            16385
-%token RETURN           16386
-%token CASE             16387
-%token SWITCH           16388
-%token LESS             '<'
-%token GREATER          '>'
-%token LOGICAL_NOT      '!'
+%token FOR              "for"
+%token WHILE            "while"
+%token RETURN           "return"
+%token CASE             "case"
+%token SWITCH           "switch"
+%token LESS             "<"
+%token GREATER          ">"
+%token LOGICAL_NOT      "!"
 %token LESS_EQ          "<="
 %token GREATER_EQ       ">="
 %token LOGICAL_OR       "||"
 %token LOGICAL_AND      "&&"
 %token LOGICAL_EQUAL    "=="
 %token LOGICAL_NOT_EQUAL "!="
-%token CURLY_OPENING    '{'
-%token CURLY_CLOSING    '}'
-%token LEFT_PARENTHESIS '('
-%token RIGHT_PARENTHESIS ')'
-%token ANGLE_OPENING    '['
-%token ANGLE_CLOSING    ']'
-%token COMMA            ','
-%token SEPARATOR        ';'
-%token PREPROCESSOR     '#'
-%token QUESTION_MARK    '?'
-%token INT              131072
-%token CHAR_T           131073
-%token LONG             131074
-%token SHORT            131075
-%token FLOAT_T          131076
-%token DOUBLE_T         131077
-%token SIGNED           131078
-%token UNSIGNED         131079
+%token CURLY_OPENING    "{"
+%token CURLY_CLOSING    "}"
+%token LEFT_PARENTHESIS "("
+%token RIGHT_PARENTHESIS ")"
+%token ANGLE_OPENING    "["
+%token ANGLE_CLOSING    "]"
+%token COMMA            ","
+%token SEPARATOR        ";"
+%token PREPROCESSOR     "#"
+%token QUESTION_MARK    "?"
+%token INT              "int"
+%token CHAR_T           "char"
+%token LONG             "long"
+%token SHORT            "short"
+%token FLOAT_T          "float"
+%token DOUBLE_T         "double"
+%token SIGNED           "signed"
+%token UNSIGNED         "unsigned"
 %token INTEGER          262144
 %token FLOAT            262145
 %token DOUBLE           262146
@@ -162,72 +162,74 @@ enum struct Lex4CItem : size_t
 
 constexpr cerb::gl::Map<Lex4CItem, yytokentype, 66> Lex4CItemsNamesConverter{
     true, {
-    {Lex4CItem:UNDEFINED       , yytokentype::UNDEFINED},
-    {Lex4CItem:EoF             , yytokentype::EoF},
-    {Lex4CItem:SELF            , yytokentype::SELF},
-    {Lex4CItem:EXPR            , yytokentype::EXPR},
-    {Lex4CItem:TERM            , yytokentype::TERM},
-    {Lex4CItem:EMPTY           , yytokentype::EMPTY},
-    {Lex4CItem::ADD             , yytokentype::ADD},
-    {Lex4CItem::SUB             , yytokentype::SUB},
-    {Lex4CItem::MUL             , yytokentype::MUL},
-    {Lex4CItem::DIV             , yytokentype::DIV},
-    {Lex4CItem::MOD             , yytokentype::MOD},
-    {Lex4CItem::ASSIGN          , yytokentype::ASSIGN},
-    {Lex4CItem::ADD_EQ          , yytokentype::ADD_EQ},
-    {Lex4CItem::SUB_EQ          , yytokentype::SUB_EQ},
-    {Lex4CItem::MUL_EQ          , yytokentype::MUL_EQ},
-    {Lex4CItem::DIV_EQ          , yytokentype::DIV_EQ},
-    {Lex4CItem::MOD_EQ          , yytokentype::MOD_EQ},
-    {Lex4CItem::OR              , yytokentype::OR},
-    {Lex4CItem::AND             , yytokentype::AND},
-    {Lex4CItem::XOR             , yytokentype::XOR},
-    {Lex4CItem::NOT             , yytokentype::NOT},
-    {Lex4CItem::OR_EQ           , yytokentype::OR_EQ},
-    {Lex4CItem::AND_EQ          , yytokentype::AND_EQ},
-    {Lex4CItem::XOR_EQ          , yytokentype::XOR_EQ},
-    {Lex4CItem::LEFT_SHIFT      , yytokentype::LEFT_SHIFT},
-    {Lex4CItem::RIGHT_SHIFT     , yytokentype::RIGHT_SHIFT},
-    {Lex4CItem::LEFT_SHIFT_EQ   , yytokentype::LEFT_SHIFT_EQ},
-    {Lex4CItem::RIGHT_SHIFT_EQ  , yytokentype::RIGHT_SHIFT_EQ},
-    {Lex4CItem::FOR             , yytokentype::FOR},
-    {Lex4CItem::WHILE           , yytokentype::WHILE},
-    {Lex4CItem::RETURN          , yytokentype::RETURN},
-    {Lex4CItem::CASE            , yytokentype::CASE},
-    {Lex4CItem::SWITCH          , yytokentype::SWITCH},
-    {Lex4CItem::LESS            , yytokentype::LESS},
-    {Lex4CItem::GREATER         , yytokentype::GREATER},
-    {Lex4CItem::LOGICAL_NOT     , yytokentype::LOGICAL_NOT},
-    {Lex4CItem::LESS_EQ         , yytokentype::LESS_EQ},
-    {Lex4CItem::GREATER_EQ      , yytokentype::GREATER_EQ},
-    {Lex4CItem::LOGICAL_OR      , yytokentype::LOGICAL_OR},
-    {Lex4CItem::LOGICAL_AND     , yytokentype::LOGICAL_AND},
-    {Lex4CItem::LOGICAL_EQUAL   , yytokentype::LOGICAL_EQUAL},
-    {Lex4CItem::LOGICAL_NOT_EQUAL, yytokentype::LOGICAL_NOT_EQUAL},
-    {Lex4CItem::CURLY_OPENING   , yytokentype::CURLY_OPENING},
-    {Lex4CItem::CURLY_CLOSING   , yytokentype::CURLY_CLOSING},
-    {Lex4CItem::LEFT_PARENTHESIS, yytokentype::LEFT_PARENTHESIS},
-    {Lex4CItem::RIGHT_PARENTHESIS, yytokentype::RIGHT_PARENTHESIS},
-    {Lex4CItem::ANGLE_OPENING   , yytokentype::ANGLE_OPENING},
-    {Lex4CItem::ANGLE_CLOSING   , yytokentype::ANGLE_CLOSING},
-    {Lex4CItem::COMMA           , yytokentype::COMMA},
-    {Lex4CItem::SEPARATOR       , yytokentype::SEPARATOR},
-    {Lex4CItem::PREPROCESSOR    , yytokentype::PREPROCESSOR},
-    {Lex4CItem::QUESTION_MARK   , yytokentype::QUESTION_MARK},
-    {Lex4CItem::INT             , yytokentype::INT},
-    {Lex4CItem::CHAR_T          , yytokentype::CHAR_T},
-    {Lex4CItem::LONG            , yytokentype::LONG},
-    {Lex4CItem::SHORT           , yytokentype::SHORT},
-    {Lex4CItem::FLOAT_T         , yytokentype::FLOAT_T},
-    {Lex4CItem::DOUBLE_T        , yytokentype::DOUBLE_T},
-    {Lex4CItem::SIGNED          , yytokentype::SIGNED},
-    {Lex4CItem::UNSIGNED        , yytokentype::UNSIGNED},
-    {Lex4CItem::INTEGER         , yytokentype::INTEGER},
-    {Lex4CItem::FLOAT           , yytokentype::FLOAT},
-    {Lex4CItem::DOUBLE          , yytokentype::DOUBLE},
-    {Lex4CItem::IDENTIFIER      , yytokentype::IDENTIFIER},
-    {Lex4CItem::CHAR            , yytokentype::CHAR},
-    {Lex4CItem::STRING          , yytokentype::STRING},
+    {Lex4CItem::UNDEFINED           , yytokentype::UNDEFINED},
+    {Lex4CItem::EoF                 , yytokentype::EoF},
+    {Lex4CItem::SELF                , yytokentype::SELF},
+    {Lex4CItem::EXPR                , yytokentype::EXPR},
+    {Lex4CItem::TERM                , yytokentype::TERM},
+    {Lex4CItem::EMPTY               , yytokentype::EMPTY},
+    {Lex4CItem::ADD                 , yytokentype::ADD},
+    {Lex4CItem::SUB                 , yytokentype::SUB},
+    {Lex4CItem::MUL                 , yytokentype::MUL},
+    {Lex4CItem::DIV                 , yytokentype::DIV},
+    {Lex4CItem::MOD                 , yytokentype::MOD},
+    {Lex4CItem::ASSIGN              , yytokentype::ASSIGN},
+    {Lex4CItem::ADD_EQ              , yytokentype::ADD_EQ},
+    {Lex4CItem::SUB_EQ              , yytokentype::SUB_EQ},
+    {Lex4CItem::MUL_EQ              , yytokentype::MUL_EQ},
+    {Lex4CItem::DIV_EQ              , yytokentype::DIV_EQ},
+    {Lex4CItem::MOD_EQ              , yytokentype::MOD_EQ},
+    {Lex4CItem::OR                  , yytokentype::OR},
+    {Lex4CItem::AND                 , yytokentype::AND},
+    {Lex4CItem::XOR                 , yytokentype::XOR},
+    {Lex4CItem::NOT                 , yytokentype::NOT},
+    {Lex4CItem::OR_EQ               , yytokentype::OR_EQ},
+    {Lex4CItem::AND_EQ              , yytokentype::AND_EQ},
+    {Lex4CItem::XOR_EQ              , yytokentype::XOR_EQ},
+    {Lex4CItem::LEFT_SHIFT          , yytokentype::LEFT_SHIFT},
+    {Lex4CItem::RIGHT_SHIFT         , yytokentype::RIGHT_SHIFT},
+    {Lex4CItem::LEFT_SHIFT_EQ       , yytokentype::LEFT_SHIFT_EQ},
+    {Lex4CItem::RIGHT_SHIFT_EQ      , yytokentype::RIGHT_SHIFT_EQ},
+    {Lex4CItem::FOR                 , yytokentype::FOR},
+    {Lex4CItem::WHILE               , yytokentype::WHILE},
+    {Lex4CItem::RETURN              , yytokentype::RETURN},
+    {Lex4CItem::CASE                , yytokentype::CASE},
+    {Lex4CItem::SWITCH              , yytokentype::SWITCH},
+    {Lex4CItem::LESS                , yytokentype::LESS},
+    {Lex4CItem::GREATER             , yytokentype::GREATER},
+    {Lex4CItem::LOGICAL_NOT         , yytokentype::LOGICAL_NOT},
+    {Lex4CItem::LESS_EQ             , yytokentype::LESS_EQ},
+    {Lex4CItem::GREATER_EQ          , yytokentype::GREATER_EQ},
+    {Lex4CItem::LOGICAL_OR          , yytokentype::LOGICAL_OR},
+    {Lex4CItem::LOGICAL_AND         , yytokentype::LOGICAL_AND},
+    {Lex4CItem::LOGICAL_EQUAL       , yytokentype::LOGICAL_EQUAL},
+    {Lex4CItem::LOGICAL_NOT_EQUAL   , yytokentype::LOGICAL_NOT_EQUAL},
+    {Lex4CItem::CURLY_OPENING       , yytokentype::CURLY_OPENING},
+    {Lex4CItem::CURLY_CLOSING       , yytokentype::CURLY_CLOSING},
+    {Lex4CItem::LEFT_PARENTHESIS    , yytokentype::LEFT_PARENTHESIS},
+    {Lex4CItem::RIGHT_PARENTHESIS   , yytokentype::RIGHT_PARENTHESIS},
+    {Lex4CItem::ANGLE_OPENING       , yytokentype::ANGLE_OPENING},
+    {Lex4CItem::ANGLE_CLOSING       , yytokentype::ANGLE_CLOSING},
+    {Lex4CItem::COMMA               , yytokentype::COMMA},
+    {Lex4CItem::SEPARATOR           , yytokentype::SEPARATOR},
+    {Lex4CItem::PREPROCESSOR        , yytokentype::PREPROCESSOR},
+    {Lex4CItem::QUESTION_MARK       , yytokentype::QUESTION_MARK},
+    {Lex4CItem::INT                 , yytokentype::INT},
+    {Lex4CItem::CHAR_T              , yytokentype::CHAR_T},
+    {Lex4CItem::LONG                , yytokentype::LONG},
+    {Lex4CItem::SHORT               , yytokentype::SHORT},
+    {Lex4CItem::FLOAT_T             , yytokentype::FLOAT_T},
+    {Lex4CItem::DOUBLE_T            , yytokentype::DOUBLE_T},
+    {Lex4CItem::SIGNED              , yytokentype::SIGNED},
+    {Lex4CItem::UNSIGNED            , yytokentype::UNSIGNED},
+    {Lex4CItem::INTEGER             , yytokentype::INTEGER},
+    {Lex4CItem::FLOAT               , yytokentype::FLOAT},
+    {Lex4CItem::DOUBLE              , yytokentype::DOUBLE},
+    {Lex4CItem::IDENTIFIER          , yytokentype::IDENTIFIER},
+    {Lex4CItem::CHAR                , yytokentype::CHAR},
+    {Lex4CItem::STRING              , yytokentype::STRING},
+    }
+};
 */
 
 constexpr cerb::gl::Map<Lex4CBlock, cerb::string_view, 8> Lex4CBlockNames{
@@ -313,6 +315,33 @@ constexpr cerb::gl::Map<Lex4CItem, cerb::string_view, 66> Lex4CItemItemsNames{
         { Lex4CItem::STRING, "STRING"_sv },
     }
 };
+
+
+namespace cerb::lex {
+    constexpr auto convert(Lex4CBlock value) -> cerb::string_view
+    {
+        return Lex4CBlockNames[value];
+    }
+
+    constexpr auto convert(Lex4CItem value) -> cerb::string_view
+    {
+        return Lex4CItemItemsNames[value];
+    }
+}
+
+template<typename T>
+auto operator<<(T &os, Lex4CBlock value) -> T &
+{
+    os << cerb::lex::convert(value);
+    return os;
+}
+
+template<typename T>
+auto operator<<(T &os, Lex4CItem value) -> T &
+{
+    os << cerb::lex::convert(value);
+    return os;
+}
 
 
 

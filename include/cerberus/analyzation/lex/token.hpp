@@ -56,4 +56,12 @@ namespace cerb::lex {
     };
 }// namespace cerb::lex
 
+
+template<typename T, typename CharT, typename Repr, typename TokenType>
+auto operator<<(T &os, const cerb::lex::Token<CharT, Repr, TokenType> &token) -> T &
+{
+    os << "Type: " << token.type << ", \"" << token.repr << "\"";
+    return os;
+}
+
 #endif /* CERBERUS_TOKEN_HPP */

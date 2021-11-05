@@ -2,7 +2,7 @@
 #define CERBERUS_CALCULATOR_IMP_YACC_HPP
 
 #include "calculator.hpp"
-#include <cerberus/vector.hpp>
+#include "cerberus/vector.hpp"
 
 extern "C" int yylex(void);
 extern "C" void yyerror(const char *message) {

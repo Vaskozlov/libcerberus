@@ -7,8 +7,8 @@
 #include <cerberus/string_view.hpp>
 #include <fmt/format.h>
 #include <fmt/color.h>
-#include "calculator_imp.hpp"
-#include "lexer4C_imp.hpp"
+#include "calculator/calculator_imp.hpp"
+#include "C/lexer4C_imp.hpp"
 #include <cerberus/deque2.hpp>
 #include <cerberus/range.hpp>
 #include <cerberus/benchmark.hpp>
@@ -51,18 +51,6 @@ consteval auto test() -> size_t
     return ideque.size();
 }
 
-/*
-CalculatorImp calculator{};
-Lex4CImp C_lexer{};
-
-// calculator.scan("50 + 20", "stdio");
-auto begin = std::chrono::high_resolution_clock::now();
-// calculator.scan("sin(20) + 30", "stdio");
-C_lexer.scan(input, "stdio");
-auto end = std::chrono::high_resolution_clock::now();
-std::chrono::duration<double> elapsed = end - begin;
-fmt::print("{:e}\n", elapsed.count());
-*/
 
 auto deque_test() -> int
 {
@@ -116,12 +104,16 @@ auto deque_test() -> int
 
 auto main() -> int
 {
-    deque_test();
-    cerb::experimental::Benchmark(
-        [](const auto time, const char *name) {
-            fmt::print("{} elapsed in {:e}\n", name, time.count());
-        },
-        deque_test);
+    CalculatorImp calculator{};
+    Lex4CImp C_lexer{};
+
+    // calculator.scan("50 + 20", "stdio");
+    auto begin = std::chrono::high_resolution_clock::now();
+    // calculator.scan("sin(20) + 30", "stdio");
+    C_lexer.scan(input, "stdio");
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - begin;
+    fmt::print("{:e}\n", elapsed.count());
     return 0;
 }
 

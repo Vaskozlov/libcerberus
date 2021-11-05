@@ -2,8 +2,8 @@
 #define CERBERUS_CALCULATOR_HPP
 
 #include <iostream>
-#include <cerberus/map.hpp>
-#include <cerberus/analyzation/lex/lex.hpp>
+#include "cerberus/map.hpp"
+#include "cerberus/analyzation/lex/lex.hpp"
 
 using namespace cerb::literals;
 
@@ -22,6 +22,9 @@ INT: "[0-9]+"
 
 [OPERATORS]
 ADD: '+'
+SUB: '-'
+MUL: '*'
+
 
 [SEPARATOR]
 LEFT_PARENTHESIS: '('

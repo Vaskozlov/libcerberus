@@ -2,8 +2,8 @@
 #define CERBERUS_CALCULATOR_HPP
 
 #include <iostream>
-#include <cerberus/map.hpp>
-#include <cerberus/analyzation/lex/lex.hpp>
+#include "cerberus/map.hpp"
+#include "cerberus/analyzation/lex/lex.hpp"
 
 using namespace cerb::literals;
 
@@ -21,13 +21,15 @@ enum struct CalculatorBlock : size_t
 enum struct CalculatorItem : size_t
 {
     UNDEFINED        = 16UL,
-    EoF              = 17UL,
+    EoF              = 0UL,
     SELF             = 18UL,
     EXPR             = 19UL,
     TERM             = 20UL,
     EMPTY            = 21UL,
     SIN              = 4096UL,
     ADD              = 8192UL,
+    SUB              = 8193UL,
+    MUL              = 8194UL,
     LEFT_PARENTHESIS = 16384UL,
     RIGHT_PARENTHESIS = 16385UL,
     INT              = 32768UL,
@@ -35,31 +37,37 @@ enum struct CalculatorItem : size_t
 
 /*
 %token UNDEFINED        16
-%token EoF              17
+%token EoF              0
 %token SELF             18
 %token EXPR             19
 %token TERM             20
 %token EMPTY            21
-%token SIN              4096
-%token ADD              '+'
-%token LEFT_PARENTHESIS '('
-%token RIGHT_PARENTHESIS ')'
+%token SIN              "sin"
+%token ADD              "+"
+%token SUB              "-"
+%token MUL              "*"
+%token LEFT_PARENTHESIS "("
+%token RIGHT_PARENTHESIS ")"
 %token INT              32768
 
 
-constexpr cerb::gl::Map<CalculatorItem, yytokentype, 11> CalculatorItemsNamesConverter{
+constexpr cerb::gl::Map<CalculatorItem, yytokentype, 13> CalculatorItemsNamesConverter{
     true, {
-    {CalculatorItem:UNDEFINED       , yytokentype::UNDEFINED},
-    {CalculatorItem:EoF             , yytokentype::EoF},
-    {CalculatorItem:SELF            , yytokentype::SELF},
-    {CalculatorItem:EXPR            , yytokentype::EXPR},
-    {CalculatorItem:TERM            , yytokentype::TERM},
-    {CalculatorItem:EMPTY           , yytokentype::EMPTY},
-    {CalculatorItem::SIN             , yytokentype::SIN},
-    {CalculatorItem::ADD             , yytokentype::ADD},
-    {CalculatorItem::LEFT_PARENTHESIS, yytokentype::LEFT_PARENTHESIS},
-    {CalculatorItem::RIGHT_PARENTHESIS, yytokentype::RIGHT_PARENTHESIS},
-    {CalculatorItem::INT             , yytokentype::INT},
+    {CalculatorItem::UNDEFINED           , yytokentype::UNDEFINED},
+    {CalculatorItem::EoF                 , yytokentype::EoF},
+    {CalculatorItem::SELF                , yytokentype::SELF},
+    {CalculatorItem::EXPR                , yytokentype::EXPR},
+    {CalculatorItem::TERM                , yytokentype::TERM},
+    {CalculatorItem::EMPTY               , yytokentype::EMPTY},
+    {CalculatorItem::SIN                 , yytokentype::SIN},
+    {CalculatorItem::ADD                 , yytokentype::ADD},
+    {CalculatorItem::SUB                 , yytokentype::SUB},
+    {CalculatorItem::MUL                 , yytokentype::MUL},
+    {CalculatorItem::LEFT_PARENTHESIS    , yytokentype::LEFT_PARENTHESIS},
+    {CalculatorItem::RIGHT_PARENTHESIS   , yytokentype::RIGHT_PARENTHESIS},
+    {CalculatorItem::INT                 , yytokentype::INT},
+    }
+};
 */
 
 constexpr cerb::gl::Map<CalculatorBlock, cerb::string_view, 5> CalculatorBlockNames{
@@ -72,7 +80,7 @@ constexpr cerb::gl::Map<CalculatorBlock, cerb::string_view, 5> CalculatorBlockNa
     }
 };
 
-constexpr cerb::gl::Map<CalculatorItem, cerb::string_view, 11> CalculatorItemItemsNames{
+constexpr cerb::gl::Map<CalculatorItem, cerb::string_view, 13> CalculatorItemItemsNames{
     true, {
         { CalculatorItem::UNDEFINED, "UNDEFINED"_sv },
         { CalculatorItem::EoF, "EoF"_sv },
@@ -82,11 +90,40 @@ constexpr cerb::gl::Map<CalculatorItem, cerb::string_view, 11> CalculatorItemIte
         { CalculatorItem::EMPTY, "EMPTY"_sv },
         { CalculatorItem::SIN, "SIN"_sv },
         { CalculatorItem::ADD, "ADD"_sv },
+        { CalculatorItem::SUB, "SUB"_sv },
+        { CalculatorItem::MUL, "MUL"_sv },
         { CalculatorItem::LEFT_PARENTHESIS, "LEFT_PARENTHESIS"_sv },
         { CalculatorItem::RIGHT_PARENTHESIS, "RIGHT_PARENTHESIS"_sv },
         { CalculatorItem::INT, "INT"_sv },
     }
 };
+
+
+namespace cerb::lex {
+    constexpr auto convert(CalculatorBlock value) -> cerb::string_view
+    {
+        return CalculatorBlockNames[value];
+    }
+
+    constexpr auto convert(CalculatorItem value) -> cerb::string_view
+    {
+        return CalculatorItemItemsNames[value];
+    }
+}
+
+template<typename T>
+auto operator<<(T &os, CalculatorBlock value) -> T &
+{
+    os << cerb::lex::convert(value);
+    return os;
+}
+
+template<typename T>
+auto operator<<(T &os, CalculatorItem value) -> T &
+{
+    os << cerb::lex::convert(value);
+    return os;
+}
 
 
 
@@ -146,6 +183,8 @@ struct Calculator: public CERBERUS_LEX_PARENT_CLASS
         {
             { 
                 { ADD, '+' },
+                { SUB, '-' },
+                { MUL, '*' },
                 { LEFT_PARENTHESIS, '(' },
                 { RIGHT_PARENTHESIS, ')' },
             },

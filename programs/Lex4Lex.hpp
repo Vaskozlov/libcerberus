@@ -19,7 +19,7 @@ enum struct Lex4LexBlock : size_t
 enum struct Lex4LexItem : size_t
 {
     UNDEFINED        = 16UL,
-    EoF              = 17UL,
+    EoF              = 0UL,
     SELF             = 18UL,
     EXPR             = 19UL,
     TERM             = 20UL,
@@ -40,45 +40,47 @@ enum struct Lex4LexItem : size_t
 
 /*
 %token UNDEFINED        16
-%token EoF              17
+%token EoF              0
 %token SELF             18
 %token EXPR             19
 %token TERM             20
 %token EMPTY            21
-%token TRUE             4096
-%token FALSE            4097
+%token TRUE             "true"
+%token FALSE            "false"
 %token INT              4098
 %token IDENTIFIER       4099
 %token STRING           4100
 %token CHAR             4101
-%token ASSIGN           '='
-%token ANGLE_OPENING    '['
-%token ANGLE_CLOSING    ']'
-%token COLON            ':'
-%token WORD             '|'
+%token ASSIGN           "="
+%token ANGLE_OPENING    "["
+%token ANGLE_CLOSING    "]"
+%token COLON            ":"
+%token WORD             "|"
 %token EoR              "%%"
 
 
 constexpr cerb::gl::Map<Lex4LexItem, yytokentype, 18> Lex4LexItemsNamesConverter{
     true, {
-    {Lex4LexItem:UNDEFINED       , yytokentype::UNDEFINED},
-    {Lex4LexItem:EoF             , yytokentype::EoF},
-    {Lex4LexItem:SELF            , yytokentype::SELF},
-    {Lex4LexItem:EXPR            , yytokentype::EXPR},
-    {Lex4LexItem:TERM            , yytokentype::TERM},
-    {Lex4LexItem:EMPTY           , yytokentype::EMPTY},
-    {Lex4LexItem::TRUE            , yytokentype::TRUE},
-    {Lex4LexItem::FALSE           , yytokentype::FALSE},
-    {Lex4LexItem::INT             , yytokentype::INT},
-    {Lex4LexItem::IDENTIFIER      , yytokentype::IDENTIFIER},
-    {Lex4LexItem::STRING          , yytokentype::STRING},
-    {Lex4LexItem::CHAR            , yytokentype::CHAR},
-    {Lex4LexItem::ASSIGN          , yytokentype::ASSIGN},
-    {Lex4LexItem::ANGLE_OPENING   , yytokentype::ANGLE_OPENING},
-    {Lex4LexItem::ANGLE_CLOSING   , yytokentype::ANGLE_CLOSING},
-    {Lex4LexItem::COLON           , yytokentype::COLON},
-    {Lex4LexItem::WORD            , yytokentype::WORD},
-    {Lex4LexItem::EoR             , yytokentype::EoR},
+    {Lex4LexItem::UNDEFINED           , yytokentype::UNDEFINED},
+    {Lex4LexItem::EoF                 , yytokentype::EoF},
+    {Lex4LexItem::SELF                , yytokentype::SELF},
+    {Lex4LexItem::EXPR                , yytokentype::EXPR},
+    {Lex4LexItem::TERM                , yytokentype::TERM},
+    {Lex4LexItem::EMPTY               , yytokentype::EMPTY},
+    {Lex4LexItem::TRUE                , yytokentype::TRUE},
+    {Lex4LexItem::FALSE               , yytokentype::FALSE},
+    {Lex4LexItem::INT                 , yytokentype::INT},
+    {Lex4LexItem::IDENTIFIER          , yytokentype::IDENTIFIER},
+    {Lex4LexItem::STRING              , yytokentype::STRING},
+    {Lex4LexItem::CHAR                , yytokentype::CHAR},
+    {Lex4LexItem::ASSIGN              , yytokentype::ASSIGN},
+    {Lex4LexItem::ANGLE_OPENING       , yytokentype::ANGLE_OPENING},
+    {Lex4LexItem::ANGLE_CLOSING       , yytokentype::ANGLE_CLOSING},
+    {Lex4LexItem::COLON               , yytokentype::COLON},
+    {Lex4LexItem::WORD                , yytokentype::WORD},
+    {Lex4LexItem::EoR                 , yytokentype::EoR},
+    }
+};
 */
 
 constexpr cerb::gl::Map<Lex4LexBlock, cerb::string_view, 3> Lex4LexBlockNames{
@@ -111,6 +113,33 @@ constexpr cerb::gl::Map<Lex4LexItem, cerb::string_view, 18> Lex4LexItemItemsName
         { Lex4LexItem::EoR, "EoR"_sv },
     }
 };
+
+
+namespace cerb::lex {
+    constexpr auto convert(Lex4LexBlock value) -> cerb::string_view
+    {
+        return Lex4LexBlockNames[value];
+    }
+
+    constexpr auto convert(Lex4LexItem value) -> cerb::string_view
+    {
+        return Lex4LexItemItemsNames[value];
+    }
+}
+
+template<typename T>
+auto operator<<(T &os, Lex4LexBlock value) -> T &
+{
+    os << cerb::lex::convert(value);
+    return os;
+}
+
+template<typename T>
+auto operator<<(T &os, Lex4LexItem value) -> T &
+{
+    os << cerb::lex::convert(value);
+    return os;
+}
 
 
 
