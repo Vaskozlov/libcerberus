@@ -70,18 +70,18 @@ constexpr cerb::gl::Map<CalculatorItem, yytokentype, 13> CalculatorItemsNamesCon
 };
 */
 
-constexpr cerb::gl::Map<CalculatorBlock, cerb::string_view, 5> CalculatorBlockNames{
-    true, {
+inline cerb::Map<CalculatorBlock, cerb::string_view> CalculatorBlockNames(
+    {
         { CalculatorBlock::RESERVED, "RESERVED"_sv },
         { CalculatorBlock::FUNCTION, "FUNCTION"_sv },
         { CalculatorBlock::OPERATORS, "OPERATORS"_sv },
         { CalculatorBlock::SEPARATOR, "SEPARATOR"_sv },
         { CalculatorBlock::VALUE, "VALUE"_sv },
     }
-};
+);
 
-constexpr cerb::gl::Map<CalculatorItem, cerb::string_view, 13> CalculatorItemItemsNames{
-    true, {
+inline cerb::Map<CalculatorItem, cerb::string_view> CalculatorItemItemsNames(
+    {
         { CalculatorItem::UNDEFINED, "UNDEFINED"_sv },
         { CalculatorItem::EoF, "EoF"_sv },
         { CalculatorItem::SELF, "SELF"_sv },
@@ -96,18 +96,23 @@ constexpr cerb::gl::Map<CalculatorItem, cerb::string_view, 13> CalculatorItemIte
         { CalculatorItem::RIGHT_PARENTHESIS, "RIGHT_PARENTHESIS"_sv },
         { CalculatorItem::INT, "INT"_sv },
     }
-};
-
+);
 
 namespace cerb::lex {
     constexpr auto convert(CalculatorBlock value) -> cerb::string_view
     {
-        return CalculatorBlockNames[value];
+        if (CalculatorBlockNames.count(value) != 0) {
+            return CalculatorBlockNames[value];
+        }
+        return "UNDEFINED"_sv;
     }
 
     constexpr auto convert(CalculatorItem value) -> cerb::string_view
     {
-        return CalculatorItemItemsNames[value];
+        if (CalculatorItemItemsNames.count(value) != 0) {
+            return CalculatorItemItemsNames[value];
+        }
+        return "UNDEFINED"_sv;
     }
 }
 
@@ -130,7 +135,7 @@ auto operator<<(T &os, CalculatorItem value) -> T &
 namespace cerb {
     constexpr auto convert(CalculatorItem value) -> cerb::string_view
     {
-        if (CalculatorItemItemsNames.contains(value)) {
+        if (CalculatorItemItemsNames.count(value) != 0) {
             return CalculatorItemItemsNames[value];
         }
 

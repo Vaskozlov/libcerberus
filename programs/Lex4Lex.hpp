@@ -83,16 +83,16 @@ constexpr cerb::gl::Map<Lex4LexItem, yytokentype, 18> Lex4LexItemsNamesConverter
 };
 */
 
-constexpr cerb::gl::Map<Lex4LexBlock, cerb::string_view, 3> Lex4LexBlockNames{
-    true, {
+inline cerb::Map<Lex4LexBlock, cerb::string_view> Lex4LexBlockNames(
+    {
         { Lex4LexBlock::RESERVED, "RESERVED"_sv },
         { Lex4LexBlock::GENERAL, "GENERAL"_sv },
         { Lex4LexBlock::OPERATORS, "OPERATORS"_sv },
     }
-};
+);
 
-constexpr cerb::gl::Map<Lex4LexItem, cerb::string_view, 18> Lex4LexItemItemsNames{
-    true, {
+inline cerb::Map<Lex4LexItem, cerb::string_view> Lex4LexItemItemsNames(
+    {
         { Lex4LexItem::UNDEFINED, "UNDEFINED"_sv },
         { Lex4LexItem::EoF, "EoF"_sv },
         { Lex4LexItem::SELF, "SELF"_sv },
@@ -112,18 +112,23 @@ constexpr cerb::gl::Map<Lex4LexItem, cerb::string_view, 18> Lex4LexItemItemsName
         { Lex4LexItem::WORD, "WORD"_sv },
         { Lex4LexItem::EoR, "EoR"_sv },
     }
-};
-
+);
 
 namespace cerb::lex {
     constexpr auto convert(Lex4LexBlock value) -> cerb::string_view
     {
-        return Lex4LexBlockNames[value];
+        if (Lex4LexBlockNames.count(value) != 0) {
+            return Lex4LexBlockNames[value];
+        }
+        return "UNDEFINED"_sv;
     }
 
     constexpr auto convert(Lex4LexItem value) -> cerb::string_view
     {
-        return Lex4LexItemItemsNames[value];
+        if (Lex4LexItemItemsNames.count(value) != 0) {
+            return Lex4LexItemItemsNames[value];
+        }
+        return "UNDEFINED"_sv;
     }
 }
 
@@ -146,7 +151,7 @@ auto operator<<(T &os, Lex4LexItem value) -> T &
 namespace cerb {
     constexpr auto convert(Lex4LexItem value) -> cerb::string_view
     {
-        if (Lex4LexItemItemsNames.contains(value)) {
+        if (Lex4LexItemItemsNames.count(value) != 0) {
             return Lex4LexItemItemsNames[value];
         }
 

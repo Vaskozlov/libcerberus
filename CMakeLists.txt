@@ -40,6 +40,12 @@ file(
         "example/calculator/calculator.cpp"
 )
 
+file(
+        GLOB_RECURSE
+        CERBERUS_LN_OBJS
+        "example/cerberus/Cerberus.cpp"
+)
+
 add_executable(
         example
         ${EXAMPLE_OBJS}
@@ -53,6 +59,12 @@ add_executable(
 add_executable(
         calculator
         ${CALCULATOR_OBJS}
+)
+
+
+add_executable(
+        cerberus
+        ${CERBERUS_LN_OBJS}
 )
 
 find_package(fmt CONFIG REQUIRED)
@@ -70,5 +82,10 @@ target_link_libraries(
 
 target_link_libraries(
         calculator
+        fmt::fmt
+)
+
+target_link_libraries(
+        cerberus
         fmt::fmt
 )

@@ -96,6 +96,10 @@ Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
         {}
     };
 
+public:
+    bool generate_header_for_yacc{ false };
+    std::string filename{};
+
 private:
     bool is_word{ false };
     RuleState current_state{ NIL };
@@ -359,7 +363,7 @@ public:
             item, repr, "Unable to find suitable dot item for: ");
     }
 
-    constexpr auto finish() -> void override
+    auto finish() -> void override
     {
         constexpr unsigned long MinimumPower = 12;
         cerb::gl::Set<u16, bitsizeof(uintmax_t)> taken_powers{};
@@ -423,7 +427,8 @@ public:
             for (const auto &elem : m_reserved_types) {
                 generated_string += fmt::format(
                     "    {:<16} = {}UL,\n", elem,
-                    (parent::RESERVED + (j++)) * (elem != "EoF"));
+                    (parent::RESERVED + (j++)) *
+                        static_cast<unsigned long>(elem != "EoF"));
             }
         }
 
@@ -467,7 +472,8 @@ public:
                 for (const auto &elem : m_reserved_types) {
                     generated_string += fmt::format(
                         "%token {:<16} {}\n", elem,
-                        (parent::RESERVED + (j++)) * (elem != "EoF"));
+                        (parent::RESERVED + (j++)) *
+                            static_cast<unsigned long>(elem != "EoF"));
                 }
             }
 
@@ -510,7 +516,8 @@ public:
                 }
             }
 
-            generated_string += fmt::format(
+            std::string yacc_info;
+            yacc_info += fmt::format(
                 "\n\nconstexpr cerb::gl::Map<{0}, yytokentype, {1}> "
                 "{2}ItemsNamesConverter{{\n    true, {{\n",
                 m_name_of_items,
@@ -521,7 +528,7 @@ public:
                 size_t j = 0;
                 CERBLIB_UNROLL_N(2)
                 for (const auto &elem : m_reserved_types) {
-                    generated_string += fmt::format(
+                    yacc_info += fmt::format(
                         "    {{{0}::{1:<20}, yytokentype::{1}}},\n", m_name_of_items,
                         elem);
                 }
@@ -532,33 +539,43 @@ public:
 
                 CERBLIB_UNROLL_N(2)
                 for (const auto &i : elem.second.words) {
-                    generated_string += fmt::format(
+                    yacc_info += fmt::format(
                         "    {{{0}::{1:<20}, yytokentype::{1}}},\n", m_name_of_items,
                         i.first.to_string());
                 }
 
                 CERBLIB_UNROLL_N(2)
                 for (const auto &i : elem.second.rules) {
-                    generated_string += fmt::format(
+                    yacc_info += fmt::format(
                         "    {{{0}::{1:<20}, yytokentype::{1}}},\n", m_name_of_items,
                         i.first.to_string());
                 }
 
                 CERBLIB_UNROLL_N(2)
                 for (const auto &i : elem.second.operators) {
-                    generated_string += fmt::format(
+                    yacc_info += fmt::format(
                         "    {{{0}::{1:<20}, yytokentype::{1}}},\n", m_name_of_items,
                         i.first.to_string());
                 }
             }
-            generated_string += "    }\n};\n";
+            yacc_info += "    }\n};\n";
+
+            if (generate_header_for_yacc) {
+                filename.erase(filename.find_last_of('.'));
+                filename += "YACC.hpp";
+                std::ofstream out(filename);
+                out << yacc_info;
+                out.close();
+            }
+
+            generated_string += yacc_info;
             generated_string += "*/\n\n";
         }
 
         generated_string += fmt::format(
-            "constexpr cerb::gl::Map<{0}, cerb::string_view, {1}> "
-            "{2}BlockNames{{\n    true, {{\n",
-            m_name_of_block, m_blocks.size() + 1,
+            "inline cerb::Map<{0}, cerb::string_view> "
+            "{1}BlockNames(\n    {{\n",
+            m_name_of_block,
             m_directives["CLASS_NAME"].to_string());
 
         generated_string += fmt::format(
@@ -571,13 +588,13 @@ public:
                 elem.first.to_string());
         }
 
-        generated_string += "    }\n};\n\n";
+        generated_string += "    }\n);\n\n";
 
         {
             generated_string += fmt::format(
-                "constexpr cerb::gl::Map<{0}, cerb::string_view, {1}> "
-                "{0}ItemsNames{{\n    true, {{\n",
-                m_name_of_items, rules_count + m_reserved_types.size());
+                "inline cerb::Map<{0}, cerb::string_view> "
+                "{0}ItemsNames(\n    {{\n",
+                m_name_of_items);
 
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : m_reserved_types) {
@@ -609,7 +626,7 @@ public:
                 }
             }
 
-            generated_string += "    }\n};\n\n";
+            generated_string += "    }\n);\n";
         }
 
         generated_string += fmt::format(
@@ -617,12 +634,18 @@ public:
 namespace cerb::lex {{
     constexpr auto convert({0} value) -> cerb::string_view
     {{
-        return {1}BlockNames[value];
+        if ({1}BlockNames.count(value) != 0) {{
+            return {1}BlockNames[value];
+        }}
+        return "UNDEFINED"_sv;
     }}
 
     constexpr auto convert({2} value) -> cerb::string_view
     {{
-        return {2}ItemsNames[value];
+        if ({2}ItemsNames.count(value) != 0) {{
+            return {2}ItemsNames[value];
+        }}
+        return "UNDEFINED"_sv;
     }}
 }}
 
@@ -650,7 +673,7 @@ auto operator<<(T &os, {2} value) -> T &
 namespace cerb {{
     constexpr auto convert({7} value) -> cerb::string_view
     {{
-        if ({7}ItemsNames.contains(value)) {{
+        if ({7}ItemsNames.count(value) != 0) {{
             return {7}ItemsNames[value];
         }}
 
@@ -801,7 +824,14 @@ auto main(int argc, char *argv[]) -> int
         Lex4LexImpl lex{};
 
         std::string filename = argv[i];
-        std::ifstream t(argv[i]);
+        if (filename == "-YACC") {
+            lex.generate_header_for_yacc = true;
+            filename                     = argv[++i];
+            ;
+        }
+
+        lex.filename = filename;
+        std::ifstream t(filename);
         std::stringstream buffer{};
         buffer << t.rdbuf();
         t.close();

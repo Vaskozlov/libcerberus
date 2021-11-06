@@ -75,10 +75,18 @@ namespace cerb::analysis::parser {
         static inline NodeAllocator m_allocator{};
         static inline cerb::ConstBitmap<1, 1000000> rec{};
 
+
         static constexpr auto construct_node(const T &value) -> ParserNode *
         {
             ParserNode *new_node = NodeTraits::allocate(m_allocator, 1);
             NodeTraits::construct(m_allocator, new_node, value);
+            return new_node;
+        }
+
+        static constexpr auto construct_node() -> ParserNode *
+        {
+            ParserNode *new_node = NodeTraits::allocate(m_allocator, 1);
+            NodeTraits::construct(m_allocator, new_node);
             return new_node;
         }
 
@@ -127,6 +135,8 @@ namespace cerb::analysis::parser {
 
         constexpr ParserNode(const T &value_) : value(value_)
         {}
+
+        constexpr ParserNode() = default;
     };
 }// namespace cerb::analysis::parser
 

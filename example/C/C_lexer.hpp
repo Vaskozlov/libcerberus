@@ -232,8 +232,8 @@ constexpr cerb::gl::Map<Lex4CItem, yytokentype, 66> Lex4CItemsNamesConverter{
 };
 */
 
-constexpr cerb::gl::Map<Lex4CBlock, cerb::string_view, 8> Lex4CBlockNames{
-    true, {
+inline cerb::Map<Lex4CBlock, cerb::string_view> Lex4CBlockNames(
+    {
         { Lex4CBlock::RESERVED, "RESERVED"_sv },
         { Lex4CBlock::ARITHMETIC_OPERATOR, "ARITHMETIC_OPERATOR"_sv },
         { Lex4CBlock::BIT_OPERATOR, "BIT_OPERATOR"_sv },
@@ -243,10 +243,10 @@ constexpr cerb::gl::Map<Lex4CBlock, cerb::string_view, 8> Lex4CBlockNames{
         { Lex4CBlock::TYPE, "TYPE"_sv },
         { Lex4CBlock::VALUES, "VALUES"_sv },
     }
-};
+);
 
-constexpr cerb::gl::Map<Lex4CItem, cerb::string_view, 66> Lex4CItemItemsNames{
-    true, {
+inline cerb::Map<Lex4CItem, cerb::string_view> Lex4CItemItemsNames(
+    {
         { Lex4CItem::UNDEFINED, "UNDEFINED"_sv },
         { Lex4CItem::EoF, "EoF"_sv },
         { Lex4CItem::SELF, "SELF"_sv },
@@ -314,18 +314,23 @@ constexpr cerb::gl::Map<Lex4CItem, cerb::string_view, 66> Lex4CItemItemsNames{
         { Lex4CItem::CHAR, "CHAR"_sv },
         { Lex4CItem::STRING, "STRING"_sv },
     }
-};
-
+);
 
 namespace cerb::lex {
     constexpr auto convert(Lex4CBlock value) -> cerb::string_view
     {
-        return Lex4CBlockNames[value];
+        if (Lex4CBlockNames.count(value) != 0) {
+            return Lex4CBlockNames[value];
+        }
+        return "UNDEFINED"_sv;
     }
 
     constexpr auto convert(Lex4CItem value) -> cerb::string_view
     {
-        return Lex4CItemItemsNames[value];
+        if (Lex4CItemItemsNames.count(value) != 0) {
+            return Lex4CItemItemsNames[value];
+        }
+        return "UNDEFINED"_sv;
     }
 }
 
@@ -348,7 +353,7 @@ auto operator<<(T &os, Lex4CItem value) -> T &
 namespace cerb {
     constexpr auto convert(Lex4CItem value) -> cerb::string_view
     {
-        if (Lex4CItemItemsNames.contains(value)) {
+        if (Lex4CItemItemsNames.count(value) != 0) {
             return Lex4CItemItemsNames[value];
         }
 

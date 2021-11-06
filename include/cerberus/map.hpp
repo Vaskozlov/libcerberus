@@ -139,7 +139,7 @@ namespace cerb {
             return this->template RBTreeEmplace<true, true>(value)->value.second;
         }
 
-        constexpr auto insert(value_type &value) -> T2 &
+        constexpr auto insert(const value_type &value) -> T2 &
         {
             return this->template RBTreeEmplace<true, true>(value)->value.second;
         }
@@ -187,14 +187,6 @@ namespace cerb {
         constexpr Map(Map &&) noexcept = default;
 
         constexpr Map(const std::initializer_list<value_type> &values) noexcept
-        {
-            CERBLIB_UNROLL_N(2)
-            for (const auto &elem : values) {
-                insert(elem);
-            }
-        }
-
-        consteval Map(bool, const std::initializer_list<value_type> &values) noexcept
         {
             CERBLIB_UNROLL_N(2)
             for (const auto &elem : values) {
