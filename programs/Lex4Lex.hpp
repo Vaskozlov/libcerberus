@@ -12,45 +12,40 @@ using namespace cerb::literals;
 enum struct Lex4LexBlock : size_t
 {
     RESERVED         = 16UL,
-    GENERAL          = 4096UL,
-    OPERATORS        = 8192UL,
+    DIRECTIVE        = 4096UL,
+    GENERAL          = 8192UL,
+    OPERATORS        = 16384UL,
 };
 
 enum struct Lex4LexItem : size_t
 {
     UNDEFINED        = 16UL,
     EoF              = 0UL,
-    SELF             = 18UL,
-    EXPR             = 19UL,
-    TERM             = 20UL,
-    EMPTY            = 21UL,
-    TRUE             = 4096UL,
-    FALSE            = 4097UL,
-    INT              = 4098UL,
-    IDENTIFIER       = 4099UL,
-    STRING           = 4100UL,
-    CHAR             = 4101UL,
-    ASSIGN           = 8192UL,
-    ANGLE_OPENING    = 8193UL,
-    ANGLE_CLOSING    = 8194UL,
-    COLON            = 8195UL,
-    WORD             = 8196UL,
-    EoR              = 8197UL,
+    GENERALIZED      = 4096UL,
+    TRUE             = 8192UL,
+    FALSE            = 8193UL,
+    INT              = 8194UL,
+    IDENTIFIER       = 8195UL,
+    STRING           = 8196UL,
+    CHAR             = 8197UL,
+    ASSIGN           = 16384UL,
+    ANGLE_OPENING    = 16385UL,
+    ANGLE_CLOSING    = 16386UL,
+    COLON            = 16387UL,
+    WORD             = 16388UL,
+    EoR              = 16389UL,
 };
 
 /*
 %token UNDEFINED        16
 %token EoF              0
-%token SELF             18
-%token EXPR             19
-%token TERM             20
-%token EMPTY            21
+%token GENERALIZED      "#GENERALIZE"
 %token TRUE             "true"
 %token FALSE            "false"
-%token INT              4098
-%token IDENTIFIER       4099
-%token STRING           4100
-%token CHAR             4101
+%token INT              8194
+%token IDENTIFIER       8195
+%token STRING           8196
+%token CHAR             8197
 %token ASSIGN           "="
 %token ANGLE_OPENING    "["
 %token ANGLE_CLOSING    "]"
@@ -59,33 +54,31 @@ enum struct Lex4LexItem : size_t
 %token EoR              "%%"
 
 
-constexpr cerb::gl::Map<Lex4LexItem, yytokentype, 18> Lex4LexItemsNamesConverter{
-    true, {
-    {Lex4LexItem::UNDEFINED           , yytokentype::UNDEFINED},
-    {Lex4LexItem::EoF                 , yytokentype::EoF},
-    {Lex4LexItem::SELF                , yytokentype::SELF},
-    {Lex4LexItem::EXPR                , yytokentype::EXPR},
-    {Lex4LexItem::TERM                , yytokentype::TERM},
-    {Lex4LexItem::EMPTY               , yytokentype::EMPTY},
-    {Lex4LexItem::TRUE                , yytokentype::TRUE},
-    {Lex4LexItem::FALSE               , yytokentype::FALSE},
-    {Lex4LexItem::INT                 , yytokentype::INT},
-    {Lex4LexItem::IDENTIFIER          , yytokentype::IDENTIFIER},
-    {Lex4LexItem::STRING              , yytokentype::STRING},
-    {Lex4LexItem::CHAR                , yytokentype::CHAR},
-    {Lex4LexItem::ASSIGN              , yytokentype::ASSIGN},
-    {Lex4LexItem::ANGLE_OPENING       , yytokentype::ANGLE_OPENING},
-    {Lex4LexItem::ANGLE_CLOSING       , yytokentype::ANGLE_CLOSING},
-    {Lex4LexItem::COLON               , yytokentype::COLON},
-    {Lex4LexItem::WORD                , yytokentype::WORD},
-    {Lex4LexItem::EoR                 , yytokentype::EoR},
+cerb::Map<Lex4LexItem, yytokentype> Lex4LexItemsNamesConverter(
+    {
+        {Lex4LexItem::UNDEFINED           , yytokentype::UNDEFINED},
+        {Lex4LexItem::EoF                 , yytokentype::EoF},
+        {Lex4LexItem::GENERALIZED         , yytokentype::GENERALIZED},
+        {Lex4LexItem::TRUE                , yytokentype::TRUE},
+        {Lex4LexItem::FALSE               , yytokentype::FALSE},
+        {Lex4LexItem::INT                 , yytokentype::INT},
+        {Lex4LexItem::IDENTIFIER          , yytokentype::IDENTIFIER},
+        {Lex4LexItem::STRING              , yytokentype::STRING},
+        {Lex4LexItem::CHAR                , yytokentype::CHAR},
+        {Lex4LexItem::ASSIGN              , yytokentype::ASSIGN},
+        {Lex4LexItem::ANGLE_OPENING       , yytokentype::ANGLE_OPENING},
+        {Lex4LexItem::ANGLE_CLOSING       , yytokentype::ANGLE_CLOSING},
+        {Lex4LexItem::COLON               , yytokentype::COLON},
+        {Lex4LexItem::WORD                , yytokentype::WORD},
+        {Lex4LexItem::EoR                 , yytokentype::EoR},
     }
-};
+);
 */
 
 inline cerb::Map<Lex4LexBlock, cerb::string_view> Lex4LexBlockNames(
     {
         { Lex4LexBlock::RESERVED, "RESERVED"_sv },
+        { Lex4LexBlock::DIRECTIVE, "DIRECTIVE"_sv },
         { Lex4LexBlock::GENERAL, "GENERAL"_sv },
         { Lex4LexBlock::OPERATORS, "OPERATORS"_sv },
     }
@@ -95,10 +88,7 @@ inline cerb::Map<Lex4LexItem, cerb::string_view> Lex4LexItemItemsNames(
     {
         { Lex4LexItem::UNDEFINED, "UNDEFINED"_sv },
         { Lex4LexItem::EoF, "EoF"_sv },
-        { Lex4LexItem::SELF, "SELF"_sv },
-        { Lex4LexItem::EXPR, "EXPR"_sv },
-        { Lex4LexItem::TERM, "TERM"_sv },
-        { Lex4LexItem::EMPTY, "EMPTY"_sv },
+        { Lex4LexItem::GENERALIZED, "GENERALIZED"_sv },
         { Lex4LexItem::TRUE, "TRUE"_sv },
         { Lex4LexItem::FALSE, "FALSE"_sv },
         { Lex4LexItem::INT, "INT"_sv },
@@ -198,10 +188,11 @@ struct Lex4Lex: public CERBERUS_LEX_PARENT_CLASS
         STRING,
         CHAR,
         {
+            { GENERALIZED, "#GENERALIZE"_sv, true, 2 },
             { TRUE, "true"_sv, true, 2 },
             { FALSE, "false"_sv, true, 2 },
-            { INT, "[0-9]+"_sv, false, 12 },
-            { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*"_sv, false, 12 }
+            { INT, "[0-9]+"_sv, false, 13 },
+            { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*"_sv, false, 13 }
         },
         {
             { 

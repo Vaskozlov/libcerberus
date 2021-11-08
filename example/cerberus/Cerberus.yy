@@ -4,10 +4,6 @@
 
 %token UNDEFINED        16
 %token EoF              0
-%token SELF             18
-%token EXPR             19
-%token TERM             20
-%token EMPTY            21
 %token ADD              "+"
 %token SUB              "-"
 %token MUL              "*"
@@ -63,6 +59,7 @@
 %token FLOAT_T          "float"
 %token DOUBLE_T         "double"
 %token BUILTIN_AUTO_T   "__builtin_auto"
+%token TYPE             262144
 %token INTEGER          524288
 %token FLOAT            524289
 %token DOUBLE           524290
@@ -84,7 +81,7 @@ program:
 	;
 
 functions: 	"func" IDENTIFIER "(" ")" "{" stmt "}"				{ $$ = CL::ParserNode::construct_root($1, {$2, CL::ParserNode::construct_node(auto_token), $6}); }
-		| "func" IDENTIFIER "(" ")" "->" INT_T "{" stmt "}"	{ $$ = CL::ParserNode::construct_root($1, {$2, $6, $8}); }
+		| "func" IDENTIFIER "(" ")" "->" TYPE "{" stmt "}"	{ $$ = CL::ParserNode::construct_root($1, {$2, $6, $8}); }
 		| %empty
 		;
 
@@ -124,6 +121,6 @@ int yylex(void) {
 
 
 auto main() -> int {
-    cerberus_lexer.scan("func test() -> float { 10 + 20; 20; 20 + 30 * (2 + 8); 30; }", "stdio");
+    cerberus_lexer.scan("func test() -> int { 10 + 20; 20; 20 + 30 * (2 + 8); 30; }", "stdio");
     yyparse();
 }

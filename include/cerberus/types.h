@@ -217,20 +217,36 @@ namespace cerb {
     {
         u8 empty;
 
-        EmptyType()  = delete;
-        ~EmptyType() = delete;
+        constexpr EmptyType()  = default;
+        constexpr ~EmptyType() = default;
 
-        EmptyType(const EmptyType &) = delete;
-        EmptyType(EmptyType &&)      = delete;
+        constexpr EmptyType(const EmptyType &) = default;
+        constexpr EmptyType(EmptyType &&) noexcept = default;
 
-        auto operator=(EmptyType &&) -> EmptyType & = delete;
-        auto operator=(const EmptyType &) -> EmptyType & = delete;
+        constexpr auto operator()() const -> EmptyType {
+            return {};
+        }
+
+        constexpr auto operator=(EmptyType &&) noexcept -> EmptyType & = default;
+        constexpr auto operator=(const EmptyType &) noexcept -> EmptyType & = default;
     };
+
+    constexpr static EmptyType empty{};
 
     template<typename T>
     CERBLIB_DECL auto getLimits(const T & /*unused*/) -> std::numeric_limits<T>
     {
         return std::numeric_limits<T>();
+    }
+
+    template<typename F, typename... Ts>
+    constexpr auto call(F &&function, Ts&&... args) -> decltype(auto)
+    {
+        if constexpr (std::is_same_v<F, EmptyType>) {
+            return;
+        } else {
+            return function(args...);
+        }
     }
 
 #    if defined(__x86_64__)

@@ -6,10 +6,8 @@
 
 namespace cerb {
 
-    template<typename T>
-    CERBLIB_DECL auto isPowerOf2(T value) -> bool
+    CERBLIB_DECL auto isPowerOf2(std::integral auto value) -> bool
     {
-        static_assert(std::is_integral_v<T>);
         return (value != 0) && (value & (value - 1)) == 0;
     }
 
@@ -28,7 +26,7 @@ namespace cerb {
         std::array<u64, sizeof(T) / sizeof(u64)> mask_u64;
 
     public:
-        CERBLIB_DECL decltype(auto) getAsIntegral() noexcept
+        CERBLIB_DECL auto getAsIntegral() noexcept -> decltype(auto)
         {
             static_assert(sizeof(T) < sizeof(u64) && isPowerOf2(sizeof(T)));
 

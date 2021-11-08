@@ -69,7 +69,7 @@ SWITCH:             |"switch"
 FUNC:               |"func"
 VAR:                |"var"
 
-[TYPE]
+[TYPE] #GENERALIZE
 INT_T:              |"int"
 CHAR_T:             |"char"
 FLOAT_T:            |"float"

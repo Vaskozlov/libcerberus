@@ -113,10 +113,6 @@ extern int yydebug;
     YYerror = 256,                 /* error  */
     YYUNDEF = 524294,              /* "invalid token"  */
     UNDEFINED = 16,                /* UNDEFINED  */
-    SELF = 18,                     /* SELF  */
-    EXPR = 19,                     /* EXPR  */
-    TERM = 20,                     /* TERM  */
-    EMPTY = 21,                    /* EMPTY  */
     ADD = 524295,                  /* "+"  */
     SUB = 524296,                  /* "-"  */
     MUL = 524297,                  /* "*"  */
@@ -172,6 +168,7 @@ extern int yydebug;
     FLOAT_T = 524347,              /* "float"  */
     DOUBLE_T = 524348,             /* "double"  */
     BUILTIN_AUTO_T = 524349,       /* "__builtin_auto"  */
+    TYPE = 262144,                 /* TYPE  */
     INTEGER = 524288,              /* INTEGER  */
     FLOAT = 524289,                /* FLOAT  */
     DOUBLE = 524290,               /* DOUBLE  */
@@ -205,76 +202,73 @@ enum yysymbol_kind_t
   YYSYMBOL_YYerror = 1,                    /* error  */
   YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
   YYSYMBOL_UNDEFINED = 3,                  /* UNDEFINED  */
-  YYSYMBOL_SELF = 4,                       /* SELF  */
-  YYSYMBOL_EXPR = 5,                       /* EXPR  */
-  YYSYMBOL_TERM = 6,                       /* TERM  */
-  YYSYMBOL_EMPTY = 7,                      /* EMPTY  */
-  YYSYMBOL_ADD = 8,                        /* "+"  */
-  YYSYMBOL_SUB = 9,                        /* "-"  */
-  YYSYMBOL_MUL = 10,                       /* "*"  */
-  YYSYMBOL_DIV = 11,                       /* "/"  */
-  YYSYMBOL_MOD = 12,                       /* "%"  */
-  YYSYMBOL_ASSIGN = 13,                    /* "="  */
-  YYSYMBOL_ADD_EQ = 14,                    /* "+="  */
-  YYSYMBOL_SUB_EQ = 15,                    /* "-="  */
-  YYSYMBOL_MUL_EQ = 16,                    /* "*="  */
-  YYSYMBOL_DIV_EQ = 17,                    /* "/="  */
-  YYSYMBOL_MOD_EQ = 18,                    /* "%="  */
-  YYSYMBOL_OR = 19,                        /* "|"  */
-  YYSYMBOL_AND = 20,                       /* "&"  */
-  YYSYMBOL_XOR = 21,                       /* "^"  */
-  YYSYMBOL_NOT = 22,                       /* "~"  */
-  YYSYMBOL_OR_EQ = 23,                     /* "|="  */
-  YYSYMBOL_AND_EQ = 24,                    /* "&="  */
-  YYSYMBOL_XOR_EQ = 25,                    /* "^="  */
-  YYSYMBOL_LEFT_SHIFT = 26,                /* "<<"  */
-  YYSYMBOL_RIGHT_SHIFT = 27,               /* ">>"  */
-  YYSYMBOL_LEFT_SHIFT_EQ = 28,             /* "<<="  */
-  YYSYMBOL_RIGHT_SHIFT_EQ = 29,            /* ">>="  */
-  YYSYMBOL_FOR = 30,                       /* "for"  */
-  YYSYMBOL_WHILE = 31,                     /* "while"  */
-  YYSYMBOL_RETURN = 32,                    /* "return"  */
-  YYSYMBOL_CASE = 33,                      /* "case"  */
-  YYSYMBOL_SWITCH = 34,                    /* "switch"  */
-  YYSYMBOL_FUNC = 35,                      /* "func"  */
-  YYSYMBOL_VAR = 36,                       /* "var"  */
-  YYSYMBOL_LESS = 37,                      /* "<"  */
-  YYSYMBOL_GREATER = 38,                   /* ">"  */
-  YYSYMBOL_LOGICAL_NOT = 39,               /* "!"  */
-  YYSYMBOL_LESS_EQ = 40,                   /* "<="  */
-  YYSYMBOL_GREATER_EQ = 41,                /* ">="  */
-  YYSYMBOL_LOGICAL_OR = 42,                /* "||"  */
-  YYSYMBOL_LOGICAL_AND = 43,               /* "&&"  */
-  YYSYMBOL_LOGICAL_EQUAL = 44,             /* "=="  */
-  YYSYMBOL_LOGICAL_NOT_EQUAL = 45,         /* "!="  */
-  YYSYMBOL_CURLY_OPENING = 46,             /* "{"  */
-  YYSYMBOL_CURLY_CLOSING = 47,             /* "}"  */
-  YYSYMBOL_LEFT_PARENTHESIS = 48,          /* "("  */
-  YYSYMBOL_RIGHT_PARENTHESIS = 49,         /* ")"  */
-  YYSYMBOL_ANGLE_OPENING = 50,             /* "["  */
-  YYSYMBOL_ANGLE_CLOSING = 51,             /* "]"  */
-  YYSYMBOL_COMMA = 52,                     /* ","  */
-  YYSYMBOL_SEPARATOR = 53,                 /* ";"  */
-  YYSYMBOL_PREPROCESSOR = 54,              /* "#"  */
-  YYSYMBOL_QUESTION_MARK = 55,             /* "?"  */
-  YYSYMBOL_ARROW = 56,                     /* "->"  */
-  YYSYMBOL_STMT = 57,                      /* "____parser_statement"  */
-  YYSYMBOL_INT_T = 58,                     /* "int"  */
-  YYSYMBOL_CHAR_T = 59,                    /* "char"  */
-  YYSYMBOL_FLOAT_T = 60,                   /* "float"  */
-  YYSYMBOL_DOUBLE_T = 61,                  /* "double"  */
-  YYSYMBOL_BUILTIN_AUTO_T = 62,            /* "__builtin_auto"  */
-  YYSYMBOL_INTEGER = 63,                   /* INTEGER  */
-  YYSYMBOL_FLOAT = 64,                     /* FLOAT  */
-  YYSYMBOL_DOUBLE = 65,                    /* DOUBLE  */
-  YYSYMBOL_IDENTIFIER = 66,                /* IDENTIFIER  */
-  YYSYMBOL_CHAR = 67,                      /* CHAR  */
-  YYSYMBOL_STRING = 68,                    /* STRING  */
-  YYSYMBOL_YYACCEPT = 69,                  /* $accept  */
-  YYSYMBOL_program = 70,                   /* program  */
-  YYSYMBOL_functions = 71,                 /* functions  */
-  YYSYMBOL_expr = 72,                      /* expr  */
-  YYSYMBOL_stmt = 73                       /* stmt  */
+  YYSYMBOL_ADD = 4,                        /* "+"  */
+  YYSYMBOL_SUB = 5,                        /* "-"  */
+  YYSYMBOL_MUL = 6,                        /* "*"  */
+  YYSYMBOL_DIV = 7,                        /* "/"  */
+  YYSYMBOL_MOD = 8,                        /* "%"  */
+  YYSYMBOL_ASSIGN = 9,                     /* "="  */
+  YYSYMBOL_ADD_EQ = 10,                    /* "+="  */
+  YYSYMBOL_SUB_EQ = 11,                    /* "-="  */
+  YYSYMBOL_MUL_EQ = 12,                    /* "*="  */
+  YYSYMBOL_DIV_EQ = 13,                    /* "/="  */
+  YYSYMBOL_MOD_EQ = 14,                    /* "%="  */
+  YYSYMBOL_OR = 15,                        /* "|"  */
+  YYSYMBOL_AND = 16,                       /* "&"  */
+  YYSYMBOL_XOR = 17,                       /* "^"  */
+  YYSYMBOL_NOT = 18,                       /* "~"  */
+  YYSYMBOL_OR_EQ = 19,                     /* "|="  */
+  YYSYMBOL_AND_EQ = 20,                    /* "&="  */
+  YYSYMBOL_XOR_EQ = 21,                    /* "^="  */
+  YYSYMBOL_LEFT_SHIFT = 22,                /* "<<"  */
+  YYSYMBOL_RIGHT_SHIFT = 23,               /* ">>"  */
+  YYSYMBOL_LEFT_SHIFT_EQ = 24,             /* "<<="  */
+  YYSYMBOL_RIGHT_SHIFT_EQ = 25,            /* ">>="  */
+  YYSYMBOL_FOR = 26,                       /* "for"  */
+  YYSYMBOL_WHILE = 27,                     /* "while"  */
+  YYSYMBOL_RETURN = 28,                    /* "return"  */
+  YYSYMBOL_CASE = 29,                      /* "case"  */
+  YYSYMBOL_SWITCH = 30,                    /* "switch"  */
+  YYSYMBOL_FUNC = 31,                      /* "func"  */
+  YYSYMBOL_VAR = 32,                       /* "var"  */
+  YYSYMBOL_LESS = 33,                      /* "<"  */
+  YYSYMBOL_GREATER = 34,                   /* ">"  */
+  YYSYMBOL_LOGICAL_NOT = 35,               /* "!"  */
+  YYSYMBOL_LESS_EQ = 36,                   /* "<="  */
+  YYSYMBOL_GREATER_EQ = 37,                /* ">="  */
+  YYSYMBOL_LOGICAL_OR = 38,                /* "||"  */
+  YYSYMBOL_LOGICAL_AND = 39,               /* "&&"  */
+  YYSYMBOL_LOGICAL_EQUAL = 40,             /* "=="  */
+  YYSYMBOL_LOGICAL_NOT_EQUAL = 41,         /* "!="  */
+  YYSYMBOL_CURLY_OPENING = 42,             /* "{"  */
+  YYSYMBOL_CURLY_CLOSING = 43,             /* "}"  */
+  YYSYMBOL_LEFT_PARENTHESIS = 44,          /* "("  */
+  YYSYMBOL_RIGHT_PARENTHESIS = 45,         /* ")"  */
+  YYSYMBOL_ANGLE_OPENING = 46,             /* "["  */
+  YYSYMBOL_ANGLE_CLOSING = 47,             /* "]"  */
+  YYSYMBOL_COMMA = 48,                     /* ","  */
+  YYSYMBOL_SEPARATOR = 49,                 /* ";"  */
+  YYSYMBOL_PREPROCESSOR = 50,              /* "#"  */
+  YYSYMBOL_QUESTION_MARK = 51,             /* "?"  */
+  YYSYMBOL_ARROW = 52,                     /* "->"  */
+  YYSYMBOL_STMT = 53,                      /* "____parser_statement"  */
+  YYSYMBOL_INT_T = 54,                     /* "int"  */
+  YYSYMBOL_CHAR_T = 55,                    /* "char"  */
+  YYSYMBOL_FLOAT_T = 56,                   /* "float"  */
+  YYSYMBOL_DOUBLE_T = 57,                  /* "double"  */
+  YYSYMBOL_BUILTIN_AUTO_T = 58,            /* "__builtin_auto"  */
+  YYSYMBOL_TYPE = 59,                      /* TYPE  */
+  YYSYMBOL_INTEGER = 60,                   /* INTEGER  */
+  YYSYMBOL_FLOAT = 61,                     /* FLOAT  */
+  YYSYMBOL_DOUBLE = 62,                    /* DOUBLE  */
+  YYSYMBOL_IDENTIFIER = 63,                /* IDENTIFIER  */
+  YYSYMBOL_CHAR = 64,                      /* CHAR  */
+  YYSYMBOL_STRING = 65,                    /* STRING  */
+  YYSYMBOL_YYACCEPT = 66,                  /* $accept  */
+  YYSYMBOL_program = 67,                   /* program  */
+  YYSYMBOL_functions = 68,                 /* functions  */
+  YYSYMBOL_expr = 69,                      /* expr  */
+  YYSYMBOL_stmt = 70                       /* stmt  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -605,7 +599,7 @@ union yyalloc
 #define YYLAST   45
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  69
+#define YYNTOKENS  66
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  5
 /* YYNRULES -- Number of rules.  */
@@ -629,8 +623,8 @@ union yyalloc
 static const yytype_int8 yytranslate[] =
 {
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     3,     2,     4,     5,
-       6,     7,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     3,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -26842,6 +26836,7 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,    59,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -53055,22 +53050,21 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,    63,    64,
-      65,    66,    67,    68,     2,     8,     9,    10,    11,    12,
-      13,    14,    15,    16,    17,    18,    19,    20,    21,    22,
-      23,    24,    25,    26,    27,    28,    29,    30,    31,    32,
-      33,    34,    35,    36,    37,    38,    39,    40,    41,    42,
-      43,    44,    45,    46,    47,    48,    49,    50,    51,    52,
-      53,    54,    55,    56,    57,    58,    59,    60,    61,    62
+       2,     2,     2,     2,     2,     2,     2,     2,    60,    61,
+      62,    63,    64,    65,     2,     4,     5,     6,     7,     8,
+       9,    10,    11,    12,    13,    14,    15,    16,    17,    18,
+      19,    20,    21,    22,    23,    24,    25,    26,    27,    28,
+      29,    30,    31,    32,    33,    34,    35,    36,    37,    38,
+      39,    40,    41,    42,    43,    44,    45,    46,    47,    48,
+      49,    50,    51,    52,    53,    54,    55,    56,    57,    58
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    82,    82,    83,    86,    87,    88,    92,    93,    94,
-      95,    96,    97,    98,    99,   100,   104,   105
+       0,    79,    79,    80,    83,    84,    85,    89,    90,    91,
+      92,    93,    94,    95,    96,    97,   101,   102
 };
 #endif
 
@@ -53086,16 +53080,16 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "EoF", "error", "\"invalid token\"", "UNDEFINED", "SELF", "EXPR",
-  "TERM", "EMPTY", "\"+\"", "\"-\"", "\"*\"", "\"/\"", "\"%\"", "\"=\"",
-  "\"+=\"", "\"-=\"", "\"*=\"", "\"/=\"", "\"%=\"", "\"|\"", "\"&\"",
-  "\"^\"", "\"~\"", "\"|=\"", "\"&=\"", "\"^=\"", "\"<<\"", "\">>\"",
-  "\"<<=\"", "\">>=\"", "\"for\"", "\"while\"", "\"return\"", "\"case\"",
-  "\"switch\"", "\"func\"", "\"var\"", "\"<\"", "\">\"", "\"!\"", "\"<=\"",
-  "\">=\"", "\"||\"", "\"&&\"", "\"==\"", "\"!=\"", "\"{\"", "\"}\"",
-  "\"(\"", "\")\"", "\"[\"", "\"]\"", "\",\"", "\";\"", "\"#\"", "\"?\"",
-  "\"->\"", "\"____parser_statement\"", "\"int\"", "\"char\"", "\"float\"",
-  "\"double\"", "\"__builtin_auto\"", "INTEGER", "FLOAT", "DOUBLE",
+  "EoF", "error", "\"invalid token\"", "UNDEFINED", "\"+\"", "\"-\"",
+  "\"*\"", "\"/\"", "\"%\"", "\"=\"", "\"+=\"", "\"-=\"", "\"*=\"",
+  "\"/=\"", "\"%=\"", "\"|\"", "\"&\"", "\"^\"", "\"~\"", "\"|=\"",
+  "\"&=\"", "\"^=\"", "\"<<\"", "\">>\"", "\"<<=\"", "\">>=\"", "\"for\"",
+  "\"while\"", "\"return\"", "\"case\"", "\"switch\"", "\"func\"",
+  "\"var\"", "\"<\"", "\">\"", "\"!\"", "\"<=\"", "\">=\"", "\"||\"",
+  "\"&&\"", "\"==\"", "\"!=\"", "\"{\"", "\"}\"", "\"(\"", "\")\"",
+  "\"[\"", "\"]\"", "\",\"", "\";\"", "\"#\"", "\"?\"", "\"->\"",
+  "\"____parser_statement\"", "\"int\"", "\"char\"", "\"float\"",
+  "\"double\"", "\"__builtin_auto\"", "TYPE", "INTEGER", "FLOAT", "DOUBLE",
   "IDENTIFIER", "CHAR", "STRING", "$accept", "program", "functions",
   "expr", "stmt", YY_NULLPTR
 };
@@ -53107,7 +53101,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-59)
+#define YYPACT_NINF (-56)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -53121,10 +53115,10 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -59,     4,   -59,   -58,   -59,   -38,   -35,   -39,   -59,   -45,
-     -42,   -31,   -59,   -30,   -59,   -59,   -59,   -59,   -59,   -59,
-      -8,   -59,    -7,   -30,   -30,   -59,   -36,   -59,     6,   -59,
-     -59
+     -56,     4,   -56,   -55,   -56,   -34,   -31,   -33,   -56,   -46,
+     -38,   -27,   -56,   -24,   -56,   -56,   -56,   -56,   -56,   -56,
+      -4,   -56,    -3,   -24,   -24,   -56,   -32,   -56,    10,   -56,
+     -56
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -53141,7 +53135,7 @@ static const yytype_int8 yydefact[] =
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -59,   -59,   -59,    -4,    19
+     -56,   -56,   -56,    -6,     0
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
@@ -53155,37 +53149,37 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      23,    23,    24,    24,     2,    12,    13,     8,     5,    22,
-       6,    30,    13,    11,     7,    21,    24,     9,    13,    28,
-      29,    14,    15,    16,    17,    18,    19,    14,    15,    16,
-      17,    18,    19,    14,    15,    16,    17,    18,    19,     3,
-      26,     0,    27,     0,     0,    25
+      23,    23,    24,    24,     2,    12,    13,    22,     5,     8,
+       6,    30,    13,    11,     7,    21,    24,    28,    29,     9,
+      13,    26,    14,    15,    16,    17,    18,    19,    14,    15,
+      16,    17,    18,    19,     0,     3,    14,    15,    16,    17,
+      18,    19,    27,     0,     0,    25
 };
 
 static const yytype_int8 yycheck[] =
 {
-       8,     8,    10,    10,     0,    47,    48,    46,    66,    13,
-      48,    47,    48,    58,    49,    46,    10,    56,    48,    23,
-      24,    63,    64,    65,    66,    67,    68,    63,    64,    65,
-      66,    67,    68,    63,    64,    65,    66,    67,    68,    35,
-      21,    -1,    49,    -1,    -1,    53
+       4,     4,     6,     6,     0,    43,    44,    13,    63,    42,
+      44,    43,    44,    59,    45,    42,     6,    23,    24,    52,
+      44,    21,    60,    61,    62,    63,    64,    65,    60,    61,
+      62,    63,    64,    65,    -1,    31,    60,    61,    62,    63,
+      64,    65,    45,    -1,    -1,    49
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    70,     0,    35,    71,    66,    48,    49,    46,    56,
-      73,    58,    47,    48,    63,    64,    65,    66,    67,    68,
-      72,    46,    72,     8,    10,    53,    73,    49,    72,    72,
-      47
+       0,    67,     0,    31,    68,    63,    44,    45,    42,    52,
+      70,    59,    43,    44,    60,    61,    62,    63,    64,    65,
+      69,    42,    69,     4,     6,    49,    70,    45,    69,    69,
+      43
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    69,    70,    70,    71,    71,    71,    72,    72,    72,
-      72,    72,    72,    72,    72,    72,    73,    73
+       0,    66,    67,    67,    68,    68,    68,    69,    69,    69,
+      69,    69,    69,    69,    69,    69,    70,    70
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -53656,91 +53650,91 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: program functions  */
-#line 82 "Cerberus.yy"
+#line 79 "Cerberus.yy"
                                                 { CL::ParserNode::print(yyvsp[0]); std::cout << "Parsing finished" << std::endl; }
-#line 53662 "Cerberus.cpp"
+#line 53656 "Cerberus.cpp"
     break;
 
   case 4: /* functions: "func" IDENTIFIER "(" ")" "{" stmt "}"  */
-#line 86 "Cerberus.yy"
+#line 83 "Cerberus.yy"
                                                                                 { yyval = CL::ParserNode::construct_root(yyvsp[-6], {yyvsp[-5], CL::ParserNode::construct_node(auto_token), yyvsp[-1]}); }
+#line 53662 "Cerberus.cpp"
+    break;
+
+  case 5: /* functions: "func" IDENTIFIER "(" ")" "->" TYPE "{" stmt "}"  */
+#line 84 "Cerberus.yy"
+                                                                        { yyval = CL::ParserNode::construct_root(yyvsp[-8], {yyvsp[-7], yyvsp[-3], yyvsp[-1]}); }
 #line 53668 "Cerberus.cpp"
     break;
 
-  case 5: /* functions: "func" IDENTIFIER "(" ")" "->" "int" "{" stmt "}"  */
-#line 87 "Cerberus.yy"
-                                                                        { yyval = CL::ParserNode::construct_root(yyvsp[-8], {yyvsp[-7], yyvsp[-3], yyvsp[-1]}); }
+  case 7: /* expr: INTEGER  */
+#line 89 "Cerberus.yy"
+                                                { yyval = yyvsp[0]; }
 #line 53674 "Cerberus.cpp"
     break;
 
-  case 7: /* expr: INTEGER  */
-#line 92 "Cerberus.yy"
+  case 8: /* expr: FLOAT  */
+#line 90 "Cerberus.yy"
                                                 { yyval = yyvsp[0]; }
 #line 53680 "Cerberus.cpp"
     break;
 
-  case 8: /* expr: FLOAT  */
-#line 93 "Cerberus.yy"
+  case 9: /* expr: DOUBLE  */
+#line 91 "Cerberus.yy"
                                                 { yyval = yyvsp[0]; }
 #line 53686 "Cerberus.cpp"
     break;
 
-  case 9: /* expr: DOUBLE  */
-#line 94 "Cerberus.yy"
+  case 10: /* expr: STRING  */
+#line 92 "Cerberus.yy"
                                                 { yyval = yyvsp[0]; }
 #line 53692 "Cerberus.cpp"
     break;
 
-  case 10: /* expr: STRING  */
-#line 95 "Cerberus.yy"
+  case 11: /* expr: CHAR  */
+#line 93 "Cerberus.yy"
                                                 { yyval = yyvsp[0]; }
 #line 53698 "Cerberus.cpp"
     break;
 
-  case 11: /* expr: CHAR  */
-#line 96 "Cerberus.yy"
+  case 12: /* expr: IDENTIFIER  */
+#line 94 "Cerberus.yy"
                                                 { yyval = yyvsp[0]; }
 #line 53704 "Cerberus.cpp"
     break;
 
-  case 12: /* expr: IDENTIFIER  */
-#line 97 "Cerberus.yy"
-                                                { yyval = yyvsp[0]; }
+  case 13: /* expr: expr "+" expr  */
+#line 95 "Cerberus.yy"
+                                                { yyval = CL::ParserNode::construct_root(yyvsp[-1], {yyvsp[-2], yyvsp[0]});  }
 #line 53710 "Cerberus.cpp"
     break;
 
-  case 13: /* expr: expr "+" expr  */
-#line 98 "Cerberus.yy"
+  case 14: /* expr: expr "*" expr  */
+#line 96 "Cerberus.yy"
                                                 { yyval = CL::ParserNode::construct_root(yyvsp[-1], {yyvsp[-2], yyvsp[0]});  }
 #line 53716 "Cerberus.cpp"
     break;
 
-  case 14: /* expr: expr "*" expr  */
-#line 99 "Cerberus.yy"
-                                                { yyval = CL::ParserNode::construct_root(yyvsp[-1], {yyvsp[-2], yyvsp[0]});  }
+  case 15: /* expr: "(" expr ")"  */
+#line 97 "Cerberus.yy"
+                                                { yyval = yyvsp[-1]; }
 #line 53722 "Cerberus.cpp"
     break;
 
-  case 15: /* expr: "(" expr ")"  */
-#line 100 "Cerberus.yy"
-                                                { yyval = yyvsp[-1]; }
+  case 16: /* stmt: stmt expr ";"  */
+#line 101 "Cerberus.yy"
+                        { if (yyvsp[-2] == nullptr) {yyval = yyvsp[-1]; } else { yyval = CL::ParserNode::construct_root(yyvsp[-2], {yyvsp[-1]}); yyval = yyvsp[-2]; } }
 #line 53728 "Cerberus.cpp"
     break;
 
-  case 16: /* stmt: stmt expr ";"  */
-#line 104 "Cerberus.yy"
-                        { if (yyvsp[-2] == nullptr) {yyval = yyvsp[-1]; } else { yyval = CL::ParserNode::construct_root(yyvsp[-2], {yyvsp[-1]}); yyval = yyvsp[-2]; } }
+  case 17: /* stmt: %empty  */
+#line 102 "Cerberus.yy"
+                        { yyval = CL::ParserNode::construct_node(statement_token); }
 #line 53734 "Cerberus.cpp"
     break;
 
-  case 17: /* stmt: %empty  */
-#line 105 "Cerberus.yy"
-                        { yyval = CL::ParserNode::construct_node(statement_token); }
-#line 53740 "Cerberus.cpp"
-    break;
 
-
-#line 53744 "Cerberus.cpp"
+#line 53738 "Cerberus.cpp"
 
       default: break;
     }
@@ -53933,7 +53927,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 107 "Cerberus.yy"
+#line 104 "Cerberus.yy"
 
 
 #include "Cerberus_lexerYACC.hpp"
@@ -53954,6 +53948,6 @@ int yylex(void) {
 
 
 auto main() -> int {
-    cerberus_lexer.scan("func test() -> float { 10 + 20; 20; 20 + 30 * (2 + 8); 30; }", "stdio");
+    cerberus_lexer.scan("func test() -> int { 10 + 20; 20; 20 + 30 * (2 + 8); 30; }", "stdio");
     yyparse();
 }

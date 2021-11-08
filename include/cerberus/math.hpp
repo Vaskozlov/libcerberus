@@ -88,7 +88,7 @@ namespace cerb {
      * @return T(2)^power
      */
     template<typename T>
-    CERBLIB_DECL auto pow2(u32 power) -> T
+    CERBLIB_DECL auto pow2(std::unsigned_integral auto power) -> T
     {
         static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>);
 

@@ -30,6 +30,9 @@ COLON:          ':'
 WORD:           '|'
 EoR:            "%%"
 
+[DIRECTIVE]
+GENERALIZED:    |"#GENERALIZE"
+
 %%
 
 %%

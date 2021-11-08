@@ -22,10 +22,6 @@ enum struct CalculatorItem : size_t
 {
     UNDEFINED        = 16UL,
     EoF              = 0UL,
-    SELF             = 18UL,
-    EXPR             = 19UL,
-    TERM             = 20UL,
-    EMPTY            = 21UL,
     SIN              = 4096UL,
     ADD              = 8192UL,
     SUB              = 8193UL,
@@ -38,10 +34,6 @@ enum struct CalculatorItem : size_t
 /*
 %token UNDEFINED        16
 %token EoF              0
-%token SELF             18
-%token EXPR             19
-%token TERM             20
-%token EMPTY            21
 %token SIN              "sin"
 %token ADD              "+"
 %token SUB              "-"
@@ -51,23 +43,19 @@ enum struct CalculatorItem : size_t
 %token INT              32768
 
 
-constexpr cerb::gl::Map<CalculatorItem, yytokentype, 13> CalculatorItemsNamesConverter{
-    true, {
-    {CalculatorItem::UNDEFINED           , yytokentype::UNDEFINED},
-    {CalculatorItem::EoF                 , yytokentype::EoF},
-    {CalculatorItem::SELF                , yytokentype::SELF},
-    {CalculatorItem::EXPR                , yytokentype::EXPR},
-    {CalculatorItem::TERM                , yytokentype::TERM},
-    {CalculatorItem::EMPTY               , yytokentype::EMPTY},
-    {CalculatorItem::SIN                 , yytokentype::SIN},
-    {CalculatorItem::ADD                 , yytokentype::ADD},
-    {CalculatorItem::SUB                 , yytokentype::SUB},
-    {CalculatorItem::MUL                 , yytokentype::MUL},
-    {CalculatorItem::LEFT_PARENTHESIS    , yytokentype::LEFT_PARENTHESIS},
-    {CalculatorItem::RIGHT_PARENTHESIS   , yytokentype::RIGHT_PARENTHESIS},
-    {CalculatorItem::INT                 , yytokentype::INT},
+cerb::Map<CalculatorItem, yytokentype> CalculatorItemsNamesConverter(
+    {
+        {CalculatorItem::UNDEFINED           , yytokentype::UNDEFINED},
+        {CalculatorItem::EoF                 , yytokentype::EoF},
+        {CalculatorItem::SIN                 , yytokentype::SIN},
+        {CalculatorItem::ADD                 , yytokentype::ADD},
+        {CalculatorItem::SUB                 , yytokentype::SUB},
+        {CalculatorItem::MUL                 , yytokentype::MUL},
+        {CalculatorItem::LEFT_PARENTHESIS    , yytokentype::LEFT_PARENTHESIS},
+        {CalculatorItem::RIGHT_PARENTHESIS   , yytokentype::RIGHT_PARENTHESIS},
+        {CalculatorItem::INT                 , yytokentype::INT},
     }
-};
+);
 */
 
 inline cerb::Map<CalculatorBlock, cerb::string_view> CalculatorBlockNames(
@@ -84,10 +72,6 @@ inline cerb::Map<CalculatorItem, cerb::string_view> CalculatorItemItemsNames(
     {
         { CalculatorItem::UNDEFINED, "UNDEFINED"_sv },
         { CalculatorItem::EoF, "EoF"_sv },
-        { CalculatorItem::SELF, "SELF"_sv },
-        { CalculatorItem::EXPR, "EXPR"_sv },
-        { CalculatorItem::TERM, "TERM"_sv },
-        { CalculatorItem::EMPTY, "EMPTY"_sv },
         { CalculatorItem::SIN, "SIN"_sv },
         { CalculatorItem::ADD, "ADD"_sv },
         { CalculatorItem::SUB, "SUB"_sv },
