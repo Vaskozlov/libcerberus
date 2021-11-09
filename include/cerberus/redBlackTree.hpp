@@ -562,6 +562,9 @@ namespace cerb::PRIVATE {
                 }
                 node = node->left;
             }
+#if defined(__GNUC__)
+            return nullptr;
+#endif /* __GNUC__ */
         }
 
         CERBLIB_DECL static auto rightNode(NodePtr node) -> NodePtr
@@ -573,6 +576,9 @@ namespace cerb::PRIVATE {
                 }
                 node = node->right;
             }
+#if defined(__GNUC__)
+            return nullptr;
+#endif /* __GNUC__ */
         }
 
         CERBLIB_DECL static auto RBTreeReplace(NodePtr node) -> NodePtr

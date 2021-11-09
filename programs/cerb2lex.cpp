@@ -11,6 +11,13 @@ using namespace cerb::literals;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
+enum Lex4LexMode : u32
+{
+    NORMAL,
+    GENERATE_YACC,
+    UPDATE_YACC,
+};
+
 Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
 {
     using Lex4Lex<>::parent;
@@ -171,7 +178,8 @@ Lex4LexTemplate struct Lex4LexImpl : Lex4Lex<>
     };
 
 public:
-    bool generate_header_for_yacc{ false };
+    Lex4LexMode mode{ NORMAL };
+    std::string yacc_file{};
     std::string filename{};
 
 private:
@@ -373,8 +381,8 @@ private:
     template<typename F1, typename F2, typename F3, typename F4>
     auto for_each_rule(
         F1 &&function4reserved, F2 &&function4rules,
-        F3 &&reserved_completion = std::move(cerb::empty()),
-        F4 &&iteration_function  = std::move(cerb::empty())) -> void
+        F3 &&reserved_completion = cerb::empty(),
+        F4 &&iteration_function  = cerb::empty()) -> void
     {
         CERBLIB_UNROLL_N(2)
         for (auto &elem : m_reserved_types) {
@@ -504,7 +512,13 @@ private:
     auto generate_comment_for_yacc(size_t rules_count) -> void
     {
         generated_string += "/*\n";
-        std::string yacc_info = fmt::format(
+        std::string tokens_string{};
+        std::string yacc_info;
+
+        yacc_info.reserve(1024);
+        tokens_string.reserve(1024);
+
+        yacc_info = fmt::format(
             "cerb::Map<{0}, yytokentype> "
             "{1}ItemsNamesConverter(\n    {{\n",
             m_name_of_items,
@@ -512,7 +526,7 @@ private:
 
         for_each_rule(
             [&](const auto &elem) {
-                generated_string +=
+                tokens_string +=
                     fmt::format("%token {:<16} {}\n", elem.first, elem.second);
                 yacc_info += fmt::format(
                     "        {{{0}::{1:<20}, yytokentype::{1}}},\n", m_name_of_items,
@@ -520,14 +534,14 @@ private:
             },
             [&](auto rule, const auto &block, const auto &elem) {
                 if (rule == 1) {
-                    generated_string +=
+                    tokens_string +=
                         fmt::format("%token {:<16} {}\n", elem.name(), elem.id());
                 } else {
                     if (elem.c_name() != "STRING" && elem.c_name() != "CHAR") {
-                        generated_string += fmt::format(
+                        tokens_string += fmt::format(
                             "%token {:<16} \"{}\"\n", elem.name(), elem.rule());
                     } else {
-                        generated_string += fmt::format(
+                        tokens_string += fmt::format(
                             "%token {:<16} {}\n", elem.name(), elem.id());
                     }
                 }
@@ -539,17 +553,45 @@ private:
                         elem.name()));
             },
             cerb::empty(), cerb::empty());
-
+        generated_string += tokens_string;
         yacc_info += "    }\n);\n";
         generated_string += "\n\n" + yacc_info;
         generated_string += "*/\n\n";
 
-        if (generate_header_for_yacc) {
+        if ((static_cast<u32>(mode) & static_cast<u32>(GENERATE_YACC)) ==
+            static_cast<u32>(GENERATE_YACC)) {
             filename.erase(filename.find_last_of('.'));
             filename += "YACC.hpp";
             std::ofstream out(filename);
             out << yacc_info;
             out.close();
+        }
+
+        if ((static_cast<u32>(mode) & static_cast<u32>(UPDATE_YACC)) ==
+            static_cast<u32>(UPDATE_YACC)) {
+            tokens_string.pop_back();
+
+            std::ifstream t(yacc_file);
+            std::stringstream buffer{};
+            buffer << t.rdbuf();
+            t.close();
+            std::string yacc_data = buffer.str();
+            auto first_token = yacc_data.find("%token"s);
+            auto last_token  = yacc_data.rfind("%token"s);
+
+            if (first_token == std::numeric_limits<size_t>::max()) {
+                fmt::print("Error! Unable to find %token in {}\n!", yacc_file);
+                exit(1);
+            }
+
+            last_token = yacc_data.find_first_of('\n', last_token);
+            yacc_data.replace(
+                first_token, last_token - first_token, tokens_string, 0);
+
+            std::ofstream out(yacc_file);
+            out << yacc_data;
+            out.close();
+            return;
         }
     }
 
@@ -719,6 +761,11 @@ struct {0}: public CERBERUS_LEX_PARENT_CLASS
         std::string rules_str{};
         std::string operators1{};
         std::string operators2{};
+
+        words_str.reserve(512);
+        rules_str.reserve(512);
+        operators1.reserve(512);
+        operators2.reserve(512);
 
         for (auto &elem : m_blocks) {
             CERBLIB_UNROLL_N(2)
@@ -890,9 +937,44 @@ public:
         generate_class_body(char_enum_name, string_enum_name);
     }
 
-    constexpr Lex4LexImpl() = default;
+    Lex4LexImpl()
+    : Lex4Lex::Lex4Lex()
+    {
+        generated_string.reserve(16384);
+    }
 };
 
+auto generate_file(Lex4LexImpl<> &lex, std::string &filename) -> void
+{
+    lex.filename = filename;
+    std::ifstream t(filename);
+    std::stringstream buffer{};
+    buffer << t.rdbuf();
+    t.close();
+
+    std::string data = buffer.str();
+    size_t offset    = data.find_first_of("%%") + 2;
+    lex.scan(data.c_str() + offset, filename.c_str());
+
+    std::string rest_class = data.substr(
+        static_cast<unsigned long>(lex.get_input().data() - data.c_str()));
+    std::string rest = rest_class.substr(rest_class.find_last_of("%%") + 2);
+
+    rest_class.erase(rest_class.find("%%"));
+    data.erase(offset - 2);
+
+    data.append(lex.get_result());
+    data.append(rest_class);
+    data.append("\n};\n");
+    data.append(rest);
+
+    filename.erase(filename.find_last_of('.'));
+    filename += ".hpp";
+
+    std::ofstream out(filename);
+    out << data;
+    out.close();
+}
 
 auto main(int argc, char *argv[]) -> int
 {
@@ -902,38 +984,35 @@ auto main(int argc, char *argv[]) -> int
 
         std::string filename = argv[i];
         if (filename == "-YACC") {
-            lex.generate_header_for_yacc = true;
-            filename                     = argv[++i];
+            lex.mode = GENERATE_YACC;
+            filename = argv[++i];
+            generate_file(lex, filename);
+        } else if (filename == "-UPDATE") {
+            lex.mode      = UPDATE_YACC;
+            lex.yacc_file = argv[++i];
+            filename      = argv[++i];
+            generate_file(lex, filename);
+        } else if (filename == "-UPDATE+") {
+            lex.mode = static_cast<Lex4LexMode>(
+                static_cast<u32>(UPDATE_YACC) | static_cast<u32>(GENERATE_YACC));
+            lex.yacc_file = argv[++i];
+            filename      = argv[++i];
+            generate_file(lex, filename);
+        } else if (filename == "-h" || filename == "--help") {
+            fmt::print(
+                R"(Welcome to cerb4lex generator!
+cerb4lex can generate rules for cerberus lexical analyzer and help you to integrate lexical analyzer to yacc.
+Available command:
+    1) -h, --help to get some help
+    2) -YACC generates header file with yacc tokens converter (cerberus tokens to yacc)
+    3) -UPDATE updates next file (yacc file) from second file (cerberus rule)
+        yacc file must contain at least one %token and tokens must be written together in order not to cause any damage to the file
+    4) -UPDATE+ UPDATE and YACC together
+    5) In normal mode cerb4lex generates header file from given rule
+)");
+        } else {
+            generate_file(lex, filename);
         }
-
-        lex.filename = filename;
-        std::ifstream t(filename);
-        std::stringstream buffer{};
-        buffer << t.rdbuf();
-        t.close();
-
-        std::string data = buffer.str();
-        size_t offset    = data.find_first_of("%%") + 2;
-        lex.scan(data.c_str() + offset, argv[i]);
-
-        std::string rest_class = data.substr(
-            static_cast<unsigned long>(lex.get_input().data() - data.c_str()));
-        std::string rest = rest_class.substr(rest_class.find_last_of("%%") + 2);
-
-        rest_class.erase(rest_class.find("%%"));
-        data.erase(offset - 2);
-
-        data.append(lex.get_result());
-        data.append(rest_class);
-        data.append("\n};\n");
-        data.append(rest);
-
-        filename.erase(filename.find_last_of('.'));
-        filename += ".hpp";
-
-        std::ofstream out(filename);
-        out << data;
-        out.close();
     }
 
     return 0;

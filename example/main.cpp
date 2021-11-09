@@ -52,7 +52,7 @@ consteval auto test() -> size_t
 
 auto deque_test() -> int
 {
-    test();
+    //test();
     auto begin = std::chrono::high_resolution_clock::now();
     {
         cerb::experimental::Deque<int> ideque{};
@@ -60,7 +60,7 @@ auto deque_test() -> int
         int i = 0;
 
         cerb::experimental::Benchmark(
-            [](const auto elapsed, const char *name) {
+            [](const auto elapsed, const char * /*name*/) {
                 fmt::print("pushing elapsed in {:e}\n", elapsed.count());
             },
             [&]() {
@@ -77,7 +77,7 @@ auto deque_test() -> int
         auto deque2  = deque;
 
         CERBLIB_UNROLL_N(2)
-        for (auto i : cerb::range(8)) {
+        for (auto _ : cerb::range(8)) {
             deque.pop_back();
             deque.pop_front();
         }
@@ -100,6 +100,7 @@ auto deque_test() -> int
     return 0;
 }
 
+
 auto main() -> int
 {
     //CalculatorImp calculator{};
@@ -112,7 +113,8 @@ auto main() -> int
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - begin;
     fmt::print("{:e}\n", elapsed.count());
-    return 0;
+
+     return 0;
 }
 
 /*
