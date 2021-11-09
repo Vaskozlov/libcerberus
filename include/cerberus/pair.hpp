@@ -45,21 +45,15 @@ namespace cerb {
             std::is_nothrow_default_constructible_v<T2>;
 
     public:
-        constexpr auto operator==(const Pair<T1, T2, DEFAULT> &other) const -> bool
+        constexpr auto operator==(const Pairable auto &other) const -> bool
         {
-            return first == other.first && second == other.second;
-        }
-
-        constexpr auto operator==(const Pair<T1, T2, BY_FIRST_VALUE> &other) const
-            -> bool
-        {
-            return first == other.first;
-        }
-
-        constexpr auto operator==(const Pair<T1, T2, BY_SECOND_VALUE> &other) const
-            -> bool
-        {
-            return second == other.second;
+            if constexpr (Compare == DEFAULT) {
+                return first == other.first && second == other.second;
+            } else if constexpr (Compare == BY_FIRST_VALUE) {
+                return first == other.first;
+            } else {
+                return second == other.second;
+            }
         }
 
         template<typename U>
@@ -73,23 +67,18 @@ namespace cerb {
             }
         }
 
-        constexpr auto operator<=>(const Pair<T1, T2, BY_FIRST_VALUE> &other) const
+        constexpr auto operator<=>(const Pairable auto &other) const
         {
-            return first <=> other.first;
-        }
-
-        constexpr auto operator<=>(const Pair<T1, T2, BY_SECOND_VALUE> &other) const
-        {
-            return second <=> other.second;
-        }
-
-        constexpr auto operator<=>(const Pair<T1, T2, DEFAULT> &other) const
-        {
-            if (first == other.first) {
+            if constexpr (Compare == DEFAULT) {
+                if (first == other.first) {
+                    return second <=> other.second;
+                }
+                return first <=> other.first;
+            } else if constexpr (Compare == BY_FIRST_VALUE) {
+                return first <=> other.first;
+            } else {
                 return second <=> other.second;
             }
-
-            return first <=> other.first;
         }
 
         template<typename U>
@@ -108,11 +97,36 @@ namespace cerb {
         constexpr auto operator=(Pair &&) noexcept -> Pair & = default;
         constexpr auto operator=(const Pair &) noexcept -> Pair & = default;
 
+        constexpr auto operator=(const Pairable auto &other) noexcept -> Pair &
+        {
+            first  = other.first;
+            second = other.second;
+            return *this;
+        }
+
+        constexpr auto operator=(Pairable auto &&other) noexcept -> Pair &
+        {
+            first  = std::move(other.first);
+            second = std::move(other.second);
+            return *this;
+        }
+
     public:
-        constexpr Pair() noexcept(is_nothrow_default_constructible)       = default;
-        constexpr ~Pair() noexcept(is_nothrow_destructible)               = default;
+        constexpr Pair() noexcept(is_nothrow_default_constructible) = default;
+        constexpr ~Pair() noexcept(is_nothrow_destructible)         = default;
+
         constexpr Pair(Pair &&) noexcept(is_nothrow_move_assignable)      = default;
         constexpr Pair(const Pair &) noexcept(is_nothrow_copy_assignable) = default;
+
+        constexpr explicit Pair(const Pairable auto &other) noexcept(
+            is_nothrow_copy_assignable)
+          : first(other.first), second(other.second)
+        {}
+
+        constexpr explicit Pair(Pairable auto &&other) noexcept(
+            is_nothrow_move_assignable)
+          : first(std::move(other.first)), second(std::move(other.second))
+        {}
 
         constexpr explicit Pair(T1 &&t_first) noexcept(is_nothrow_move_constructible)
           : first(t_first), second()

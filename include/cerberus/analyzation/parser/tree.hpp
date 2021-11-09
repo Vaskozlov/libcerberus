@@ -54,11 +54,11 @@ namespace cerb::analysis::parser {
 
         constexpr TreeNode() = default;
 
-        constexpr TreeNode(const T &value_) : value(value_)
+        constexpr explicit TreeNode(const T &value_) : value(value_)
         {}
 
         constexpr ~TreeNode()
-        {}
+        = default;
     };
 
     template<typename T, typename Alloc = std::allocator<T>>
@@ -74,7 +74,6 @@ namespace cerb::analysis::parser {
 
         static inline NodeAllocator m_allocator{};
         static inline cerb::ConstBitmap<1, 1000000> rec{};
-
 
         static constexpr auto construct_node(const T &value) -> ParserNode *
         {

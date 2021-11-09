@@ -232,7 +232,8 @@ namespace cerb::lex {
                   check_substring(m_dot, m_input, m_multiline_comment_begin)))) {
                 if (m_dot != 0 && can_end()) {
                     string_view_t repr = { m_token_begin, m_token_begin + m_dot };
-                    result_of_check    = { { repr, m_token_type, m_token_pos } };
+                    result_of_check = { { repr, m_token_type, get_begin_of_token(),
+                                          m_token_pos } };
                     return SCAN_FINISHED;
                 }
                 return UNABLE_TO_MATCH;
@@ -245,7 +246,7 @@ namespace cerb::lex {
                         m_token_begin, m_token_begin + terminal_repr.first.size()
                     };
                     result_of_check = { { repr, terminal_repr.second,
-                                          m_token_pos } };
+                                          get_begin_of_token(), m_token_pos } };
                     m_dot += terminal_repr.first.size();
                     m_current_pos += terminal_repr.first.size();
                     return SCAN_FINISHED;
@@ -256,9 +257,10 @@ namespace cerb::lex {
                     string_view_t repr2 = {
                         repr1.end(), repr1.end() + terminal_repr.first.size()
                     };
-                    result_of_check = { { repr1, m_token_type, m_token_pos },
+                    result_of_check = { { repr1, m_token_type, get_begin_of_token(),
+                                          m_token_pos },
                                         { repr2, terminal_repr.second,
-                                          m_current_pos } };
+                                          get_begin_of_token(), m_current_pos } };
 
                     m_dot += terminal_repr.first.size();
                     m_current_pos += terminal_repr.first.size();
@@ -339,6 +341,11 @@ namespace cerb::lex {
         CERBLIB_DECL auto get_token_pos() const noexcept -> const position_t &
         {
             return static_cast<const position_t &>(m_current_pos);
+        }
+
+        CERBLIB_DECL auto get_begin_of_token() const noexcept -> string_view_iterator
+        {
+            return m_token_begin;
         }
 
         static constexpr auto add2input(size_t offset) -> void
@@ -530,6 +537,7 @@ namespace cerb::lex {
                     }
                     result_of_check = { { { m_token_begin, m_token_begin + m_dot },
                                           m_token_type,
+                                          m_token_begin,
                                           m_token_pos } };
                     return cmov(
                         m_dot == m_word_repr.size(), SCAN_FINISHED, UNABLE_TO_MATCH);

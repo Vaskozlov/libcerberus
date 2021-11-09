@@ -264,6 +264,7 @@ namespace cerb::lex {
                                    str.size() == 1,
                                m_char_type,
                                m_string_type),
+                           head()->get_begin_of_token(),
                            head()->get_token_pos() };
 
             if (!yield(token)) {
@@ -286,6 +287,7 @@ namespace cerb::lex {
             auto &str = m_strings.back();
             token_t token{ { str.data(), str.size() },
                            m_char_type,
+                           head()->get_begin_of_token(),
                            head()->get_token_pos() };
 
             throw_if_can(
@@ -321,7 +323,7 @@ namespace cerb::lex {
         }
 
     public:
-        CERBLIB_DECL auto head() const noexcept
+        CERBLIB_DECL auto head() const noexcept -> storage_iterator
         {
             return m_head;
         }
@@ -425,8 +427,8 @@ namespace cerb::lex {
                 }
                 item = nullptr;
             }
-            yield(
-                { repr4EoF, static_cast<TokenType>(EoF), head()->get_token_pos() });
+            yield({ repr4EoF, static_cast<TokenType>(EoF),
+                    head()->get_begin_of_token(), head()->get_token_pos() });
             finish();
         }
 

@@ -73,10 +73,10 @@ namespace cerb::analysis {
         const auto &pos                                 = item.get_token_pos();
         const auto &line                                = item.get_line();
         const cerb::basic_string_view<CharT> final_repr = {
-            cerb::max(line.begin(), repr.begin() - 40),
-            cerb::min(line.end(), repr.end() + 40)
+            cerb::max(line.begin(), item.get_begin_of_token()),
+            cerb::min(line.end(), item.get_begin_of_token() + repr.size() + 40)
         };
-        auto repr_offset = static_cast<int>(repr.begin() - final_repr.begin());
+        auto repr_offset = static_cast<int>(item.get_begin_of_token() - final_repr.begin());
 
         fmt::print(
             "Syntax analysis error! At: file: {}, line: {}, column: {}\n",

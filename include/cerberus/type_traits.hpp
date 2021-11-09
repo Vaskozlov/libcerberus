@@ -13,6 +13,13 @@ namespace cerb {
             return 0;
         })(values)... };
     }
+
+    template<typename T>
+    concept Pairable = requires(T type)
+    {
+        type.first;
+        type.second;
+    };
 }// namespace cerb
 
 #endif /* CERBERUS_TYPE_TRAITS_HPP */

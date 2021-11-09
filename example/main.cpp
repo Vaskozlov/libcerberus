@@ -19,7 +19,7 @@ const char *const input = R"(
         int a = 10;
         int b = 20;
         char *c = "Hello, World!\xff";
-        char d = 'x';
+        char d = 't';
 
           /*
         This is a comment!

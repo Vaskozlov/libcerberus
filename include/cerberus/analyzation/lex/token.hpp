@@ -7,8 +7,10 @@ namespace cerb::lex {
     template<typename CharT, typename Repr, typename TokenType>
     struct Token
     {
+        using repr_iterator = typename Repr::iterator;
         Repr repr{};
         TokenType type{};
+        repr_iterator location{};
         PositionInFile<CharT> pos{};
 
     public:
@@ -17,8 +19,8 @@ namespace cerb::lex {
         constexpr Token(Token &&) noexcept      = default;
         constexpr Token(const Token &) noexcept = default;
 
-        constexpr Token(Repr repr_, TokenType type_, PositionInFile<CharT> pos_)
-          : repr(repr_), type(type_), pos(pos_)
+        constexpr Token(Repr repr_, TokenType type_, repr_iterator location_, PositionInFile<CharT> pos_)
+          : repr(repr_), type(type_), location(location_), pos(pos_)
         {}
 
         constexpr auto operator=(Token &&) noexcept -> Token & = default;
