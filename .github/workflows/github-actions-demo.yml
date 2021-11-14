@@ -21,6 +21,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.config.dependencies }}
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 110 --slave /usr/bin/g++ g++ /usr/bin/g++-11 --slave /usr/bin/gcov gcov /usr/bin/gcov-11
       - name: Install dependencies (macOS)
         if: ${{ matrix.config.os == 'macos-latest' }}
         run: |
