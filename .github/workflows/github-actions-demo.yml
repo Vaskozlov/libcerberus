@@ -29,14 +29,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.config.dependencies }}
-          sudo update-alternatives --install /usr/bin/${{ matrix.config.cc }} ${{ matrix.config.cc }} /usr/bin/${{ matrix.config.cc }}-${{ matrix.config.version }} 200 --slave /usr/bin/${{ matrix.config.cxx }} ${{ matrix.config.cxx }} /usr/bin/${{ matrix.config.cxx }}-${{ matrix.config.version }}
+          sudo update-alternatives --install /usr/bin/cc cc /usr/bin/${{ matrix.config.cc }}-${{ matrix.config.version }} 200 --slave /usr/bin/cxx cxx /usr/bin/${{ matrix.config.cxx }}-${{ matrix.config.version }}
       - name: Install dependencies (macOS)
         if: ${{ matrix.config.os == 'macos-latest' }}
         run: |
           brew install ${{ matrix.config.dependencies }}
       - name: Build
         run: |
-          cmake CC=${{ matrix.config.cc }} CXX=${{ matrix.config.cxx }} -B build -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build -j2
       - name: Install
         run: |
