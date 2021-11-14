@@ -1,20 +1,19 @@
-
 name: CMake
 
-on: [push, pull_request]
+on: [ push, pull_request ]
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
         config:
-          - name: Linux (gcc)
+          - name: Linux gcc
             os: ubuntu-latest
             cc: gcc
             cxx: g++
             version: 11
             dependencies: libfmt-dev gcc-11 g++-11
-          - name: Linux (clang)
+          - name: Linux clang
               os: ubuntu-latest
               cc: clang
               cxx: clang++
