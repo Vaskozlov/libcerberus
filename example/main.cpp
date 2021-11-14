@@ -105,6 +105,8 @@ auto deque_test() -> int
 auto main() -> int
 {
 
+    int test[10];
+
     //CalculatorImp calculator{};
     Lex4CImp C_lexer{};
 
