@@ -13,12 +13,6 @@ jobs:
             cxx: g++
             version: 11
             dependencies: libfmt-dev gcc-11 g++-11
-          - name: Linux CLANG
-            os: ubuntu-latest
-            cc: clang
-            cxx: clang++
-            version: 13
-            dependencies: libfmt-dev clang-13 clang++-13
     name: CMake (${{ matrix.config.name }})
     runs-on: ${{ matrix.config.os }}
     steps:
