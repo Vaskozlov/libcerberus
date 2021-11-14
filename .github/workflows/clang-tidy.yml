@@ -1,6 +1,13 @@
 name: Clang-Tidy
 
-on: [ push, pull_request ]
+on:
+  pull_request:
+    branches: [ master ]
+    paths: [ '**.cpp', '**.h' ]
+
+  push:
+    branches: [ master ]
+    paths: [ '**.cpp', '**.h' ]
 
 jobs:
   tidy:
