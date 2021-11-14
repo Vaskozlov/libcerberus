@@ -7,18 +7,18 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - name: Linux gcc
+          - name: Linux GCC
             os: ubuntu-latest
-            dependencies: libfmt-dev gcc-11 g++-11
             cc: gcc
             cxx: g++
             version: 11
-          - name: Linux clang
-              os: ubuntu-latest
-              dependencies: libfmt-dev clang-12 clang++-12
-              cc: clang
-              cxx: clang++
-              version: 12
+            dependencies: libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev
+          - name: Linux CLANG
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            version: 12
+            dependencies: libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev
     name: CMake (${{ matrix.config.name }})
     runs-on: ${{ matrix.config.os }}
     steps:
