@@ -19,7 +19,7 @@ jobs:
         run: |
           sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-12 200
           sudo update-alternatives --install /usr/bin/clang-tidy-diff clang-tidy-diff /usr/bin/clang-tidy-diff-12.py 200
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 200 --slave /usr/bin/g++ g++ /usr/bin/g++-11 200
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 200 --slave /usr/bin/g++ g++ /usr/bin/g++-11
       - name: Prepare compile_commands.json
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release
