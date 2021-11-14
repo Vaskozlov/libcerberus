@@ -29,7 +29,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.config.dependencies }}
-          sudo update-alternatives --install /usr/bin/cc cc /usr/bin/${{ matrix.config.cc }}-${{ matrix.config.version }} 200 --slave /usr/bin/cxx cxx /usr/bin/${{ matrix.config.cxx }}-${{ matrix.config.version }}
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/${{ matrix.config.cc }}-${{ matrix.config.version }} 200 --slave /usr/bin/g++ g++ /usr/bin/${{ matrix.config.cxx }}-${{ matrix.config.version }}
       - name: Install dependencies (macOS)
         if: ${{ matrix.config.os == 'macos-latest' }}
         run: |
