@@ -22,7 +22,5 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
     - name: Build
-      run: "ls"
-    - name: Tools build
-      run: |
-         "ls"
+      run: MSBuild.exe build/ALL_BUILD.vcxproj /property:Configuration=${{ matrix.config_type }} /property:Platform=${{ matrix.platform_type }}
+  

@@ -484,7 +484,7 @@ namespace cerb::PRIVATE {
         {
             CERBLIB_UNROLL_N(4)
             for (iterator i = begin(); i != end(); ++i) {
-                i->~T();
+                (&(*i))->~T();
             }
             ValueTraits::deallocate(m_allocator, m_data, m_capacity);
         }
