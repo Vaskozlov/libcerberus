@@ -17,8 +17,8 @@ jobs:
             os: ubuntu-latest
             cc: clang
             cxx: clang++
-            version: 12
-            dependencies: libfmt-dev clang-12 clang++-12
+            version: 13
+            dependencies: libfmt-dev clang-13 clang++-13
     name: CMake (${{ matrix.config.name }})
     runs-on: ${{ matrix.config.os }}
     steps:
