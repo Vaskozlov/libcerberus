@@ -16,7 +16,7 @@ jobs:
         fetch-depth: 50
     - name: Install dependencies
       run: |
-        cd script/windows
+        cd scripts/windows
         ./install.bat
         cd ../..
     - name: Add MSBuild to PATH
