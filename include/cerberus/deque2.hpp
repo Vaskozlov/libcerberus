@@ -91,12 +91,12 @@ namespace cerb::experimental {
                 if (std::is_constant_evaluated()) {
                     this->init();
                     cerb::copy(
-                        m_data.begin(), other.m_data.begin(), other.m_data.end());
+                        m_data.data(), other.m_data.data(), other.m_data.data() + other.m_data.size());
                 } else {
                     cerb::construct(
-                        m_data.begin() + first,
-                        other.m_data.begin() + first,
-                        other.m_data.begin() + last);
+                        m_data.data() + first,
+                        other.m_data.data() + first,
+                        other.m_data.data() + last);
                 }
                 return *this;
             }
@@ -120,13 +120,13 @@ namespace cerb::experimental {
                 if (std::is_constant_evaluated()) {
                     this->init();
                     cerb::copy(
-                        m_data.begin(), other.m_data.begin(), other.m_data.end());
+                        m_data.data(), other.m_data.data(), other.m_data.data() + other.m_data.size());
                     return;
                 }
                 cerb::construct(
-                    m_data.begin() + first,
-                    other.m_data.begin() + first,
-                    other.m_data.begin() + last);
+                    m_data.data() + first,
+                    other.m_data.data() + first,
+                    other.m_data.data() + last);
             }
         };
 
