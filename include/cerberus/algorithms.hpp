@@ -1,9 +1,9 @@
 #ifndef CERBERUS_ALGORITHMS_HPP
 #define CERBERUS_ALGORITHMS_HPP
 
-#include <cerberus/types.h>
-#include <cerberus/string.hpp>
 #include <cerberus/pair.hpp>
+#include <cerberus/string.hpp>
+#include <cerberus/types.h>
 
 namespace cerb {
     template<typename T>
@@ -53,7 +53,7 @@ namespace cerb {
     {
         CERBLIB_UNROLL_N(4)
         for (; begin != end; ++begin, ++dest) {
-           *dest = *begin;
+            *dest = *begin;
         }
     }
 
@@ -64,16 +64,6 @@ namespace cerb {
         for (; begin != end; ++begin, ++dest) {
             *dest = std::move(*begin);
         }
-    }
-
-    template<typename T>
-    auto swap(T &&lhs, T &&rhs) noexcept(std::is_nothrow_move_constructible_v<T>
-                                             &&std::is_nothrow_move_assignable_v<T>)
-        -> void
-    {
-        auto tmp = move(lhs);
-        lhs      = move(rhs);
-        rhs      = move(tmp);
     }
 
     template<typename Iterator, typename T>
@@ -144,8 +134,7 @@ namespace cerb {
     }
 
     template<typename Iterator, class UnaryPredicate>
-    constexpr inline auto all_of(Iterator first, Iterator last, UnaryPredicate p)
-        -> bool
+    constexpr auto all_of(Iterator first, Iterator last, UnaryPredicate p) -> bool
     {
         CERBLIB_UNROLL_N(2)
         for (; first != last; ++first) {
@@ -157,8 +146,7 @@ namespace cerb {
     }
 
     template<typename Iterator, class UnaryPredicate>
-    constexpr inline auto any_of(Iterator first, Iterator last, UnaryPredicate p)
-        -> bool
+    constexpr auto any_of(Iterator first, Iterator last, UnaryPredicate p) -> bool
     {
         CERBLIB_UNROLL_N(2)
         for (; first != last; ++first) {
@@ -170,8 +158,7 @@ namespace cerb {
     }
 
     template<typename Iterator, class UnaryPredicate>
-    constexpr inline auto none_of(Iterator first, Iterator last, UnaryPredicate p)
-        -> bool
+    constexpr auto none_of(Iterator first, Iterator last, UnaryPredicate p) -> bool
     {
         CERBLIB_UNROLL_N(2)
         for (; first != last; ++first) {
@@ -197,7 +184,7 @@ namespace cerb {
     }
 
     template<typename Iterator1, typename Iterator2>
-    constexpr inline auto mismatch(
+    constexpr auto mismatch(
         Iterator1 first1,
         Iterator1 last1,
         Iterator2 first2,

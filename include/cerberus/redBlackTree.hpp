@@ -304,7 +304,6 @@ namespace cerb::PRIVATE {
             T value;
             RBTreeNodeColor color;
 
-        public:
             CERBLIB_DECL auto operator==(const RBTreeNode &other) const -> bool
             {
                 return value == other.value;
@@ -327,7 +326,6 @@ namespace cerb::PRIVATE {
                 return value <=> other.value;
             }
 
-        public:
             CERBLIB_DECL auto isLeftChild() const
             {
                 return this == parent->left;
@@ -396,14 +394,12 @@ namespace cerb::PRIVATE {
                 parent       = node;
             }
 
-        public:
             constexpr static auto init(RBTreeNode *node) -> void
             {
                 node->color = RED;
                 node->left = node->right = node->parent = nullptr;
             }
 
-        public:
             constexpr auto operator=(RBTreeNode &&other) noexcept -> RBTreeNode &
             {
                 value  = move(other.value);
@@ -425,7 +421,6 @@ namespace cerb::PRIVATE {
                 return *this;
             }
 
-        public:
             template<typename... Ts>
             constexpr explicit RBTreeNode(Ts &&...args) noexcept
               : left(nullptr), right(nullptr), parent(nullptr), value(args...),
@@ -949,7 +944,6 @@ namespace cerb::PRIVATE {
             using iterator_category = std::bidirectional_iterator_tag;
             using difference_type   = ptrdiff_t;
 
-        public:
             constexpr auto operator++() -> iterator &
             {
                 m_node = increment(m_node);
@@ -976,7 +970,6 @@ namespace cerb::PRIVATE {
                 return copy;
             }
 
-        public:
             constexpr auto operator*() const -> T &
             {
                 return m_node->value;
@@ -987,16 +980,13 @@ namespace cerb::PRIVATE {
                 return &m_node->value;
             }
 
-        public:
             constexpr auto operator<=>(const iterator &) const        = default;
             constexpr auto operator==(const iterator &) const -> bool = default;
 
-        public:
             constexpr auto operator=(iterator &&) noexcept -> iterator & = default;
             constexpr auto operator=(const iterator &) noexcept
                 -> iterator      & = default;
 
-        public:
             constexpr ~iterator() noexcept = default;
 
             constexpr iterator(iterator &&) noexcept      = default;
@@ -1010,14 +1000,12 @@ namespace cerb::PRIVATE {
         {
             NodePtr m_node;
 
-        public:
             using value_type        = T;
             using reference         = T &;
             using pointer           = T *;
             using iterator_category = std::bidirectional_iterator_tag;
             using difference_type   = ptrdiff_t;
 
-        public:
             constexpr auto operator++() -> reverse_iterator &
             {
                 m_node = decrement(m_node);
@@ -1044,25 +1032,18 @@ namespace cerb::PRIVATE {
                 return copy;
             }
 
-        public:
             constexpr auto operator*() const -> T &
             {
                 return m_node->value;
             }
 
-        public:
             CERBLIB_DECL auto operator<=>(const reverse_iterator &) const = default;
 
-            CERBLIB_DECL auto operator==(const reverse_iterator &) const
-                -> bool = default;
-
-        public:
             constexpr auto operator   =(reverse_iterator &&) noexcept
                 -> reverse_iterator & = default;
             constexpr auto operator   =(const reverse_iterator &) noexcept
                 -> reverse_iterator & = default;
 
-        public:
             constexpr reverse_iterator(reverse_iterator &&) noexcept      = default;
             constexpr reverse_iterator(const reverse_iterator &) noexcept = default;
 

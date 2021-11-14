@@ -222,16 +222,12 @@ namespace cerb {
     public:
         constexpr auto push_back(T &&value) -> void
         {
-            ++m_size;
-            NodePtr node = get_back();
-            std::construct_at(&node->data[node->last++], value);
+            this->template emplace_back<T &&>(std::move(value));
         }
 
         constexpr auto push_back(const T &value) -> void
         {
-            ++m_size;
-            NodePtr node = get_back();
-            std::construct_at(&node->data[node->last++], value);
+            this->template emplace_back<const T &>(value);
         }
 
         template<typename... Ts>
@@ -244,7 +240,7 @@ namespace cerb {
 
         constexpr auto push_front(T &&value) -> void
         {
-            this->template emplace_front<T &&>(value);
+            this->template emplace_front<T &&>(std::move(value));
         }
 
         constexpr auto push_front(const T &value) -> void
@@ -260,7 +256,6 @@ namespace cerb {
             std::construct_at(&node->data[--node->first], values...);
         }
 
-    public:
         constexpr auto pop_back() -> void
         {
             if (m_end->last > m_end->first) {
@@ -291,7 +286,6 @@ namespace cerb {
             }
         }
 
-    public:
         CERBLIB_DECL auto back() const -> T &
         {
             if constexpr (MayThrow) {
@@ -340,7 +334,6 @@ namespace cerb {
             return at(index);
         }
 
-    public:
         constexpr Deque()
         {
             if (std::is_constant_evaluated()) {

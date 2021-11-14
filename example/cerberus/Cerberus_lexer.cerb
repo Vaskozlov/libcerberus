@@ -16,6 +16,7 @@ MAX_TERMINALS = 64
 
 [PARSER]
 STMT: |"____parser_statement"
+GLOBAL_VIEW: |"____globalView"
 
 [ARITHMETIC_OPERATOR]
 ADD:    '+'
@@ -69,6 +70,10 @@ SWITCH:             |"switch"
 FUNC:               |"func"
 VAR:                |"var"
 
+/*
+ * TYPE is generalized class of tokens, because it does not really mature which type
+ * is used in the code
+ */
 [TYPE] #GENERALIZE
 INT_T:              |"int"
 CHAR_T:             |"char"
@@ -89,7 +94,7 @@ PREPROCESSOR:       '#'
 QUESTION_MARK:      '?'
 ARROW:              "->"
 
-[VALUES]
+[VALUE]
 CHAR:               "\\\'"
 STRING:             "\\\""
 INTEGER:            "[0-9]+"

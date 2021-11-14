@@ -1,6 +1,7 @@
 #ifndef CERBERUS_CONTAINER_HPP
 #define CERBERUS_CONTAINER_HPP
 
+#include <exception>
 #include <cerberus/types.h>
 #include <cerberus/bitmap.hpp>
 

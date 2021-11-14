@@ -52,6 +52,7 @@ cerb::Map<CerberusLexerItem, yytokentype> CerberusLexerItemsNamesConverter(
         {CerberusLexerItem::QUESTION_MARK       , yytokentype::QUESTION_MARK},
         {CerberusLexerItem::ARROW               , yytokentype::ARROW},
         {CerberusLexerItem::STMT                , yytokentype::STMT},
+        {CerberusLexerItem::GLOBAL_VIEW         , yytokentype::GLOBAL_VIEW},
         {CerberusLexerItem::INT_T               , yytokentype::TYPE},
         {CerberusLexerItem::CHAR_T              , yytokentype::TYPE},
         {CerberusLexerItem::FLOAT_T             , yytokentype::TYPE},

@@ -393,7 +393,7 @@ namespace cerb::lex {
                 }
 
                 CERBLIB_UNROLL_N(2)
-                for (auto &elem : m_items) {
+                for (item_t &elem : m_items) {
                     elem.rebind();
 
                     if (elem.check() == SCAN_FINISHED &&
@@ -405,7 +405,7 @@ namespace cerb::lex {
 
                 if (item != nullptr) {
                     CERBLIB_UNROLL_N(1)
-                    for (auto &result : item->result()) {
+                    for (const token_t &result : item->result()) {
                         if (!yield(result)) {
                             finish();
                             return;
@@ -436,10 +436,10 @@ namespace cerb::lex {
         constexpr virtual ~LexicalAnalyzer() = default;
 
         constexpr LexicalAnalyzer(
-            const CharT string_separator,
-            const CharT char_separator,
-            const TokenType string_type,
-            const TokenType char_type,
+            CharT string_separator,
+            CharT char_separator,
+            TokenType string_type,
+            TokenType char_type,
             const std::initializer_list<const item_initializer>
                 rules,
             const string_checker_t &terminals,

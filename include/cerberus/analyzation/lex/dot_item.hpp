@@ -481,7 +481,7 @@ namespace cerb::lex {
             m_token_pos = m_current_pos;
 
             CERBLIB_UNROLL_N(2)
-            for (auto &elem : m_ranges) {
+            for (Range &elem : m_ranges) {
                 elem.rebind();
             }
         }

@@ -32,17 +32,17 @@ namespace cerb::PRIVATE {
         constexpr static bool isVector = true;
 
     public:
-        CERBLIB_DECL auto data() const noexcept -> pointer
+        CERBLIB_DECL auto data() const -> pointer
         {
             return m_data;
         }
 
-        CERBLIB_DECL auto size() const noexcept -> size_type
+        CERBLIB_DECL auto size() const -> size_type
         {
             return m_size;
         }
 
-        CERBLIB_DECL auto capacity() const noexcept -> size_type
+        CERBLIB_DECL auto capacity() const -> size_type
         {
             return m_capacity;
         }
@@ -103,7 +103,7 @@ namespace cerb::PRIVATE {
                 return copy;
             }
 
-            constexpr auto operator+(size_t offset) -> iterator
+            constexpr auto operator+(size_t offset) const -> iterator
             {
                 return iterator(m_p + offset);
             }
@@ -113,21 +113,19 @@ namespace cerb::PRIVATE {
                 return *m_p;
             }
 
-            constexpr auto operator->() const noexcept -> pointer
+            constexpr auto operator->() const -> pointer
             {
                 return m_p;
             }
 
-            CERBLIB_DECL explicit operator pointer() const noexcept
+            CERBLIB_DECL explicit operator pointer() const
             {
                 return m_p;
             }
 
         public:
-            constexpr auto operator==(const iterator &) const noexcept
-                -> bool = default;
-
-            constexpr auto operator<=>(const iterator &) const noexcept = default;
+            constexpr auto operator==(const iterator &) const -> bool = default;
+            constexpr auto operator<=>(const iterator &) const        = default;
 
         public:
             constexpr auto operator=(const iterator &) noexcept
@@ -149,42 +147,42 @@ namespace cerb::PRIVATE {
         using reverse_iterator       = std::reverse_iterator<iterator>;
         using const_reverse_iterator = const reverse_iterator;
 
-        CERBLIB_DECL auto begin() const noexcept -> iterator
+        CERBLIB_DECL auto begin() const -> iterator
         {
             return iterator(m_data);
         }
 
-        CERBLIB_DECL auto end() const noexcept -> iterator
+        CERBLIB_DECL auto end() const -> iterator
         {
             return iterator(m_data + m_size);
         }
 
-        CERBLIB_DECL auto rbegin() const noexcept -> reverse_iterator
+        CERBLIB_DECL auto rbegin() const -> reverse_iterator
         {
             return reverse_iterator(end());
         }
 
-        CERBLIB_DECL auto rend() const noexcept -> reverse_iterator
+        CERBLIB_DECL auto rend() const -> reverse_iterator
         {
             return reverse_iterator(begin());
         }
 
-        CERBLIB_DECL auto cbegin() const noexcept -> iterator
+        CERBLIB_DECL auto cbegin() const -> iterator
         {
             return iterator(data());
         }
 
-        CERBLIB_DECL auto cend() const noexcept -> iterator
+        CERBLIB_DECL auto cend() const -> iterator
         {
             return iterator(data() + size());
         }
 
-        CERBLIB_DECL auto crbegin() const noexcept -> reverse_iterator
+        CERBLIB_DECL auto crbegin() const -> reverse_iterator
         {
             return reverse_iterator(cbegin());
         }
 
-        CERBLIB_DECL auto crend() const noexcept -> reverse_iterator
+        CERBLIB_DECL auto crend() const -> reverse_iterator
         {
             return reverse_iterator(cend());
         }

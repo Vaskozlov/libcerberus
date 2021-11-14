@@ -1,4 +1,7 @@
 %{
+#include <fstream>
+#include <sstream>
+#include <iostream>
 #include "Cerberus_yacc_helper.hpp"
 %}
 
@@ -54,73 +57,85 @@
 %token QUESTION_MARK    "?"
 %token ARROW            "->"
 %token STMT             "____parser_statement"
+%token GLOBAL_VIEW      "____globalView"
 %token INT_T            "int"
 %token CHAR_T           "char"
 %token FLOAT_T          "float"
 %token DOUBLE_T         "double"
 %token BUILTIN_AUTO_T   "__builtin_auto"
-%token TYPE             262144
-%token INTEGER          524288
-%token FLOAT            524289
-%token DOUBLE           524290
-%token IDENTIFIER       524291
-%token CHAR             524292
-%token STRING           524293
+%token TYPE             4096
+%token INTEGER          8192
+%token FLOAT            8193
+%token DOUBLE           8194
+%token IDENTIFIER       8195
+%token CHAR             8196
+%token STRING           8197
 
 %left  "+" "-"
 %left  "*"
 %left  "("
-%left  "func" IDENTIFIER
+%left IDENTIFIER
+%left  "func" "return"
 
 %define api.value.type { CL::ParserNode* }
 
 %%
-program:
-	program functions 			{ CL::ParserNode::print($2); std::cout << "Parsing finished" << std::endl; }
-	| %empty
-	;
 
-functions: 	"func" IDENTIFIER "(" ")" "{" stmt "}"				{ $$ = CL::ParserNode::construct_root($1, {$2, CL::ParserNode::construct_node(auto_token), $6}); }
-		| "func" IDENTIFIER "(" ")" "->" TYPE "{" stmt "}"	{ $$ = CL::ParserNode::construct_root($1, {$2, $6, $8}); }
-		| %empty
+library:
+		library function	{ $$ = CL::ParserNode::construct_root( CL::parser.global_view_node, {$2}); }
+		| %empty		{ $$ = CL::parser.global_view_node; }
 		;
 
+function:	"func" IDENTIFIER "(" ")" "{" stmt "}"	{ $$ = CL::ParserNode::construct_root($1, {$2, $6}); }
+		| %empty;
+
 expr:
-	INTEGER					{ $$ = $1; }
-	| FLOAT					{ $$ = $1; }
-	| DOUBLE				{ $$ = $1; }
-	| STRING				{ $$ = $1; }
-	| CHAR					{ $$ = $1; }
-	| IDENTIFIER				{ $$ = $1; }
-	| expr "+" expr				{ $$ = CL::ParserNode::construct_root($2, {$1, $3});  }
-	| expr "*" expr				{ $$ = CL::ParserNode::construct_root($2, {$1, $3});  }
-	| "(" expr ")"				{ $$ = $2; }
+	INTEGER						{ $$ = $1; }
+	| FLOAT						{ $$ = $1; }
+	| DOUBLE					{ $$ = $1; }
+	| CHAR						{ $$ = $1; }
+	| STRING					{ $$ = $1; }
+	| IDENTIFIER					{ $$ = $1; }
+	| expr "+" expr					{ $$ = CL::ParserNode::construct_root($2, {$1, $3}); }
+	| expr "*" expr					{ $$ = CL::ParserNode::construct_root($2, {$1, $3}); }
+	| "(" expr ")"					{ $$ = $2; }
 	;
 
 
-stmt:   stmt expr ";" 	{ if ($1 == nullptr) {$$ = $2; } else { $$ = CL::ParserNode::construct_root($1, {$2}); $$ = $1; } }
-	| %empty	{ $$ = CL::ParserNode::construct_node(statement_token); }
-	;
+stmt:
+	stmt expr ";"					{ $$ = CL::ParserNode::construct_root($1, {$2});  }
+	| stmt "return" expr ";"			{ $$ = CL::ParserNode::construct_root($1, {CL::ParserNode::construct_root($2, {$3})}); }
+	| stmt ";" 					{ $$ = CL::ParserNode::construct_root($1, {$2}); }
+	| stmt "{" stmt "}"				{ $$ = CL::ParserNode::construct_root($1, {$3}); }
+	| %empty 					{ $$ = CL::Parser::new_statement(); }
+
 %%
+
 
 #include "Cerberus_lexerYACC.hpp"
 
 extern "C" void yyerror(const char *message) {
     std::cerr << message << std::endl;
     CL::ParserNode::print(yylval);
-    cerberus_lexer.syntax_error(current_token);
+    CL::parser.cerberus_lexer.syntax_error(CL::parser());
 }
 
 
 int yylex(void) {
     static size_t index{};
-    current_token = &cerberus_lexer.m_tokens[index++];
-    yylval = CL::ParserNode::construct_node(*current_token);
-    return CerberusLexerItemsNamesConverter[current_token->type];
+    yylval = CL::ParserNode::construct_node(*CL::parser.next_token());
+    return CerberusLexerItemsNamesConverter[CL::parser()->type];
 }
 
 
 auto main() -> int {
-    cerberus_lexer.scan("func test() -> int { 10 + 20; 20; 20 + 30 * (2 + 8); 30; }", "stdio");
+    std::ifstream t("/home/vaskozlov/projects/libcerberus/example/cerberus/example.lcerb");
+    std::stringstream buffer{};
+    buffer << t.rdbuf();
+    t.close();
+    std::string data = buffer.str();
+
+    CL::parser.cerberus_lexer.scan(data.c_str(), "example.lcerb");
     yyparse();
+    CL::parser.print();
 }

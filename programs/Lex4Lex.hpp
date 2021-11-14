@@ -12,28 +12,28 @@ using namespace cerb::literals;
 enum struct Lex4LexBlock : size_t
 {
     RESERVED         = 16UL,
-    DIRECTIVE        = 4096UL,
-    GENERAL          = 8192UL,
-    OPERATORS        = 16384UL,
+    DIRECTIVE        = 64UL,
+    GENERAL          = 128UL,
+    OPERATORS        = 256UL,
 };
 
 enum struct Lex4LexItem : size_t
 {
     UNDEFINED        = 16UL,
     EoF              = 0UL,
-    GENERALIZED      = 4096UL,
-    TRUE             = 8192UL,
-    FALSE            = 8193UL,
-    INT              = 8194UL,
-    IDENTIFIER       = 8195UL,
-    STRING           = 8196UL,
-    CHAR             = 8197UL,
-    ASSIGN           = 16384UL,
-    ANGLE_OPENING    = 16385UL,
-    ANGLE_CLOSING    = 16386UL,
-    COLON            = 16387UL,
-    WORD             = 16388UL,
-    EoR              = 16389UL,
+    GENERALIZED      = 64UL,
+    TRUE             = 128UL,
+    FALSE            = 129UL,
+    INT              = 130UL,
+    IDENTIFIER       = 131UL,
+    STRING           = 132UL,
+    CHAR             = 133UL,
+    ASSIGN           = 256UL,
+    ANGLE_OPENING    = 257UL,
+    ANGLE_CLOSING    = 258UL,
+    COLON            = 259UL,
+    WORD             = 260UL,
+    EoR              = 261UL,
 };
 
 /*
@@ -42,10 +42,10 @@ enum struct Lex4LexItem : size_t
 %token GENERALIZED      "#GENERALIZE"
 %token TRUE             "true"
 %token FALSE            "false"
-%token INT              8194
-%token IDENTIFIER       8195
-%token STRING           8196
-%token CHAR             8197
+%token INT              130
+%token IDENTIFIER       131
+%token STRING           132
+%token CHAR             133
 %token ASSIGN           "="
 %token ANGLE_OPENING    "["
 %token ANGLE_CLOSING    "]"
@@ -191,8 +191,8 @@ struct Lex4Lex: public CERBERUS_LEX_PARENT_CLASS
             { GENERALIZED, "#GENERALIZE"_sv, true, 2 },
             { TRUE, "true"_sv, true, 2 },
             { FALSE, "false"_sv, true, 2 },
-            { INT, "[0-9]+"_sv, false, 13 },
-            { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*"_sv, false, 13 }
+            { INT, "[0-9]+"_sv, false, 7 },
+            { IDENTIFIER, "[a-zA-Z_]+[a-zA-Z0-9_]*"_sv, false, 7 }
         },
         {
             { 

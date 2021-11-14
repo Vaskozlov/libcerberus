@@ -157,9 +157,10 @@ namespace cerb {
         typename T, bool MayThrow = true, typename Compare = less<void>,
         typename Alloc = std::allocator<T>>
     class CERBLIB_TRIVIAL Multiset
-      : public PRIVATE::RBTree<Pair<size_t, T, BY_SECOND_VALUE>, Compare, Alloc>
+      : public PRIVATE::RBTree<
+            Pair<size_t, T, PairRule::BY_SECOND_VALUE>, Compare, Alloc>
     {
-        using value_type = Pair<size_t, T, BY_SECOND_VALUE>;
+        using value_type = Pair<size_t, T, PairRule::BY_SECOND_VALUE>;
         using BasicTree  = PRIVATE::RBTree<value_type, Compare, Alloc>;
         using Node       = typename BasicTree::Node;
 

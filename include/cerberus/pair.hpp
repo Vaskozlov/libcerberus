@@ -5,22 +5,19 @@
 #include <cerberus/literals.hpp>
 
 namespace cerb {
-    using namespace cerb::literals;
-
-    enum PairCompare : u16
+    enum struct PairRule : u16
     {
         DEFAULT,
         BY_FIRST_VALUE,
         BY_SECOND_VALUE
     };
 
-    template<typename T1, typename T2, PairCompare Compare = DEFAULT>
+    template<typename T1, typename T2, PairRule Compare = PairRule::DEFAULT>
     struct CERBLIB_TRIVIAL Pair
     {
         T1 first;
         T2 second;
 
-    public:
         static constexpr auto is_nothrow_destructible =
             std::is_nothrow_destructible_v<T1> && std::is_nothrow_destructible_v<T2>;
 
@@ -44,12 +41,11 @@ namespace cerb {
             std::is_nothrow_default_constructible_v<T1> &&
             std::is_nothrow_default_constructible_v<T2>;
 
-    public:
         constexpr auto operator==(const Pairable auto &other) const -> bool
         {
-            if constexpr (Compare == DEFAULT) {
+            if constexpr (Compare == PairRule::DEFAULT) {
                 return first == other.first && second == other.second;
-            } else if constexpr (Compare == BY_FIRST_VALUE) {
+            } else if constexpr (Compare == PairRule::BY_FIRST_VALUE) {
                 return first == other.first;
             } else {
                 return second == other.second;
@@ -59,22 +55,24 @@ namespace cerb {
         template<typename U>
         constexpr friend auto operator==(const Pair &lhs, const U &rhs) -> bool
         {
-            static_assert(Compare == BY_FIRST_VALUE || Compare == BY_SECOND_VALUE);
-            if constexpr (Compare == BY_FIRST_VALUE) {
+            static_assert(
+                Compare == PairRule::BY_FIRST_VALUE ||
+                Compare == PairRule::BY_SECOND_VALUE);
+            if constexpr (Compare == PairRule::BY_FIRST_VALUE) {
                 return lhs.first == rhs;
-            } else if constexpr (Compare == BY_SECOND_VALUE) {
+            } else if constexpr (Compare == PairRule::BY_SECOND_VALUE) {
                 return lhs.second == rhs;
             }
         }
 
         constexpr auto operator<=>(const Pairable auto &other) const
         {
-            if constexpr (Compare == DEFAULT) {
+            if constexpr (Compare == PairRule::DEFAULT) {
                 if (first == other.first) {
                     return second <=> other.second;
                 }
                 return first <=> other.first;
-            } else if constexpr (Compare == BY_FIRST_VALUE) {
+            } else if constexpr (Compare == PairRule::BY_FIRST_VALUE) {
                 return first <=> other.first;
             } else {
                 return second <=> other.second;
@@ -84,16 +82,17 @@ namespace cerb {
         template<typename U>
         constexpr auto operator<=>(const U &other) const
         {
-            static_assert(Compare == BY_FIRST_VALUE || Compare == BY_SECOND_VALUE);
+            static_assert(
+                Compare == PairRule::BY_FIRST_VALUE ||
+                Compare == PairRule::BY_SECOND_VALUE);
 
-            if constexpr (Compare == BY_FIRST_VALUE) {
+            if constexpr (Compare == PairRule::BY_FIRST_VALUE) {
                 return first <=> other;
-            } else if constexpr (Compare == BY_SECOND_VALUE) {
+            } else if constexpr (Compare == PairRule::BY_SECOND_VALUE) {
                 return second <=> other;
             }
         }
 
-    public:
         constexpr auto operator=(Pair &&) noexcept -> Pair & = default;
         constexpr auto operator=(const Pair &) noexcept -> Pair & = default;
 
@@ -111,7 +110,6 @@ namespace cerb {
             return *this;
         }
 
-    public:
         constexpr Pair() noexcept(is_nothrow_default_constructible) = default;
         constexpr ~Pair() noexcept(is_nothrow_destructible)         = default;
 
@@ -129,7 +127,7 @@ namespace cerb {
         {}
 
         constexpr explicit Pair(T1 &&t_first) noexcept(is_nothrow_move_constructible)
-          : first(t_first), second()
+          : first(std::move(t_first)), second()
         {}
 
         constexpr explicit Pair(const T1 &t_first) noexcept(
@@ -139,7 +137,7 @@ namespace cerb {
 
         constexpr Pair(T1 &&t_first, T2 &&t_second) noexcept(
             is_nothrow_move_constructible)
-          : first(t_first), second(t_second)
+          : first(std::move(t_first)), second(std::move(t_second))
         {}
 
         constexpr Pair(const T1 &t_first, const T2 &t_second) noexcept(
@@ -148,7 +146,7 @@ namespace cerb {
         {}
     };
 
-    template<PairCompare Compare = DEFAULT, typename T1, typename T2>
+    template<PairRule Compare = PairRule::DEFAULT, typename T1, typename T2>
     CERBLIB_DECL auto make_pair(const T1 &first, const T2 &second)
         -> Pair<T1, T2, Compare>
     {

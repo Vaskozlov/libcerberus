@@ -38,6 +38,7 @@ namespace cerb {
         }
 #endif /* ARCH */
 
+        CERBLIB_UNROLL_N(4)
         while (*str != '\0') {
             str++;
             index++;

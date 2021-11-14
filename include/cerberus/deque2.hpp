@@ -36,7 +36,7 @@ namespace cerb::experimental {
             {
                 if (std::is_constant_evaluated()) {
                     CERBLIB_UNROLL_N(4)
-                    for (auto &elem : m_data) {
+                    for (T &elem : m_data) {
                         std::construct_at(&elem);
                     }
                 }

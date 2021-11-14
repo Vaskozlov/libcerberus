@@ -120,7 +120,7 @@ namespace cerb {
      * @return T or ResultType
      */
     template<typename ResultType = EmptyType, typename T>
-    CERBLIB_DECL decltype(auto) abs(T value)
+    CERBLIB_DECL auto abs(T value) -> decltype(auto)
     {
         if constexpr (std::is_unsigned_v<T>) {
             return value;

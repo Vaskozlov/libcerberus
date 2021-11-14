@@ -12,82 +12,83 @@ using namespace cerb::literals;
 enum struct CerberusLexerBlock : size_t
 {
     RESERVED         = 16UL,
-    ARITHMETIC_OPERATOR = 4096UL,
-    BIT_OPERATOR     = 8192UL,
-    KEYWORD          = 16384UL,
-    LOGICAL_OPERATOR = 32768UL,
-    OPERATOR_SEPARATOR = 65536UL,
-    PARSER           = 131072UL,
-    TYPE             = 262144UL,
-    VALUES           = 524288UL,
+    ARITHMETIC_OPERATOR = 64UL,
+    BIT_OPERATOR     = 128UL,
+    KEYWORD          = 256UL,
+    LOGICAL_OPERATOR = 512UL,
+    OPERATOR_SEPARATOR = 1024UL,
+    PARSER           = 2048UL,
+    TYPE             = 4096UL,
+    VALUE            = 8192UL,
 };
 
 enum struct CerberusLexerItem : size_t
 {
     UNDEFINED        = 16UL,
     EoF              = 0UL,
-    ADD              = 4096UL,
-    SUB              = 4097UL,
-    MUL              = 4098UL,
-    DIV              = 4099UL,
-    MOD              = 4100UL,
-    ASSIGN           = 4101UL,
-    ADD_EQ           = 4102UL,
-    SUB_EQ           = 4103UL,
-    MUL_EQ           = 4104UL,
-    DIV_EQ           = 4105UL,
-    MOD_EQ           = 4106UL,
-    OR               = 8192UL,
-    AND              = 8193UL,
-    XOR              = 8194UL,
-    NOT              = 8195UL,
-    OR_EQ            = 8196UL,
-    AND_EQ           = 8197UL,
-    XOR_EQ           = 8198UL,
-    LEFT_SHIFT       = 8199UL,
-    RIGHT_SHIFT      = 8200UL,
-    LEFT_SHIFT_EQ    = 8201UL,
-    RIGHT_SHIFT_EQ   = 8202UL,
-    FOR              = 16384UL,
-    WHILE            = 16385UL,
-    RETURN           = 16386UL,
-    CASE             = 16387UL,
-    SWITCH           = 16388UL,
-    FUNC             = 16389UL,
-    VAR              = 16390UL,
-    LESS             = 32768UL,
-    GREATER          = 32769UL,
-    LOGICAL_NOT      = 32770UL,
-    LESS_EQ          = 32771UL,
-    GREATER_EQ       = 32772UL,
-    LOGICAL_OR       = 32773UL,
-    LOGICAL_AND      = 32774UL,
-    LOGICAL_EQUAL    = 32775UL,
-    LOGICAL_NOT_EQUAL = 32776UL,
-    CURLY_OPENING    = 65536UL,
-    CURLY_CLOSING    = 65537UL,
-    LEFT_PARENTHESIS = 65538UL,
-    RIGHT_PARENTHESIS = 65539UL,
-    ANGLE_OPENING    = 65540UL,
-    ANGLE_CLOSING    = 65541UL,
-    COMMA            = 65542UL,
-    SEPARATOR        = 65543UL,
-    PREPROCESSOR     = 65544UL,
-    QUESTION_MARK    = 65545UL,
-    ARROW            = 65546UL,
-    STMT             = 131072UL,
-    INT_T            = 262145UL,
-    CHAR_T           = 262146UL,
-    FLOAT_T          = 262147UL,
-    DOUBLE_T         = 262148UL,
-    BUILTIN_AUTO_T   = 262149UL,
-    TYPE             = 262144UL,
-    INTEGER          = 524288UL,
-    FLOAT            = 524289UL,
-    DOUBLE           = 524290UL,
-    IDENTIFIER       = 524291UL,
-    CHAR             = 524292UL,
-    STRING           = 524293UL,
+    ADD              = 64UL,
+    SUB              = 65UL,
+    MUL              = 66UL,
+    DIV              = 67UL,
+    MOD              = 68UL,
+    ASSIGN           = 69UL,
+    ADD_EQ           = 70UL,
+    SUB_EQ           = 71UL,
+    MUL_EQ           = 72UL,
+    DIV_EQ           = 73UL,
+    MOD_EQ           = 74UL,
+    OR               = 128UL,
+    AND              = 129UL,
+    XOR              = 130UL,
+    NOT              = 131UL,
+    OR_EQ            = 132UL,
+    AND_EQ           = 133UL,
+    XOR_EQ           = 134UL,
+    LEFT_SHIFT       = 135UL,
+    RIGHT_SHIFT      = 136UL,
+    LEFT_SHIFT_EQ    = 137UL,
+    RIGHT_SHIFT_EQ   = 138UL,
+    FOR              = 256UL,
+    WHILE            = 257UL,
+    RETURN           = 258UL,
+    CASE             = 259UL,
+    SWITCH           = 260UL,
+    FUNC             = 261UL,
+    VAR              = 262UL,
+    LESS             = 512UL,
+    GREATER          = 513UL,
+    LOGICAL_NOT      = 514UL,
+    LESS_EQ          = 515UL,
+    GREATER_EQ       = 516UL,
+    LOGICAL_OR       = 517UL,
+    LOGICAL_AND      = 518UL,
+    LOGICAL_EQUAL    = 519UL,
+    LOGICAL_NOT_EQUAL = 520UL,
+    CURLY_OPENING    = 1024UL,
+    CURLY_CLOSING    = 1025UL,
+    LEFT_PARENTHESIS = 1026UL,
+    RIGHT_PARENTHESIS = 1027UL,
+    ANGLE_OPENING    = 1028UL,
+    ANGLE_CLOSING    = 1029UL,
+    COMMA            = 1030UL,
+    SEPARATOR        = 1031UL,
+    PREPROCESSOR     = 1032UL,
+    QUESTION_MARK    = 1033UL,
+    ARROW            = 1034UL,
+    STMT             = 2048UL,
+    GLOBAL_VIEW      = 2049UL,
+    INT_T            = 4097UL,
+    CHAR_T           = 4098UL,
+    FLOAT_T          = 4099UL,
+    DOUBLE_T         = 4100UL,
+    BUILTIN_AUTO_T   = 4101UL,
+    TYPE             = 4096UL,
+    INTEGER          = 8192UL,
+    FLOAT            = 8193UL,
+    DOUBLE           = 8194UL,
+    IDENTIFIER       = 8195UL,
+    CHAR             = 8196UL,
+    STRING           = 8197UL,
 };
 
 /*
@@ -143,18 +144,19 @@ enum struct CerberusLexerItem : size_t
 %token QUESTION_MARK    "?"
 %token ARROW            "->"
 %token STMT             "____parser_statement"
+%token GLOBAL_VIEW      "____globalView"
 %token INT_T            "int"
 %token CHAR_T           "char"
 %token FLOAT_T          "float"
 %token DOUBLE_T         "double"
 %token BUILTIN_AUTO_T   "__builtin_auto"
-%token TYPE             262144
-%token INTEGER          524288
-%token FLOAT            524289
-%token DOUBLE           524290
-%token IDENTIFIER       524291
-%token CHAR             524292
-%token STRING           524293
+%token TYPE             4096
+%token INTEGER          8192
+%token FLOAT            8193
+%token DOUBLE           8194
+%token IDENTIFIER       8195
+%token CHAR             8196
+%token STRING           8197
 
 
 cerb::Map<CerberusLexerItem, yytokentype> CerberusLexerItemsNamesConverter(
@@ -211,6 +213,7 @@ cerb::Map<CerberusLexerItem, yytokentype> CerberusLexerItemsNamesConverter(
         {CerberusLexerItem::QUESTION_MARK       , yytokentype::QUESTION_MARK},
         {CerberusLexerItem::ARROW               , yytokentype::ARROW},
         {CerberusLexerItem::STMT                , yytokentype::STMT},
+        {CerberusLexerItem::GLOBAL_VIEW         , yytokentype::GLOBAL_VIEW},
         {CerberusLexerItem::INT_T               , yytokentype::TYPE},
         {CerberusLexerItem::CHAR_T              , yytokentype::TYPE},
         {CerberusLexerItem::FLOAT_T             , yytokentype::TYPE},
@@ -237,7 +240,7 @@ inline cerb::Map<CerberusLexerBlock, cerb::string_view> CerberusLexerBlockNames(
         { CerberusLexerBlock::OPERATOR_SEPARATOR, "OPERATOR_SEPARATOR"_sv },
         { CerberusLexerBlock::PARSER, "PARSER"_sv },
         { CerberusLexerBlock::TYPE, "TYPE"_sv },
-        { CerberusLexerBlock::VALUES, "VALUES"_sv },
+        { CerberusLexerBlock::VALUE, "VALUE"_sv },
     }
 );
 
@@ -295,6 +298,7 @@ inline cerb::Map<CerberusLexerItem, cerb::string_view> CerberusLexerItemItemsNam
         { CerberusLexerItem::QUESTION_MARK, "QUESTION_MARK"_sv },
         { CerberusLexerItem::ARROW, "ARROW"_sv },
         { CerberusLexerItem::STMT, "STMT"_sv },
+        { CerberusLexerItem::GLOBAL_VIEW, "GLOBAL_VIEW"_sv },
         { CerberusLexerItem::INT_T, "INT_T"_sv },
         { CerberusLexerItem::CHAR_T, "CHAR_T"_sv },
         { CerberusLexerItem::FLOAT_T, "FLOAT_T"_sv },
@@ -402,16 +406,17 @@ struct CerberusLexer: public CERBERUS_LEX_PARENT_CLASS
             { FUNC, "func"_sv, true, 2 },
             { VAR, "var"_sv, true, 2 },
             { STMT, "____parser_statement"_sv, true, 2 },
+            { GLOBAL_VIEW, "____globalView"_sv, true, 2 },
             { INT_T, "int"_sv, true, 2 },
             { CHAR_T, "char"_sv, true, 2 },
             { FLOAT_T, "float"_sv, true, 2 },
             { DOUBLE_T, "double"_sv, true, 2 },
             { BUILTIN_AUTO_T, "__builtin_auto"_sv, true, 2 },
-            { TYPE, "TYPE"_sv, false, 18 },
-            { INTEGER, "[0-9]+"_sv, false, 19 },
-            { FLOAT, "[0-9]+[.][0-9]*[f]"_sv, false, 19 },
-            { DOUBLE, "[0-9]+[.][0-9]*"_sv, false, 19 },
-            { IDENTIFIER, "[a-zA_Z_]+[a-zA-Z0-9_]*"_sv, false, 19 }
+            { TYPE, "TYPE"_sv, false, 12 },
+            { INTEGER, "[0-9]+"_sv, false, 13 },
+            { FLOAT, "[0-9]+[.][0-9]*[f]"_sv, false, 13 },
+            { DOUBLE, "[0-9]+[.][0-9]*"_sv, false, 13 },
+            { IDENTIFIER, "[a-zA_Z_]+[a-zA-Z0-9_]*"_sv, false, 13 }
         },
         {
             { 

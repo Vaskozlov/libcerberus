@@ -412,7 +412,7 @@ private:
 
     auto set_power() -> void
     {
-        constexpr unsigned long MinimumPower = 12;
+        constexpr unsigned long MinimumPower = 6;
         cerb::gl::Set<u16, bitsizeof(uintmax_t)> taken_powers{};
 
         for (auto &block : m_blocks) {
@@ -509,7 +509,7 @@ private:
         generated_string += "};\n\n";
     }
 
-    auto generate_comment_for_yacc(size_t rules_count) -> void
+    auto generate_comment_for_yacc() -> void
     {
         generated_string += "/*\n";
         std::string tokens_string{};
@@ -929,7 +929,7 @@ public:
         size_t rules_count = give_id();
         generate_block_enum();
         generate_item_enum();
-        generate_comment_for_yacc(rules_count);
+        generate_comment_for_yacc();
         generate_block_names();
         generate_item_names();
         generate_converters_and_printers();

@@ -15,14 +15,14 @@ namespace cerb {
         template<typename T1, typename T2, size_t Size, bool MayThrow = true>
         class Map
           : public PRIVATE::gl::
-                BasicSet<Pair<T1, T2, BY_FIRST_VALUE>, Size, MayThrow>
+                BasicSet<Pair<T1, T2, PairRule::BY_FIRST_VALUE>, Size, MayThrow>
         {
             using key_type         = T1;
             using value_type       = T2;
             using const_key_type   = const T1;
             using const_value_type = const T2;
-            using map_elem         = Pair<T1, T2, BY_FIRST_VALUE>;
-            using const_map_elem   = const Pair<T1, T2, BY_FIRST_VALUE>;
+            using map_elem         = Pair<T1, T2, PairRule::BY_FIRST_VALUE>;
+            using const_map_elem   = const Pair<T1, T2, PairRule::BY_FIRST_VALUE>;
             using parent           = PRIVATE::gl::BasicSet<map_elem, Size, MayThrow>;
 
         public:
@@ -122,9 +122,9 @@ namespace cerb {
         typename Compare = less<void>,
         typename Alloc   = std::allocator<T1>>
     class CERBLIB_TRIVIAL Map
-      : public PRIVATE::RBTree<Pair<const T1, T2, BY_FIRST_VALUE>, Compare, Alloc>
+      : public PRIVATE::RBTree<Pair<const T1, T2, PairRule::BY_FIRST_VALUE>, Compare, Alloc>
     {
-        using value_type = Pair<const T1, T2, BY_FIRST_VALUE>;
+        using value_type = Pair<const T1, T2, PairRule::BY_FIRST_VALUE>;
         using BasicTree  = PRIVATE::RBTree<value_type, Compare, Alloc>;
         using Node = typename PRIVATE::RBTree<value_type, Compare, Alloc>::Node;
 

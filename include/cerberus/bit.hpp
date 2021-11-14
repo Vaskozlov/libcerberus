@@ -59,15 +59,7 @@ namespace cerb {
         static_assert(
             sizeof(TO) == sizeof(FROM) && std::is_trivially_copyable_v<FROM> &&
             std::is_trivially_copyable_v<TO>);
-#if __cplusplus >= 202002L
         return std::bit_cast<TO>(x);
-#else
-        union {
-            FROM current;
-            TO target;
-        } u = { x };
-        return u.target;
-#endif /* C++20 */
     }
 
     template<typename T>
@@ -89,7 +81,6 @@ namespace cerb {
             return !operator==(value);
         }
 
-    public:
         template<unsigned long SIZE>
         consteval explicit BitPattern(const char (&input)[SIZE])
         {

@@ -12,23 +12,23 @@ using namespace cerb::literals;
 enum struct CalculatorBlock : size_t
 {
     RESERVED         = 16UL,
-    FUNCTION         = 4096UL,
-    OPERATORS        = 8192UL,
-    SEPARATOR        = 16384UL,
-    VALUE            = 32768UL,
+    FUNCTION         = 64UL,
+    OPERATORS        = 128UL,
+    SEPARATOR        = 256UL,
+    VALUE            = 512UL,
 };
 
 enum struct CalculatorItem : size_t
 {
     UNDEFINED        = 16UL,
     EoF              = 0UL,
-    SIN              = 4096UL,
-    ADD              = 8192UL,
-    SUB              = 8193UL,
-    MUL              = 8194UL,
-    LEFT_PARENTHESIS = 16384UL,
-    RIGHT_PARENTHESIS = 16385UL,
-    INT              = 32768UL,
+    SIN              = 64UL,
+    ADD              = 128UL,
+    SUB              = 129UL,
+    MUL              = 130UL,
+    LEFT_PARENTHESIS = 256UL,
+    RIGHT_PARENTHESIS = 257UL,
+    INT              = 512UL,
 };
 
 /*
@@ -40,7 +40,7 @@ enum struct CalculatorItem : size_t
 %token MUL              "*"
 %token LEFT_PARENTHESIS "("
 %token RIGHT_PARENTHESIS ")"
-%token INT              32768
+%token INT              512
 
 
 cerb::Map<CalculatorItem, yytokentype> CalculatorItemsNamesConverter(
@@ -167,7 +167,7 @@ struct Calculator: public CERBERUS_LEX_PARENT_CLASS
         UNDEFINED,
         {
             { SIN, "sin"_sv, true, 2 },
-            { INT, "[0-9]+"_sv, false, 15 }
+            { INT, "[0-9]+"_sv, false, 9 }
         },
         {
             { 

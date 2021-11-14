@@ -28,7 +28,6 @@ namespace cerb::PRIVATE {
             return (*m_elem & (static_cast<T>(1) << m_bitIndex)) != 0;
         }
 
-    public:
         auto operator=(BitmapElem &&) noexcept -> BitmapElem & = default;
         auto operator=(const BitmapElem &) noexcept -> BitmapElem & = default;
 
@@ -39,12 +38,11 @@ namespace cerb::PRIVATE {
             return *this;
         }
 
-    public:
         ~BitmapElem()                      = default;
         BitmapElem(BitmapElem &)           = default;
         BitmapElem(BitmapElem &&) noexcept = default;
 
-        constexpr CERBLIB_INLINE BitmapElem(u16 bitIndex, T *elem) noexcept
+        constexpr BitmapElem(u16 bitIndex, T *elem) noexcept
           : m_bitIndex(bitIndex), m_elem(elem)
         {}
     };
@@ -101,7 +99,7 @@ namespace cerb::PRIVATE {
         auto arrayIndex = index / bitsizeof(value_type);
         auto bitIndex   = index % bitsizeof(value_type);
 
-        constexprFor<0, AxisCount, 1>([&](auto i) {
+        constexprFor<0, AxisCount, 1>([arrayIndex, bitIndex, data](auto i) {
             if constexpr (value == 1) {
                 data[i.value][arrayIndex] |= static_cast<value_type>(1) << bitIndex;
             } else {
@@ -131,6 +129,7 @@ namespace cerb::PRIVATE {
     {
         CERBLIB_UNROLL_N(2)
         for (size_t i = 0; i < AxisCount && isEmpty(data[i], limit); ++i) {}
+
         return true;
     }
 
@@ -380,7 +379,6 @@ namespace cerb {
     private:
         storage_t m_data{};
 
-    private:
         constexpr auto copyFrom(const_ref_storage_t src) noexcept
         {
             CERBLIB_UNROLL_N(2)
@@ -451,7 +449,6 @@ namespace cerb {
             return m_data;
         }
 
-    public:
         template<size_type AxisN>
         constexpr auto clear() noexcept -> void
         {
@@ -464,7 +461,6 @@ namespace cerb {
             constexprFor<0, Axis, 1>([&](auto i) { clear<i.value>(); });
         }
 
-    public:
         template<u8 value>
         constexpr auto set(size_type index) noexcept -> void
         {
@@ -544,7 +540,6 @@ namespace cerb {
             return PRIVATE::atAxis<const_ref_storage_elem_t>(index, m_data[AxisN]);
         }
 
-    public:
         constexpr auto operator=(const ConstBitmap &other) noexcept -> ConstBitmap &
         {
             if (&other == this) {
@@ -561,7 +556,6 @@ namespace cerb {
             return *this;
         }
 
-    public:
         constexpr ConstBitmap() noexcept = default;
 
         constexpr ConstBitmap(const ConstBitmap &other) noexcept
@@ -587,7 +581,6 @@ namespace cerb {
         using pointer          = value_type *;
         using const_pointer    = const pointer;
 
-    public:
         using storage_t           = std::array<pointer, Axis>;
         using ref_storage_t       = std::array<pointer, Axis> &;
         using const_storage_t     = const std::array<pointer, Axis>;
@@ -597,7 +590,6 @@ namespace cerb {
         size_type m_size{ 0 };
         storage_t m_data{};
 
-    private:
         constexpr auto copyFrom(ref_storage_t src) noexcept
         {
             if (std::is_constant_evaluated()) {
@@ -675,7 +667,6 @@ namespace cerb {
             return m_data;
         }
 
-    public:
         template<size_type AxisN>
         constexpr auto clear() noexcept -> void
         {
@@ -688,7 +679,6 @@ namespace cerb {
             constexprFor<0, Axis, 1>([&](auto i) { clear<i.value>(); });
         }
 
-    public:
         template<u8 value>
         constexpr auto set(size_type index) noexcept -> void
         {
@@ -767,7 +757,6 @@ namespace cerb {
             return PRIVATE::atAxis<pointer>(index, m_data[AxisN]);
         }
 
-    public:
         template<size_type OAxis, bool OFreestanding>
         constexpr auto operator=(const Bitmap<OAxis, OFreestanding> &other) noexcept(
             Freestanding) -> Bitmap &
@@ -809,7 +798,6 @@ namespace cerb {
             other.m_size = 0;
         }
 
-    public:
         constexpr Bitmap(Bitmap &&other) noexcept : m_size(other.m_size)
         {
             memcpy(m_data, other.m_data, axis());
