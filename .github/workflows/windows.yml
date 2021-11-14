@@ -6,7 +6,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config_type: []
+        config_type: [Release]
         platform_type: [x64]
     name: VS2019 (${{ matrix.config_type }} ${{ matrix.platform_type }})
     runs-on: windows-2019
