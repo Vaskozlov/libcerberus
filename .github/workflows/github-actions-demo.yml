@@ -27,7 +27,7 @@ jobs:
           brew install ${{ matrix.config.dependencies }}
       - name: Build
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake CC=gcc-11 CXX=g++-11 -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build -j2
       - name: Install
         run: |
