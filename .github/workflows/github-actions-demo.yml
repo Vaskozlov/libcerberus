@@ -12,13 +12,13 @@ jobs:
             cc: gcc
             cxx: g++
             version: 11
-            dependencies: libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev
+            dependencies: libfmt-dev gcc-11 g++-11
           - name: Linux CLANG
             os: ubuntu-latest
             cc: clang
             cxx: clang++
             version: 12
-            dependencies: libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev
+            dependencies: libfmt-dev clang-12 clang++-12
     name: CMake (${{ matrix.config.name }})
     runs-on: ${{ matrix.config.os }}
     steps:
