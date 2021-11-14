@@ -1,11 +1,37 @@
-name: learn-github-actions
-on: [push]
+
+name: CMake
+
+on: [push, pull_request]
 jobs:
-  check-bats-version:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: Linux
+            os: ubuntu-latest
+            dependencies: fmt
+          - name: macOS SDL2
+            os: macos-latest
+            dependencies: fmt
+    name: CMake (${{ matrix.config.name }})
+    runs-on: ${{ matrix.config.os }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-      - run: npm install -g fmt
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install dependencies (Linux)
+        if: ${{ matrix.config.os == 'ubuntu-latest' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.config.dependencies }}
+      - name: Install dependencies (macOS)
+        if: ${{ matrix.config.os == 'macos-latest' }}
+        run: |
+          brew install ${{ matrix.config.dependencies }}
+      - name: Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j2
+      - name: Install
+        run: |
+          sudo cmake --install build
