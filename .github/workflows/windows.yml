@@ -1,9 +1,6 @@
 name: VS2019
 
-on:
-  pull_request:
-    branches: [ master ]
-
+on: [ push, pull_request ]
 jobs:
   build:
     strategy:
