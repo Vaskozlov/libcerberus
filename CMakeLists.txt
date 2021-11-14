@@ -36,12 +36,6 @@ file(
 
 file(
         GLOB_RECURSE
-        CALCULATOR_OBJS
-        "example/calculator/calculator.cpp"
-)
-
-file(
-        GLOB_RECURSE
         CERBERUS_LN_OBJS
         "example/cerberus/Cerberus.cpp"
 )
@@ -55,12 +49,6 @@ add_executable(
         cerb2lex
         ${CERB2LEX_OBJS}
 )
-
-add_executable(
-        calculator
-        ${CALCULATOR_OBJS}
-)
-
 
 add_executable(
         cerberus
@@ -77,11 +65,6 @@ target_link_libraries(
 
 target_link_libraries(
         cerb2lex
-        fmt::fmt
-)
-
-target_link_libraries(
-        calculator
         fmt::fmt
 )
 
