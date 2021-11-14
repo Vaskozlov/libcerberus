@@ -10,10 +10,7 @@ jobs:
         config:
           - name: Linux
             os: ubuntu-latest
-            dependencies: fmt
-          - name: macOS SDL2
-            os: macos-latest
-            dependencies: fmt
+            dependencies: libfmt-dev
     name: CMake (${{ matrix.config.name }})
     runs-on: ${{ matrix.config.os }}
     steps:
