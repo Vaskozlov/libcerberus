@@ -48,9 +48,6 @@ namespace cerb {
         ALIGN
     };
 
-    template<typename T = double>
-    constexpr T PI = static_cast<T>(3.14159265358979323846);
-
     /**
      * @brief returns maximum value of lhs and rhs
      *

@@ -104,16 +104,8 @@ auto deque_test() -> int
 
 auto main() -> int
 {
-
-    int test[10];
-    int test2[10];
-
-    //CalculatorImp calculator{};
     Lex4CImp C_lexer{};
-
-    // calculator.scan("50 + 20", "stdio");
     auto begin = std::chrono::high_resolution_clock::now();
-    // calculator.scan("sin(20) + 30", "stdio");
     C_lexer.scan(input, "stdio");
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - begin;
@@ -121,11 +113,3 @@ auto main() -> int
 
      return 0;
 }
-
-/*
- * TODO:
- *  1) if string is to long print half on it on error
- *
- *  1) как генерировать таблицу автоматически
- *
- */

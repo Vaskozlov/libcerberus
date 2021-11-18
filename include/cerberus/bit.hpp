@@ -41,7 +41,6 @@ namespace cerb {
             }
         }
 
-    public:
         constexpr explicit ByteMask(T t_value) : value(t_value)
         {}
     };
