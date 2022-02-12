@@ -1,11 +1,12 @@
 #ifndef CERBERUS_EXCEPTIONS_HPP
 #define CERBERUS_EXCEPTIONS_HPP
 
-#include <utility>
-#include <stdexcept>
+#include <cerberus/string_view.hpp>
 #include <cerberus/types.h>
-#include <fmt/format.h>
 #include <fmt/color.h>
+#include <fmt/format.h>
+#include <stdexcept>
+#include <utility>
 
 using namespace cerb::literals;
 using namespace std::string_literals;
@@ -76,7 +77,8 @@ namespace cerb::analysis {
             cerb::max(line.begin(), item.get_begin_of_token()),
             cerb::min(line.end(), item.get_begin_of_token() + repr.size() + 40)
         };
-        auto repr_offset = static_cast<int>(item.get_begin_of_token() - final_repr.begin());
+        auto repr_offset =
+            static_cast<int>(item.get_begin_of_token() - final_repr.begin());
 
         fmt::print(
             "Syntax analysis error! At: file: {}, line: {}, column: {}\n",

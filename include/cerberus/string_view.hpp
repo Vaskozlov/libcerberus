@@ -1,9 +1,9 @@
 #ifndef CERBERUS_STRING_VIEW_HPP
 #define CERBERUS_STRING_VIEW_HPP
 
-#include <cerberus/types.h>
 #include <cerberus/math.hpp>
 #include <cerberus/string.hpp>
+#include <cerberus/types.h>
 
 namespace cerb {
     template<typename CharT>
@@ -16,7 +16,7 @@ namespace cerb {
         {
 #ifdef __x86_64__
             if constexpr (sizeof(CharT) == sizeof(char)) {
-                return cerb::strlen(static_cast<const char*>(str));
+                return cerb::strlen(static_cast<const char *>(str));
             }
 #endif /* __x86_64__ */
 

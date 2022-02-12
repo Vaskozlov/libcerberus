@@ -1,9 +1,9 @@
 #ifndef CERBERUS_LEX_HPP
 #define CERBERUS_LEX_HPP
 
-#include <cerberus/deque.hpp>
-#include <cerberus/analyzation/lex/dot_item.hpp>
 #include <cerberus/analyzation/exceptions.hpp>
+#include <cerberus/analyzation/lex/dot_item.hpp>
+#include <cerberus/deque.hpp>
 
 #define CERBERUS_LEX_PARENT_CLASS                                                   \
     cerb::lex::LexicalAnalyzer<                                                     \

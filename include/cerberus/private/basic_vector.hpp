@@ -1,10 +1,10 @@
 #ifndef CERBERUS_BASIC_VECTOR_HPP
 #define CERBERUS_BASIC_VECTOR_HPP
 
-#include <memory>
-#include <cerberus/types.h>
-#include <cerberus/math.hpp>
 #include <cerberus/algorithms.hpp>
+#include <cerberus/math.hpp>
+#include <cerberus/types.h>
+#include <memory>
 
 namespace cerb::PRIVATE {
     template<typename T, typename Alloc = std::allocator<T>>
@@ -67,7 +67,6 @@ namespace cerb::PRIVATE {
             }
         }
 
-    protected:
         class CERBLIB_TRIVIAL iterator
         {
             pointer m_p;
@@ -76,7 +75,6 @@ namespace cerb::PRIVATE {
             using iterator_category = std::bidirectional_iterator_tag;
             using difference_type   = ptrdiff_t;
 
-        public:
             constexpr auto operator++() -> iterator &
             {
                 ++m_p;
@@ -123,16 +121,12 @@ namespace cerb::PRIVATE {
                 return m_p;
             }
 
-        public:
-            constexpr auto operator==(const iterator &) const -> bool = default;
-            constexpr auto operator<=>(const iterator &) const        = default;
+            constexpr auto operator<=>(const iterator &) const = default;
 
-        public:
             constexpr auto operator=(const iterator &) noexcept
                 -> iterator      & = default;
             constexpr auto operator=(iterator &&) noexcept -> iterator & = default;
 
-        public:
             constexpr iterator() noexcept  = default;
             constexpr ~iterator() noexcept = default;
 
